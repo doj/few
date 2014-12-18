@@ -89,6 +89,9 @@ namespace doj
     public:
 	typedef T element_type;	///< makes template parameter T accessible
 
+	typedef T* iterator;
+	typedef const T* const_iterator;
+
 	/** construct a memory map from a file.
 	    @param fn filename of file in local file system.
 	    @param readonly if true the file is mapped with write protection and exclusive access, if false the memory area can be written to and the file is mapped shared.
@@ -112,15 +115,18 @@ namespace doj
 	/// @return mapped file as object reference
 	T& operator*() { return *p; }
 	/// @return pointer to beginning of mapped file
-	T* operator->() { return p; }
+	T* operator->() const { return p; }
 	/// @return pointer to beginning of mapped file
-	T* get() { return p; }
+	T* get() const { return p; }
 
 	/// @return true if no file is mapped
 	bool operator!() const { return !p; }
 
 	/// @return true if no file is mapped, or file has length of 0 bytes
 	bool empty() const { return !p || size()==0; }
+
+	iterator begin() const { return p; }
+	iterator end() const { return p + size(); }
 
     private:
 	//lint --e{1704} we want those function to be private

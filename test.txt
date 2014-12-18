@@ -1,0 +1,25 @@
+This is a test file for the fewer program.
+
+
+It current contains 25 lines.
+
+
+
+
+
+This is line #10.
+
+
+
+
+
+
+
+
+
+This is line #20.
+
+
+
+
+This is the last line #25.

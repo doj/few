@@ -3,7 +3,7 @@ INCLUDE_FLAGS += -I.
 
 CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_FLAGS) -std=c++11
 
-SRCS = realmain.cc memorymap.cc
+SRCS = realmain.cc memorymap.cc file_index.cc
 OBJS = $(SRCS:.cc=.o)
 
 all:	run_test fewer

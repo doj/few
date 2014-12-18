@@ -1,0 +1,5 @@
+- automatic dependencies for source files
+
+- filter lines with regex
+- modify how lines are displayed with regex
+- display lines with curses
