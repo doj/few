@@ -10,6 +10,6 @@ TEST(regex_index, does_filter_non_empty_lines)
 {
     file_t f("test.txt");
     file_index f_idx(f);
-    regex_index r_idx(f_idx, "\\S+");
-    //ASSERT_GT(3, r_idx.lines());
+    regex_index r_idx(f_idx, "\\S+", "");
+    ASSERT_GE(r_idx.size(), 3u);
 }

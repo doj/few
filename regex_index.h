@@ -8,11 +8,13 @@
 class regex_index
 {
 public:
-    typedef std::vector<line_t> line_vec_t;
+    typedef std::vector<unsigned> index_vec_t;
 
 protected:
-    line_vec_t line_;
+    index_vec_t index_vec;
 
 public:
-    regex_index(const file_index& f_idx, const std::string& rgx);
+    regex_index(file_index& f_idx, const std::string& rgx, const std::string& flags);
+
+    unsigned size() const { return index_vec.size(); }
 };

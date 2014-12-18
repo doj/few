@@ -96,6 +96,9 @@ public:
 	    if (is_end()) {
 		return f_idx_->line_[0];
 	    }
+	    if (line_num_ == 0) {
+		++(*this);
+	    }
 	    assert(line_num_ <= f_idx_->lines());
 	    line_t l = f_idx_->line_[line_num_];
 	    assert(l.num_ == line_num_);
