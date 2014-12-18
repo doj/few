@@ -5,21 +5,26 @@
 
 #pragma once
 #include <string>
+#include <cassert>
 
 class line_t
 {
-    const char *begin_;
-    const char *end_;
-
 public:
-    line_t(const char *begin, const char *end) :
-	begin_(begin),
-	end_(end)
-    {}
+    const char *beg_;
+    const char *end_;
+    /*const*/ unsigned num_;
+
+    line_t(const char *begin, const char *end, const unsigned num) :
+	beg_(begin),
+	end_(end),
+	num_(num)
+    {
+	assert(beg_ <= end_);
+    }
 
     std::string to_string() const
     {
-	return std::string(begin_, end_);
+	return std::string(beg_, end_);
     }
 
 };

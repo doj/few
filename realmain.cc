@@ -18,7 +18,7 @@ int realmain(int argc, const char* argv[])
 
     doj::memorymap_ptr<char> file_ptr(argv[1]);
     if (file_ptr.empty()) {
-	std::cerr << "could not memory map " << argv[1] << std::endl;
+	std::cerr << "could not memory map: " << argv[1] << std::endl;
 	return EX_NOINPUT;
     }
 
