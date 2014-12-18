@@ -22,6 +22,8 @@ class file_index
      */
     bool parse_line(const unsigned index);
 
+    void push_line(file_t::const_iterator beg, file_t::const_iterator end, file_t::const_iterator next, const unsigned num);
+
 public:
     explicit file_index(const file_t& f);
 

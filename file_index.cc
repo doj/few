@@ -10,7 +10,7 @@ file_index::file_index(const file_t& f) :
     file_(f)
 {
     // we start counting lines with number 1. So add an invalid pointer to index 0.
-    line_.push_back(line_t(nullptr, nullptr, 0));
+    line_.push_back(line_t(nullptr, nullptr, nullptr, 0));
 }
 
 bool file_index::parse_line(const unsigned index)
@@ -29,7 +29,7 @@ bool file_index::parse_line(const unsigned index)
     file_t::const_iterator it = nullptr;
     if (index > 1 && lines() > 0) {
 	line_t current_line = line_[lines()];
-	it = current_line.end_;
+	it = current_line.next_;
 	num = current_line.num_;
     } else {
 	it = file_.begin();
@@ -40,24 +40,39 @@ bool file_index::parse_line(const unsigned index)
     }
 
     file_t::const_iterator beg = it;
-    file_t::const_iterator end = nullptr;
     while(num < index) {
 	if (*it == '\n') {
-	    end = it + 1;
-	    line_.push_back(line_t(beg, end, ++num));
-	    beg = end;
+	    file_t::const_iterator next = it + 1;
+	    push_line(beg, it, next, ++num);
+	    beg = next;
 	}
 	++it;
 	if (it == file_.end()) {
 	    if (it != beg) {
-		end = it;
-		line_.push_back(line_t(beg, end, ++num));
+		push_line(beg, it, nullptr, ++num);
 	    }
 	    break;
 	}
     }
 
     return num == index;
+}
+
+void
+file_index::push_line(file_t::const_iterator beg, file_t::const_iterator end, file_t::const_iterator next, const unsigned num)
+{
+    while(beg < end) {
+	if (*(end - 1) == '\n') {
+	    --end;
+	    continue;
+	}
+	if (*(end - 1) == '\r') {
+	    --end;
+	    continue;
+	}
+	break;
+    }
+    line_.push_back(line_t(beg, end, next, num));
 }
 
 /// \todo remove this function once we have a better compiler!
