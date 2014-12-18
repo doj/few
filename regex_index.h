@@ -4,14 +4,15 @@
  */
 #pragma once
 #include "file_index.h"
+#include <set>
 
 class regex_index
 {
 public:
-    typedef std::vector<unsigned> index_vec_t;
+    typedef std::set<unsigned> index_set_t;
 
 protected:
-    index_vec_t index_vec;
+    index_set_t index_set_;
 
 public:
     /**
@@ -24,5 +25,20 @@ public:
      */
     regex_index(file_index& f_idx, const std::string& rgx, const std::string& flags);
 
-    unsigned size() const { return index_vec.size(); }
+    unsigned size() const { return index_set_.size(); }
+
+    const index_set_t& index_set() const { return index_set_; }
+
+    /**
+     * intersect the object's index set with s.
+     * Only the elements common to the object's index set and s are included in the result set.
+     * @param[in] s index set.
+     * @return new set with the common elements.
+     */
+    index_set_t intersect(const index_set_t& s);
+
+    index_set_t intersect(const regex_index& r)
+    {
+	return intersect(r.index_set());
+    }
 };

@@ -29,3 +29,16 @@ TEST(regex_index, not_flag)
     regex_index r_idx(f_idx, "#", "!");
     ASSERT_GE(r_idx.size(), 3u);
 }
+
+TEST(regex_index, intersect_works)
+{
+    file_t f("test.txt");
+    file_index f_idx(f);
+
+    regex_index a(f_idx, "#", "!");
+
+    regex_index b(f_idx, "contains", "");
+    auto s = b.intersect(a);
+
+    ASSERT_EQ(1u, s.size());
+}

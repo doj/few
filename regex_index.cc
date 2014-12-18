@@ -25,9 +25,23 @@ regex_index::regex_index(file_index& f_idx, const std::string& rgx, const std::s
 	bool res = std::regex_search(line.beg_, line.end_, r);
 	if (( positive_match &&  res) ||
 	    (!positive_match && !res)) {
-	    index_vec.push_back(line.num_);
+	    index_set_.insert(line.num_);
 	    //std::clog << " !match!";
 	}
 	//std::clog << std::endl;
     }
+}
+
+regex_index::index_set_t
+regex_index::intersect(const regex_index::index_set_t& s)
+{
+    index_set_t res;
+    if (! s.empty()) {
+	for(auto i : index_set_) {
+	    if (s.count(i)) {
+		res.insert(i);
+	    }
+	}
+    }
+    return res;
 }
