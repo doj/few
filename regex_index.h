@@ -14,6 +14,14 @@ protected:
     index_vec_t index_vec;
 
 public:
+    /**
+     * filter f_idx with the regular expression rgx.
+     * The string flags can contain the following characters to modify the regular expression matching:
+     * - i case insensitive.
+     * - ! negative regex, will match all lines *not* matching rgx.
+     *
+     * @throws std::runtime_error if regular expression could not be parsed.
+     */
     regex_index(file_index& f_idx, const std::string& rgx, const std::string& flags);
 
     unsigned size() const { return index_vec.size(); }

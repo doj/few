@@ -1,3 +1,4 @@
-- filter lines with regex
+- merge multiple regex_index
+
 - modify how lines are displayed with regex
 - display lines with curses
