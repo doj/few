@@ -4,6 +4,7 @@
  */
 #pragma once
 #include "memorymap.h"
+#include "line.h"
 #include <vector>
 
 typedef doj::memorymap_ptr<char> file_t;
@@ -18,7 +19,9 @@ public:
 
     unsigned lines() const
     {
-	return line_.size();
+	return line_.size() - 1;
     }
+
+    line_t line(const unsigned idx);
 
 };
