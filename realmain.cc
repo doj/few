@@ -64,6 +64,13 @@ namespace {
 	}
     };
 
+    void fill(unsigned y, unsigned x)
+    {
+	while(x < screen_width) {
+	    mvaddch(y, x++, ' ');
+	}
+    }
+
     void refresh_lines()
     {
 	unsigned y = 0;
@@ -77,16 +84,20 @@ namespace {
 	    }
 
 	    const line_t line = f_idx->line(i);
+	    const unsigned line_num_width = digits(i) + 1;
 
 	    // empty line?
 	    if (line.beg_ == line.end_) {
-		curses_attr a(A_REVERSE);
-		mvprintw(y++, 0, "%i:", line.num_);
+		{
+		    curses_attr a(A_REVERSE);
+		    mvprintw(y, 0, "%i:", line.num_);
+		}
+		fill(y, line_num_width);
+		++y;
 		continue;
 	    }
 
 	    const char *beg = line.beg_;
-	    const unsigned line_num_width = digits(i) + 1;
 	    while(beg < line.end_)
 	    {
 		{
@@ -103,8 +114,13 @@ namespace {
 		while(beg < line.end_ && x < screen_width) {
 		    mvaddch(y, x++, *beg++);
 		}
+		fill(y, x);
 		++y;
 	    }
+	}
+
+	while(y < w_lines_height) {
+	    fill(y++, 0);
 	}
     }
 
@@ -179,10 +195,23 @@ namespace {
 	refresh();
     }
 
-    void key_down()
+    void key_down_impl()
     {
 	// \todo check that we really can move further down.
 	++top_line;
+    }
+
+    void key_down()
+    {
+	refresh_lines();
+	refresh();
+    }
+
+    void key_npage()
+    {
+	for(unsigned i = 0; i < w_lines_height; ++i) {
+	    key_down_impl();
+	}
 	refresh_lines();
 	refresh();
     }
@@ -228,6 +257,21 @@ int realmain(int argc, const char* argv[])
 	case '/': enter_search(); break;
 	case KEY_UP: key_up(); break;
 	case KEY_DOWN: key_down(); break;
+
+	case ' ':
+	case KEY_NPAGE:
+	    key_npage();
+	    break;
+
+	case 'b':
+	case KEY_PPAGE:
+	    break;
+
+	case 'g':
+	    break;
+
+	case 'G':
+	    break;
 	}
     }
 
