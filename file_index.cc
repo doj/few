@@ -7,7 +7,8 @@
 #include <cassert>
 
 file_index::file_index(const file_t& f) :
-    file_(f)
+    file_(f),
+    has_parsed_all_(false)
 {
     // we start counting lines with number 1. So add an invalid pointer to index 0.
     line_.push_back(line_t(nullptr, nullptr, nullptr, 0));
@@ -18,6 +19,7 @@ bool file_index::parse_line(const unsigned index)
     //asm("int3");
 
     if (file_.empty()) {
+	has_parsed_all_ = true;
 	return false;
     }
 
@@ -51,6 +53,7 @@ bool file_index::parse_line(const unsigned index)
 	    if (it != beg) {
 		push_line(beg, it, nullptr, ++num);
 	    }
+	    has_parsed_all_ = true;
 	    break;
 	}
     }
@@ -95,4 +98,18 @@ line_t file_index::line(const unsigned idx)
 	}
     }
     return line_[idx];
+}
+
+index_set_t
+file_index::index_set()
+{
+    if (! has_parsed_all_) {
+	parse_all();
+    }
+    assert(has_parsed_all_);
+    index_set_t s;
+    for(unsigned i = 1; i <= lines(); ++i) {
+	s.insert(i);
+    }
+    return s;
 }

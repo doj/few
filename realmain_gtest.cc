@@ -29,13 +29,3 @@ TEST(realmain, recognizes_non_existing_file)
     };
     ASSERT_EQ(EX_NOINPUT, realmain(2,argv));
 }
-
-TEST(realmain, can_open_existing_file)
-{
-    const char* argv[] = {
-	"fewer",
-	"README.md",
-	NULL
-    };
-    ASSERT_EQ(EXIT_SUCCESS, realmain(2,argv));
-}

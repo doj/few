@@ -4,13 +4,9 @@
  */
 #pragma once
 #include "file_index.h"
-#include <set>
 
 class regex_index
 {
-public:
-    typedef std::set<unsigned> index_set_t;
-
 protected:
     index_set_t index_set_;
 

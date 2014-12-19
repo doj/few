@@ -7,13 +7,16 @@
 #include "line.h"
 #include <vector>
 #include <cassert>
+#include <set>
 
 typedef doj::memorymap_ptr<char> file_t;
+typedef std::set<unsigned> index_set_t;
 
 class file_index
 {
     const file_t& file_;
     std::vector<line_t> line_;
+    bool has_parsed_all_;
 
     /**
      * parse line number "index" from the file.
@@ -121,6 +124,9 @@ public:
 
     void parse_all()
     {
+	if (has_parsed_all_) {
+	    return;
+	}
 #if 1
 	for(auto l : *this) { (void)l; }
 #else
@@ -130,5 +136,7 @@ public:
 	}
 #endif
     }
+
+    index_set_t index_set();
 
 };

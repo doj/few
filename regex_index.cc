@@ -32,8 +32,8 @@ regex_index::regex_index(file_index& f_idx, const std::string& rgx, const std::s
     }
 }
 
-regex_index::index_set_t
-regex_index::intersect(const regex_index::index_set_t& s)
+index_set_t
+regex_index::intersect(const index_set_t& s)
 {
     index_set_t res;
     if (! s.empty()) {
