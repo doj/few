@@ -73,6 +73,33 @@ namespace {
 	}
     }
 
+    unsigned print_line_prefix(const unsigned y, const unsigned line_num, const unsigned line_len, const unsigned line_num_width)
+    {
+	unsigned x = 0;
+
+	curses_attr a(A_REVERSE);
+
+	const unsigned line_len_w = digits(line_len) + 1;
+	const unsigned line_num_w = digits(line_num) + 1;
+
+	// is there enough space to print the line length?
+	if (line_len_w + line_num_w <= line_num_width) {
+	    curses_attr a(A_BOLD);
+	    mvprintw(y, x, "%u ", line_len);
+	    x += line_len_w;
+	}
+
+	// print spaces to separate the numbers
+	for(; x < line_num_width - line_num_w; ++x) {
+	    mvaddch(y, x, ' ');
+	}
+
+	mvprintw(y, x, "%u ", line_num);
+	x += line_num_w;
+
+	return x;
+    }
+
     /// the number of lines currently displayed in the lines window. Can be less than lines window height.
     unsigned lines_currently_displayed;
 
@@ -92,23 +119,15 @@ namespace {
 	    ++lines_currently_displayed;
 
 	    const line_t line = f_idx->line(i);
-	    unsigned line_num_width = digits(i) + 1;
+	    unsigned line_num_width = digits(i);
 	    if (line_num_width < tab_width) {
 		line_num_width = tab_width;
 	    }
-	    const unsigned line_num_col = line_num_width - digits(line.num_) - 1;
 
 	    // empty line?
 	    if (line.beg_ == line.end_) {
-		{
-		    curses_attr a(A_REVERSE);
-		    unsigned x;
-		    for(x = 0; x < line_num_col; ++x) {
-			mvaddch(y, x, ' ');
-		    }
-		    mvprintw(y, x, "%i:", line.num_);
-		}
-		fill(y, line_num_width);
+		unsigned x = print_line_prefix(y, line.num_, 0, line_num_width);
+		fill(y, x);
 		++y;
 		continue;
 	    }
@@ -119,11 +138,12 @@ namespace {
 		unsigned x = 0;
 		{
 		    curses_attr a(A_REVERSE);
-		    for(; x < line_num_width; ++x) {
-			mvaddch(y, x, ' ');
-		    }
 		    if (beg == line.beg_) {
-			mvprintw(y, line_num_col, "%i:", line.num_);
+			x += print_line_prefix(y, line.num_, line.end_ - beg, line_num_width);
+		    } else {
+			for(; x < line_num_width; ++x) {
+			    mvaddch(y, x, ' ');
+			}
 		    }
 		}
 		while(beg < line.end_ && x < screen_width) {
