@@ -1,4 +1,8 @@
+- apply regex filters
+
 - modify how lines are displayed with regex
-- display lines with curses
 - test UTF8
 - make tab width configurable
+- use color
+- cache regular expression containers
+- support cursor in line_edit()

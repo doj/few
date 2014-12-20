@@ -11,8 +11,10 @@
 #include <ncurses.h>
 #include <cassert>
 #include <stdint.h>
+#include <memory>
 #include "memorymap.h"
 #include "file_index.h"
+#include "regex_index.h"
 
 namespace {
     unsigned screen_width;
@@ -21,7 +23,11 @@ namespace {
     unsigned tab_width = 8;
 
     std::string search;
+    // the y position of the search window
     unsigned search_y;
+
+    // the y position of the regex window
+    unsigned regex_y;
 
     unsigned top_line = 1;
     file_index *f_idx = nullptr;
@@ -183,9 +189,53 @@ namespace {
 	}
     }
 
+    struct regex_container_t
+    {
+	/// the regular expression string
+	std::string rgx_;
+	/// an error string if rgx_ is invalid
+	std::string err_;
+	std::shared_ptr<regex_index> r_idx_;
+    };
+
+    std::vector<regex_container_t> regex_vec;
+
+    void refresh_regex()
+    {
+	curses_attr a(A_REVERSE);
+	unsigned y = regex_y;
+	unsigned cnt = 0;
+	for(const auto& c : regex_vec) {
+	    std::string s = c.rgx_;
+	    const char* title = nullptr;
+
+	    if (c.err_.empty()) {
+		title = "regex";
+	    } else {
+		s += " : ";
+		s += c.err_;
+		title = "error";
+	    }
+
+	    {
+		curses_attr a(A_BOLD);
+		mvprintw(y, 0, "%s %u ", title, ++cnt);
+	    }
+	    if (s.size() > screen_width - 8) {
+		s.resize(screen_width - 8);
+	    }
+	    assert(8 + s.size() < screen_width);
+	    mvprintw(y, 8, "%s", s.c_str());
+	    fill(y, 8 + s.size());
+
+	    ++y;
+	}
+    }
+
     void refresh_windows()
     {
 	refresh_lines();
+	refresh_regex();
 
 	if (! search.empty()) {
 	    mvprintw(search_y, 0, "Search: %s", search.c_str());
@@ -194,15 +244,28 @@ namespace {
 	refresh();
     }
 
-    void create_windows()
+    void calculate_window_sizes()
     {
 	w_lines_height = screen_height;
 	if (! search.empty()) {
 	    --w_lines_height;
 	}
 
-	search_y = screen_height - 1;
+	if (regex_vec.size() == 0) {
+	    regex_y = 0;
+	} else {
+	    assert(regex_vec.size() <= 9);
+	    w_lines_height -= regex_vec.size();
+	    regex_y = w_lines_height;
+	    assert(regex_y > 0);
+	}
 
+	search_y = screen_height - 1;
+    }
+
+    void create_windows()
+    {
+	calculate_window_sizes();
 	refresh_windows();
     }
 
@@ -303,7 +366,101 @@ namespace {
 	    refresh();
 	}
     }
-    
+
+    /**
+     * read an input string with curses.
+     * The input windows is positioned at coordinates x,y and has a maximum width of max_width.
+     * If you press the enter/return key the function finishes and returns the currently edited string.
+     * If you press the escape key the function finished and returns the input string.
+     *
+     * @param y vertical coordinate.
+     * @param x horizontal coordinate.
+     * @param input initial string.
+     * @param max_width maximum width of edit window. This will also limit the size of the returned string.
+     * @return edited string.
+     */
+    std::string line_edit(const unsigned y, const unsigned x, const std::string& input, const unsigned max_width)
+    {
+	if (max_width < 1) {
+	    return input;
+	}
+
+	std::string s = input;
+	if (s.size() > max_width) {
+	    s.resize(max_width);
+	}
+
+	// the cursor position
+	unsigned X = s.size();
+
+	while(true) {
+	    for(unsigned i = 0; i < max_width; ++i) {
+		mvaddch(y, x + i, ' ');
+	    }
+	    mvprintw(y, x, "%s", s.c_str());
+	    refresh();
+
+	    const int key = getch();
+	    switch(key) {
+	    case '\r':
+	    case '\n':
+	    case KEY_ENTER:
+		return s;
+
+	    case '\e':
+		return input;
+
+	    case KEY_BACKSPACE:
+		if (s.size() > 0) {
+		    s.resize(s.size() - 1);
+		}
+		break;
+
+	    default:
+		if (key >= 32 && key < 256 && s.size() < max_width) {
+		    s += static_cast<char>(key);
+		    ++X;
+		}
+		break;
+	    }
+
+	}
+
+	return s;
+    }
+
+    void edit_regex(unsigned regex_num)
+    {
+	if (regex_num >= 9) {
+	    return;
+	}
+
+	// check if we need to expand regex_vec
+	if (regex_vec.size() <= regex_num) {
+	    regex_vec.resize(regex_num + 1);
+	}
+
+	create_windows();
+
+	// get new regex string
+	auto& c = regex_vec[regex_num];
+	{
+	    curses_attr a(A_REVERSE);
+	    c.rgx_ = line_edit(regex_y + regex_num, 8, c.rgx_, screen_width - 8);
+	}
+
+	if (c.rgx_.empty()) {
+	    c.err_.erase();
+	    // pop regular expression container from vector if they're empty
+	    while(regex_vec.size() > 0 && regex_vec[regex_vec.size()-1].rgx_.empty()) {
+		regex_vec.resize(regex_vec.size() - 1);
+	    }
+	} else {
+	    // \todo create r_idx_
+	}
+
+	create_windows();
+    }
 }
 
 int realmain(int argc, const char* argv[])
@@ -361,6 +518,21 @@ int realmain(int argc, const char* argv[])
 	    break;
 
 	case 'G':
+	    break;
+
+	case '1':
+	case '2':
+	case '3':
+	case '4':
+	case '5':
+	case '6':
+	case '7':
+	case '8':
+	case '9':
+	    edit_regex(key - '1');
+	    break;
+
+	case '0':
 	    break;
 	}
     }
