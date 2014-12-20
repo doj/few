@@ -103,9 +103,17 @@ namespace {
     /// the number of lines currently displayed in the lines window. Can be less than lines window height.
     unsigned lines_currently_displayed;
 
+    /// true if refresh_lines() printed the last line of the file
+    bool last_line_printed;
+
     void refresh_lines()
     {
 	lines_currently_displayed = 0;
+	last_line_printed = false;
+
+	// the number of the last line printed
+	unsigned last_line_num = 0;
+
 	unsigned y = 0;
 	auto s = f_idx->index_set();
 	for(auto i : s) {
@@ -129,6 +137,7 @@ namespace {
 		unsigned x = print_line_prefix(y, line.num_, 0, line_num_width);
 		fill(y, x);
 		++y;
+		last_line_num = line.num_;
 		continue;
 	    }
 
@@ -140,6 +149,7 @@ namespace {
 		    curses_attr a(A_REVERSE);
 		    if (beg == line.beg_) {
 			x += print_line_prefix(y, line.num_, line.end_ - beg, line_num_width);
+			last_line_num = line.num_;
 		    } else {
 			for(; x < line_num_width; ++x) {
 			    mvaddch(y, x, ' ');
@@ -162,6 +172,10 @@ namespace {
 		fill(y, x);
 		++y;
 	    }
+	}
+
+	if (last_line_num == f_idx->lines()) {
+	    last_line_printed = true;
 	}
 
 	while(y < w_lines_height) {
@@ -249,7 +263,10 @@ namespace {
 
     void key_down_impl()
     {
-	// \todo check that we really can move further down.
+	if (last_line_printed) {
+	    return;
+	}
+
 	++top_line;
     }
 

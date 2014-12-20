@@ -1,5 +1,3 @@
-- don't go further down than last line of file
-
 - modify how lines are displayed with regex
 - display lines with curses
 - test UTF8
