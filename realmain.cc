@@ -198,7 +198,7 @@ namespace {
 	    --top_line;
 	}
     }
-    
+
     void key_up()
     {
 	key_up_impl();
@@ -214,6 +214,7 @@ namespace {
 
     void key_down()
     {
+	key_down_impl();
 	refresh_lines();
 	refresh();
     }
