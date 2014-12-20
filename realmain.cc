@@ -84,12 +84,18 @@ namespace {
 	    }
 
 	    const line_t line = f_idx->line(i);
-	    const unsigned line_num_width = digits(i) + 1;
+	    unsigned line_num_width = digits(i) + 1;
+	    if (line_num_width < 4) {
+		line_num_width = 4;
+	    }
 
 	    // empty line?
 	    if (line.beg_ == line.end_) {
 		{
 		    curses_attr a(A_REVERSE);
+		    for(unsigned x = 0; x < line_num_width; ++x) {
+			mvaddch(y, x, ' ');
+		    }
 		    mvprintw(y, 0, "%i:", line.num_);
 		}
 		fill(y, line_num_width);
@@ -100,17 +106,16 @@ namespace {
 	    const char *beg = line.beg_;
 	    while(beg < line.end_)
 	    {
+		unsigned x = 0;
 		{
 		    curses_attr a(A_REVERSE);
+		    for(; x < line_num_width; ++x) {
+			mvaddch(y, x, ' ');
+		    }
 		    if (beg == line.beg_) {
 			mvprintw(y, 0, "%i:", line.num_);
-		    } else {
-			for(unsigned x = 0; x < line_num_width; ++x) {
-			    mvaddch(y, x, ' ');
-			}
 		    }
 		}
-		unsigned x = line_num_width;
 		while(beg < line.end_ && x < screen_width) {
 		    char c = *beg++;
 		    if (! isprint(c)) {
