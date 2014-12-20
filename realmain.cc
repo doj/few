@@ -12,6 +12,7 @@
 #include <cassert>
 #include <stdint.h>
 #include <memory>
+#include <regex>
 #include "memorymap.h"
 #include "file_index.h"
 #include "regex_index.h"
@@ -106,6 +107,17 @@ namespace {
 	return x;
     }
 
+    struct regex_container_t
+    {
+	/// the regular expression string
+	std::string rgx_;
+	/// an error string if rgx_ is invalid
+	std::string err_;
+	std::shared_ptr<regex_index> r_idx_;
+    };
+
+    std::vector<regex_container_t> regex_vec;
+
     /// the number of lines currently displayed in the lines window. Can be less than lines window height.
     unsigned lines_currently_displayed;
 
@@ -120,8 +132,15 @@ namespace {
 	// the number of the last line printed
 	unsigned last_line_num = 0;
 
-	unsigned y = 0;
+	// intersect lines from file with regular expression matches
 	auto s = f_idx->index_set();
+	for(const auto& c : regex_vec) {
+	    if (c.r_idx_) {
+		s = c.r_idx_->intersect(s);
+	    }
+	}
+
+	unsigned y = 0;
 	for(auto i : s) {
 	    if (y >= w_lines_height) {
 		break;
@@ -188,17 +207,6 @@ namespace {
 	    fill(y++, 0);
 	}
     }
-
-    struct regex_container_t
-    {
-	/// the regular expression string
-	std::string rgx_;
-	/// an error string if rgx_ is invalid
-	std::string err_;
-	std::shared_ptr<regex_index> r_idx_;
-    };
-
-    std::vector<regex_container_t> regex_vec;
 
     void refresh_regex()
     {
@@ -429,6 +437,39 @@ namespace {
 	return s;
     }
 
+    std::string& operator<< (std::string& s, std::regex_constants::error_type etype)
+    {
+	switch (etype) {
+	case std::regex_constants::error_collate:
+	    s += "invalid collating element request"; break;
+	case std::regex_constants::error_ctype:
+	    s += "invalid character class"; break;
+	case std::regex_constants::error_escape:
+	    s += "invalid escape character or trailing escape"; break;
+	case std::regex_constants::error_backref:
+	    s += "invalid back reference"; break;
+	case std::regex_constants::error_brack:
+	    s += "mismatched bracket [ or ]"; break;
+	case std::regex_constants::error_paren:
+	    s += "mismatched parentheses ( or )"; break;
+	case std::regex_constants::error_brace:
+	    s += "mismatched brace { or }"; break;
+	case std::regex_constants::error_badbrace:
+	    s += "invalid range inside a { }"; break;
+	case std::regex_constants::error_range:
+	    s += "invalid character range(e.g., [z-a])"; break;
+	case std::regex_constants::error_space:
+	    s += "insufficient memory to handle this regular expression"; break;
+	case std::regex_constants::error_badrepeat:
+	    s += "a repetition character (*, ?, +, or {) was not preceded by a valid regular expression"; break;
+	case std::regex_constants::error_complexity:
+	    s += "the requested match is too complex"; break;
+	case std::regex_constants::error_stack:
+	    s += "insufficient memory to evaluate a match"; break;
+	}
+	return s;
+    }
+
     void edit_regex(unsigned regex_num)
     {
 	if (regex_num >= 9) {
@@ -451,12 +492,34 @@ namespace {
 
 	if (c.rgx_.empty()) {
 	    c.err_.erase();
+	    c.r_idx_ = nullptr;
 	    // pop regular expression container from vector if they're empty
 	    while(regex_vec.size() > 0 && regex_vec[regex_vec.size()-1].rgx_.empty()) {
 		regex_vec.resize(regex_vec.size() - 1);
 	    }
 	} else {
-	    // \todo create r_idx_
+	    std::string rgx = c.rgx_;
+	    // check for flags
+	    std::string flags;
+	    unsigned s = rgx.size();
+	    if (s >= 4 &&
+		rgx[0] == '/' &&
+		rgx[s - 2] == '/' &&
+		(rgx[s - 1] == 'i' || rgx[s - 1] == '!') ) {
+		flags = rgx[s - 1];
+		rgx.erase(s - 2);
+		rgx.erase(0, 1);
+	    } else if (s > 1 && rgx[0] == '!') {
+		flags = "!";
+		rgx.erase(0, 1);
+	    }
+
+	    try {
+		c.r_idx_ = std::make_shared<regex_index>(*f_idx, rgx, flags);
+		c.err_.erase();
+	    } catch (std::regex_error& e) {
+		c.err_ << e.code();
+	    }
 	}
 
 	create_windows();
@@ -513,10 +576,12 @@ int realmain(int argc, const char* argv[])
 	    key_ppage();
 	    break;
 
+	case KEY_HOME:
 	case 'g':
 	    key_g();
 	    break;
 
+	case KEY_END:
 	case 'G':
 	    break;
 

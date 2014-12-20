@@ -1,4 +1,6 @@
-- apply regex filters
+- with a regex filter applied scrolling doesn't make sense
+ + rethink how regex_index stores it's matches
+ + when scrolling down or up, we need to find the next line that is above or below and matching
 
 - modify how lines are displayed with regex
 - test UTF8
@@ -6,3 +8,4 @@
 - use color
 - cache regular expression containers
 - support cursor in line_edit()
+- write man page
