@@ -73,8 +73,12 @@ namespace {
 	}
     }
 
+    /// the number of lines currently displayed in the lines window. Can be less than lines window height.
+    unsigned lines_currently_displayed;
+
     void refresh_lines()
     {
+	lines_currently_displayed = 0;
 	unsigned y = 0;
 	auto s = f_idx->index_set();
 	for(auto i : s) {
@@ -84,6 +88,8 @@ namespace {
 	    if (i < top_line) {
 		continue;
 	    }
+
+	    ++lines_currently_displayed;
 
 	    const line_t line = f_idx->line(i);
 	    unsigned line_num_width = digits(i) + 1;
@@ -236,7 +242,7 @@ namespace {
 
     void key_npage()
     {
-	for(unsigned i = 0; i < w_lines_height; ++i) {
+	for(unsigned i = 0; i < lines_currently_displayed; ++i) {
 	    key_down_impl();
 	}
 	refresh_lines();
