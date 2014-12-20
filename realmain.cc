@@ -112,7 +112,11 @@ namespace {
 		}
 		unsigned x = line_num_width;
 		while(beg < line.end_ && x < screen_width) {
-		    mvaddch(y, x++, *beg++);
+		    char c = *beg++;
+		    if (! isprint(c)) {
+			c = ' ';
+		    }
+		    mvaddch(y, x++, c);
 		}
 		fill(y, x);
 		++y;

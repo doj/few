@@ -1,5 +1,4 @@
 - handle tab character
-- handle non printable characters
 - sometimes keys are lost
 - cursor down doesn't work on Fedora21 VM
 - don't go further down than last line of file
@@ -7,3 +6,4 @@
 
 - modify how lines are displayed with regex
 - display lines with curses
+- test UTF8
