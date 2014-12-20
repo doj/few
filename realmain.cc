@@ -188,9 +188,16 @@ namespace {
 	signal(SIGWINCH, handle_winch);
     }
 
+    void key_up_impl()
+    {
+	if (top_line > 1) {
+	    --top_line;
+	}
+    }
+    
     void key_up()
     {
-	if (top_line > 1) --top_line;
+	key_up_impl();
 	refresh_lines();
 	refresh();
     }
@@ -216,6 +223,24 @@ namespace {
 	refresh();
     }
 
+    void key_ppage()
+    {
+	for(unsigned i = 0; i < w_lines_height; ++i) {
+	    key_up_impl();
+	}
+	refresh_lines();
+	refresh();
+    }
+
+    void key_g()
+    {
+	if (top_line != 1) {
+	    top_line = 1;
+	    refresh_lines();
+	    refresh();
+	}
+    }
+    
 }
 
 int realmain(int argc, const char* argv[])
@@ -265,9 +290,11 @@ int realmain(int argc, const char* argv[])
 
 	case 'b':
 	case KEY_PPAGE:
+	    key_ppage();
 	    break;
 
 	case 'g':
+	    key_g();
 	    break;
 
 	case 'G':

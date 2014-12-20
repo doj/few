@@ -30,3 +30,6 @@ clean:
 	rm -f *~ test fewer $(TEST_DEPS) $(TEST_OBJS) *.o *.d
 
 -include $(TEST_DEPS)
+
+redhat-setup:
+	yum install -y gcc gcc-c++ gdb ncurses-devel
