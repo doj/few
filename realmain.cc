@@ -18,6 +18,8 @@ namespace {
     unsigned screen_width;
     unsigned screen_height;
 
+    unsigned tab_width = 8;
+
     std::string search;
     unsigned search_y;
 
@@ -85,18 +87,20 @@ namespace {
 
 	    const line_t line = f_idx->line(i);
 	    unsigned line_num_width = digits(i) + 1;
-	    if (line_num_width < 4) {
-		line_num_width = 4;
+	    if (line_num_width < tab_width) {
+		line_num_width = tab_width;
 	    }
+	    const unsigned line_num_col = line_num_width - digits(line.num_) - 1;
 
 	    // empty line?
 	    if (line.beg_ == line.end_) {
 		{
 		    curses_attr a(A_REVERSE);
-		    for(unsigned x = 0; x < line_num_width; ++x) {
+		    unsigned x;
+		    for(x = 0; x < line_num_col; ++x) {
 			mvaddch(y, x, ' ');
 		    }
-		    mvprintw(y, 0, "%i:", line.num_);
+		    mvprintw(y, x, "%i:", line.num_);
 		}
 		fill(y, line_num_width);
 		++y;
@@ -113,15 +117,21 @@ namespace {
 			mvaddch(y, x, ' ');
 		    }
 		    if (beg == line.beg_) {
-			mvprintw(y, 0, "%i:", line.num_);
+			mvprintw(y, line_num_col, "%i:", line.num_);
 		    }
 		}
 		while(beg < line.end_ && x < screen_width) {
 		    char c = *beg++;
-		    if (! isprint(c)) {
-			c = ' ';
+		    if (c == '\t') {
+			do {
+			    mvaddch(y, x++, ' ');
+			} while (x % tab_width);
+		    } else {
+			if (! isprint(c)) {
+			    c = ' ';
+			}
+			mvaddch(y, x++, c);
 		    }
-		    mvaddch(y, x++, c);
 		}
 		fill(y, x);
 		++y;
