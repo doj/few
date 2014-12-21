@@ -1,10 +1,21 @@
 - with a regex filter applied scrolling doesn't make sense
  + rethink how regex_index stores it's matches
  + when scrolling down or up, we need to find the next line that is above or below and matching
+ + have global vector of line numbers which are displayed
+ + write apply_regex() which configures the global vector of line numbers
+
+- configure tab width from command line
+- read tab width from vim/emacs comments
+
+- preconfigure filter and display regex and search strings from command line
+- when exiting, write command line to restore regex and search strings
+
+- when starting, only parse the first screen height lines from the file and display them
+ + then parse the remaining lines in a background thread
+- when adding a regex, let it run in a background thread and apply once done
 
 - modify how lines are displayed with regex
 - test UTF8
-- make tab width configurable
 - use color
 - cache regular expression containers
 - support cursor in line_edit()

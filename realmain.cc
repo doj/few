@@ -18,11 +18,15 @@
 #include "regex_index.h"
 
 namespace {
+    /// width of screen in characters
     unsigned screen_width;
+    /// height of screen in characters
     unsigned screen_height;
 
+    /// width of a tab character in characters
     unsigned tab_width = 8;
 
+    /// current search regular expression
     std::string search;
     // the y position of the search window
     unsigned search_y;
@@ -32,8 +36,32 @@ namespace {
 
     unsigned top_line = 1;
     file_index *f_idx = nullptr;
+
+    /// height of the lines window
     unsigned w_lines_height;
 
+    struct regex_container_t
+    {
+	/// the regular expression string
+	std::string rgx_;
+	/// an error string if rgx_ is invalid
+	std::string err_;
+	std::shared_ptr<regex_index> r_idx_;
+    };
+
+    std::vector<regex_container_t> regex_vec;
+
+    /// the number of lines currently displayed in the lines window. Can be less than lines window height.
+    unsigned lines_currently_displayed;
+
+    /// true if refresh_lines() printed the last line of the file
+    bool last_line_printed;
+
+
+
+
+
+    /// @return number of digits in i.
     int digits(uint64_t i)
     {
 	if (i < 10llu) return 1;
@@ -58,21 +86,19 @@ namespace {
 	return 20;
     }
 
+    /**
+     * helper class to manage curses attributes.
+     * The constructor sets an attribute, the destructor unsets it.
+     */
     class curses_attr
     {
-	unsigned a_;
+	const unsigned a_;
     public:
-	explicit curses_attr(unsigned a) :
-	a_(a)
-	{
-	    attron(a_);
-	}
-	~curses_attr()
-	{
-	    attroff(a_);
-	}
+	explicit curses_attr(unsigned a) : a_(a) { attron(a_); }
+	~curses_attr() { attroff(a_); }
     };
 
+    /// fill the row y between x and screen_width with space characters.
     void fill(unsigned y, unsigned x)
     {
 	while(x < screen_width) {
@@ -106,23 +132,6 @@ namespace {
 
 	return x;
     }
-
-    struct regex_container_t
-    {
-	/// the regular expression string
-	std::string rgx_;
-	/// an error string if rgx_ is invalid
-	std::string err_;
-	std::shared_ptr<regex_index> r_idx_;
-    };
-
-    std::vector<regex_container_t> regex_vec;
-
-    /// the number of lines currently displayed in the lines window. Can be less than lines window height.
-    unsigned lines_currently_displayed;
-
-    /// true if refresh_lines() printed the last line of the file
-    bool last_line_printed;
 
     void refresh_lines()
     {
@@ -246,7 +255,9 @@ namespace {
 	refresh_regex();
 
 	if (! search.empty()) {
+	    curses_attr a(A_BOLD);
 	    mvprintw(search_y, 0, "Search: %s", search.c_str());
+	    fill(search_y, 8+search.size());
 	}
 
 	refresh();
@@ -565,6 +576,22 @@ int realmain(int argc, const char* argv[])
 	case '/': enter_search(); break;
 	case KEY_UP: key_up(); break;
 	case KEY_DOWN: key_down(); break;
+
+	case 'n':
+	    if (search.empty()) {
+		key_down();
+	    } else {
+
+	    }
+	    break;
+
+	case 'p':
+	    if (search.empty()) {
+		key_up();
+	    } else {
+
+	    }
+	    break;
 
 	case ' ':
 	case KEY_NPAGE:
