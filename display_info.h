@@ -6,6 +6,7 @@
 #pragma once
 #include "types.h"
 #include <vector>
+#include <string>
 
 class DisplayInfo
 {
@@ -91,4 +92,6 @@ public:
      * This function can only be called after start() has been called.
      */
     void page_down();
+
+    std::string info() const;
 };

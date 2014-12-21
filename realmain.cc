@@ -384,6 +384,7 @@ namespace {
     void key_up()
     {
 	if (display_info.isFirstLineDisplayed()) {
+	    info = "moved to top";
 	    return;
 	}
 	display_info.up();
@@ -394,6 +395,7 @@ namespace {
     void key_down()
     {
 	if (display_info.isLastLineDisplayed()) {
+	    info = "moved to bottom";
 	    return;
 	}
 	display_info.down();
@@ -404,7 +406,7 @@ namespace {
     void key_npage()
     {
 	if (display_info.isLastLineDisplayed()) {
-	    info = "nothing to display";
+	    info = "moved to bottom";
 	    return;
 	}
 	display_info.page_down();
@@ -416,25 +418,28 @@ namespace {
     {
 	if (! display_info.start()) {
 	    info = "nothing to display";
-	    return;
-	}
-
-	// scroll up until the old top line is the current bottom line
-	const unsigned oldTopLineNum = display_info.current();
-	while (!display_info.isFirstLineDisplayed()) {
-	    display_info.up();
-	    refresh_lines();
-	    if (display_info.bottomLineNum() == oldTopLineNum) {
-		break;
+	} else if (display_info.isFirstLineDisplayed()) {
+	    info = "moved to top";
+	} else {
+	    // scroll up until the old top line is the current bottom line
+	    const unsigned oldTopLineNum = display_info.current();
+	    while (!display_info.isFirstLineDisplayed()) {
+		display_info.up();
+		refresh_lines();
+		if (display_info.bottomLineNum() == oldTopLineNum) {
+		    break;
+		}
 	    }
 	}
 
+	refresh_lines();
 	refresh();
     }
 
     void key_g()
     {
 	if (display_info.isFirstLineDisplayed()) {
+	    info = "moved to top";
 	    return;
 	}
 	display_info.top();

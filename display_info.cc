@@ -94,3 +94,9 @@ DisplayInfo::bottomLineNum() const
     }
     return *bottomLineIt;
 }
+
+std::string
+DisplayInfo::info() const
+{
+    return "top #" + std::to_string(*topLineIt) + " bottom #" + std::to_string(*bottomLineIt);
+}

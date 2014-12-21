@@ -1,5 +1,3 @@
-- with a regex filter applied scrolling doesn't make sense
-
 - configure tab width from command line
 - read tab width from vim/emacs comments
 
