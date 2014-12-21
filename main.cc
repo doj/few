@@ -1,5 +1,5 @@
-int realmain(int argc, const char* argv[]);
-int main(int argc, const char* argv[])
+int realmain(int argc, char * const argv[]);
+int main(int argc, char * const argv[])
 {
   return realmain(argc, argv);
 }

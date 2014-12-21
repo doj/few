@@ -3,6 +3,7 @@
  * :indentSize=4:tabSize=8:
  */
 
+#include <getopt.h>
 #include <sysexits.h>
 #include <iostream>
 #include <sys/ioctl.h>
@@ -618,16 +619,55 @@ namespace {
     }
 }
 
-int realmain_impl(int argc, const char* argv[])
+void help();
+
+int realmain_impl(int argc, char * const argv[])
 {
     if (argc < 2) {
+	help();
 	return EX_USAGE;
     }
     if (argv == nullptr) {
+	help();
 	return EX_USAGE;
     }
 
-    const std::string filename = argv[1];
+    enum {
+	opt_tabwidth = 500,
+    };
+    const struct option longopts[] = {
+	{ "tabwidth", required_argument, nullptr, opt_tabwidth },
+	{ nullptr, 0, nullptr, 0 }
+    };
+
+    int key;
+    while((key = getopt_long(argc, argv, "", longopts, nullptr)) > 0) {
+	switch(key) {
+	case '?':
+	case 'h':
+	    help();
+	    return EXIT_FAILURE;
+
+	case opt_tabwidth:
+	    tab_width = atoi(optarg);
+	    if (tab_width > 80) {
+		std::cerr << "tab width is > 80, this is likely an error." << std::endl;
+		return EX_USAGE;
+	    }
+	    if (tab_width == 0) {
+		std::cerr << "tab width is 0, this is likely an error." << std::endl;
+		return EX_USAGE;
+	    }
+	    break;
+	}
+    }
+
+    if (optind >= argc) {
+	std::cerr << "no filename specified" << std::endl;
+	return EX_USAGE;
+    }
+
+    const std::string filename = argv[optind];
 
     setlocale(LC_ALL, "");
 
@@ -649,7 +689,7 @@ int realmain_impl(int argc, const char* argv[])
     while(true) {
 	info = stdinfo;
 
-	int key = getch();
+	key = getch();
 	if (key == 'q') {
 	    break;
 	}
@@ -710,10 +750,16 @@ int realmain_impl(int argc, const char* argv[])
 	}
     }
 
+    close_curses();
+    std::cout << "fewer"
+	      << " --tabwidth " << tab_width
+	      << " " << filename
+	      << std::endl
+	;
     return EXIT_SUCCESS;
 }
 
-int realmain(int argc, const char* argv[])
+int realmain(int argc, char * const argv[])
 {
     int exit_status = EXIT_FAILURE;
     std::string exit_msg;

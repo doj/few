@@ -3,7 +3,7 @@ INCLUDE_FLAGS += -I.
 
 CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_FLAGS) -std=c++11 -MMD -g
 
-SRCS = realmain.cc memorymap.cc file_index.cc regex_index.cc display_info.cc
+SRCS = realmain.cc memorymap.cc file_index.cc regex_index.cc display_info.cc help.cc
 OBJS = $(SRCS:.cc=.o)
 
 LIBS = -lncurses -lpthread
