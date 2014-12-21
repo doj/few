@@ -71,3 +71,23 @@ TEST_F(realmainTest, recognizes_tab_width_0)
     };
     ASSERT_EQ(EX_USAGE, realmain(3,const_cast<char * const *>(argv)));
 }
+
+TEST_F(realmainTest, recognizes_too_many_regex)
+{
+    const char* const argv[] = {
+	"fewer",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	NULL
+    };
+    ASSERT_EQ(EX_USAGE, realmain(1 + 11*2,const_cast<char * const *>(argv)));
+}

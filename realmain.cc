@@ -593,7 +593,44 @@ namespace {
 	return s;
     }
 
-    void edit_regex(unsigned regex_num)
+    void add_regex(const unsigned regex_num, std::string rgx)
+    {
+	if (regex_num >= 9) {
+	    return;
+	}
+
+	// check if we need to expand regex_vec
+	if (regex_vec.size() <= regex_num) {
+	    regex_vec.resize(regex_num + 1);
+	}
+
+	auto& c = regex_vec[regex_num];
+	c.rgx_ = rgx;
+
+	// check for flags
+	std::string flags;
+	unsigned s = rgx.size();
+	if (s >= 4 &&
+	    rgx[0] == '/' &&
+	    rgx[s - 2] == '/' &&
+	    (rgx[s - 1] == 'i' || rgx[s - 1] == '!') ) {
+	    flags = rgx[s - 1];
+	    rgx.erase(s - 2);
+	    rgx.erase(0, 1);
+	} else if (s > 1 && rgx[0] == '!') {
+	    flags = "!";
+	    rgx.erase(0, 1);
+	}
+
+	try {
+	    c.r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags);
+	    c.err_.erase();
+	} catch (std::regex_error& e) {
+	    c.err_ << e.code();
+	}
+    }
+
+    void edit_regex(const unsigned regex_num)
     {
 	if (regex_num >= 9) {
 	    return;
@@ -621,28 +658,7 @@ namespace {
 		regex_vec.resize(regex_vec.size() - 1);
 	    }
 	} else {
-	    std::string rgx = c.rgx_;
-	    // check for flags
-	    std::string flags;
-	    unsigned s = rgx.size();
-	    if (s >= 4 &&
-		rgx[0] == '/' &&
-		rgx[s - 2] == '/' &&
-		(rgx[s - 1] == 'i' || rgx[s - 1] == '!') ) {
-		flags = rgx[s - 1];
-		rgx.erase(s - 2);
-		rgx.erase(0, 1);
-	    } else if (s > 1 && rgx[0] == '!') {
-		flags = "!";
-		rgx.erase(0, 1);
-	    }
-
-	    try {
-		c.r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags);
-		c.err_.erase();
-	    } catch (std::regex_error& e) {
-		c.err_ << e.code();
-	    }
+	    add_regex(regex_num, c.rgx_);
 	}
 
 	apply_regex();
@@ -665,12 +681,15 @@ int realmain_impl(int argc, char * const argv[])
 
     enum {
 	opt_tabwidth = 500,
+	opt_regex,
     };
     const struct option longopts[] = {
 	{ "tabwidth", required_argument, nullptr, opt_tabwidth },
+	{ "regex", required_argument, nullptr, opt_regex },
 	{ nullptr, 0, nullptr, 0 }
     };
 
+    std::vector<std::string> command_line_regex;
     int key;
     while((key = getopt_long(argc, argv, "", longopts, nullptr)) > 0) {
 	switch(key) {
@@ -678,6 +697,14 @@ int realmain_impl(int argc, char * const argv[])
 	case 'h':
 	    help();
 	    return EXIT_FAILURE;
+
+	case opt_regex:
+	    if (command_line_regex.size() >= 9) {
+		std::cerr << "can only add up to 9 regular expressions with the --regex argument" << std::endl;
+		return EX_USAGE;
+	    }
+	    command_line_regex.push_back(optarg);
+	    break;
 
 	case opt_tabwidth:
 	    tab_width = atoi(optarg);
@@ -703,7 +730,11 @@ int realmain_impl(int argc, char * const argv[])
     setlocale(LC_ALL, "");
 
     f_idx = std::make_shared<file_index>(filename);
+    for(unsigned u = 0; u != command_line_regex.size(); ++u) {
+	add_regex(u, command_line_regex[u]);
+    }
     apply_regex();
+
     const std::string stdinfo = filename + " (" + std::to_string(f_idx->size()) + " lines)";
     info = stdinfo;
 
