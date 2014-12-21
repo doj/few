@@ -133,6 +133,8 @@ namespace {
 
     void refresh_lines()
     {
+	assert(tab_width > 0);
+
 	unsigned y = 0;
 	if (display_info.start()) {
 	    while(/*! isLastLineDisplayed() &&*/ y < w_lines_height) {
@@ -143,6 +145,9 @@ namespace {
 		unsigned line_num_width = digits(current_line_num);
 		if (line_num_width < tab_width) {
 		    line_num_width = tab_width;
+		}
+		if (line_num_width < 8) {
+		    line_num_width = 8;
 		}
 
 		// empty line?
