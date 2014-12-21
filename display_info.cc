@@ -38,12 +38,6 @@ DisplayInfo::next()
     return true;
 }
 
-unsigned
-DisplayInfo::linesDisplayed() const
-{
-    return std::distance(topLineIt, bottomLineIt);
-}
-
 bool
 DisplayInfo::isFirstLineDisplayed() const
 {

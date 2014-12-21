@@ -46,13 +46,6 @@ public:
 
     /**
      * This function can only be called after start() has been called.
-     * The return value of this function is influenced by the number of times next() has been called.
-     * @return the number of lines currently displayed.
-     */
-    unsigned linesDisplayed() const;
-
-    /**
-     * This function can only be called after start() has been called.
      * @return the line number of the bottom line on the display.
      */
     unsigned bottomLineNum() const;

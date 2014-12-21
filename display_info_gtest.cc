@@ -24,18 +24,6 @@ TEST(DisplayInfo, size)
 }
 
 
-TEST(DisplayInfo, linesDisplayed)
-{
-    DisplayInfo i; i = s();
-    i.start();
-    const unsigned expected = 3;
-    for(unsigned u = 1; u <= expected; ++u) {
-	ASSERT_EQ(u, i.current());
-	i.next();
-    }
-    ASSERT_EQ(expected, i.linesDisplayed());
-}
-
 TEST(DisplayInfo, down)
 {
     DisplayInfo i; i = s();
