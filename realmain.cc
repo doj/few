@@ -721,25 +721,24 @@ int realmain_impl(int argc, char * const argv[])
 	info = stdinfo;
 
 	key = getch();
-	if (key == 'q') {
+	if (key == 'q' || key == 'Q') {
 	    break;
 	}
 	switch(key) {
 	case '/': enter_search(); break;
-	case KEY_UP: key_up(); break;
-	case KEY_DOWN: key_down(); break;
+
+	case 'p':
+	case KEY_UP:
+	    key_up();
+	    break;
+
+	case KEY_DOWN:
+	    key_down();
+	    break;
 
 	case 'n':
 	    if (search.empty()) {
 		key_down();
-	    } else {
-
-	    }
-	    break;
-
-	case 'p':
-	    if (search.empty()) {
-		key_up();
 	    } else {
 
 	    }
@@ -757,11 +756,13 @@ int realmain_impl(int argc, char * const argv[])
 
 	case KEY_HOME:
 	case 'g':
+	case '<':
 	    key_g();
 	    break;
 
 	case KEY_END:
 	case 'G':
+	case '>':
 	    key_G();
 	    break;
 
