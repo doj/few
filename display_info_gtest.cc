@@ -23,6 +23,21 @@ TEST(DisplayInfo, size)
     ASSERT_EQ(100u, i.size());
 }
 
+TEST(DisplayInfo, lastLineNum)
+{
+    DisplayInfo i; i = s();
+    ASSERT_EQ(100u, i.lastLineNum());
+}
+
+TEST(DisplayInfo, go_to)
+{
+    DisplayInfo i; i = s();
+    ASSERT_TRUE(i.go_to(1));
+    ASSERT_TRUE(i.go_to(50));
+    ASSERT_TRUE(i.go_to(100));
+    ASSERT_FALSE(i.go_to(101));
+    ASSERT_FALSE(i.go_to(0));
+}
 
 TEST(DisplayInfo, down)
 {

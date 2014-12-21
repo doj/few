@@ -137,7 +137,7 @@ namespace {
 
 	unsigned y = 0;
 	if (display_info.start()) {
-	    while(/*! isLastLineDisplayed() &&*/ y < w_lines_height) {
+	    while(y < w_lines_height) {
 		const unsigned current_line_num = display_info.current();
 		const line_t line = f_idx->line(current_line_num);
 		assert(current_line_num == line.num_);
@@ -391,9 +391,9 @@ namespace {
     {
 	if (display_info.isFirstLineDisplayed()) {
 	    info = "moved to top";
-	    return;
+	} else {
+	    display_info.up();
 	}
-	display_info.up();
 	refresh_lines();
 	refresh();
     }
@@ -402,9 +402,9 @@ namespace {
     {
 	if (display_info.isLastLineDisplayed()) {
 	    info = "moved to bottom";
-	    return;
+	} else {
+	    display_info.down();
 	}
-	display_info.down();
 	refresh_lines();
 	refresh();
     }
@@ -413,9 +413,9 @@ namespace {
     {
 	if (display_info.isLastLineDisplayed()) {
 	    info = "moved to bottom";
-	    return;
+	} else {
+	    display_info.page_down();
 	}
-	display_info.page_down();
 	refresh_lines();
 	refresh();
     }
@@ -442,13 +442,39 @@ namespace {
 	refresh();
     }
 
+    // position display on top line
     void key_g()
     {
 	if (display_info.isFirstLineDisplayed()) {
 	    info = "moved to top";
-	    return;
+	} else {
+	    display_info.top();
 	}
-	display_info.top();
+	refresh_lines();
+	refresh();
+    }
+
+    // position display on bottom line
+    void key_G()
+    {
+	if (! display_info.start()) {
+	    info = "nothing to display";
+	} else if (display_info.isLastLineDisplayed()) {
+	    info = "moved to bottom";
+	} else {
+	    const unsigned lastLineNum = display_info.lastLineNum();
+	    display_info.go_to(lastLineNum);
+	    // scroll up until we don't print the last line any more
+	    while (!display_info.isFirstLineDisplayed()) {
+		display_info.up();
+		refresh_lines();
+		if (display_info.bottomLineNum() != lastLineNum) {
+		    break;
+		}
+	    }
+	    // now scroll down again one line, so we see the last line
+	    display_info.down();
+	}
 	refresh_lines();
 	refresh();
     }
@@ -736,6 +762,7 @@ int realmain_impl(int argc, char * const argv[])
 
 	case KEY_END:
 	case 'G':
+	    key_G();
 	    break;
 
 	case '1':

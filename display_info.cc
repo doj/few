@@ -94,3 +94,23 @@ DisplayInfo::info() const
 {
     return "top #" + std::to_string(*topLineIt) + " bottom #" + std::to_string(*bottomLineIt);
 }
+
+unsigned
+DisplayInfo::lastLineNum() const
+{
+    if (displayedLineNum.size() == 0) {
+	return 0;
+    }
+    return displayedLineNum[displayedLineNum.size() - 1];
+}
+
+bool
+DisplayInfo::go_to(const unsigned lineNum)
+{
+    displayedLineNum_t::iterator i = std::find(displayedLineNum.begin(), displayedLineNum.end(), lineNum);
+    if (i == displayedLineNum.end()) {
+	return false;
+    }
+    bottomLineIt = topLineIt = i;
+    return true;
+}

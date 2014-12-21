@@ -51,6 +51,19 @@ public:
     unsigned bottomLineNum() const;
 
     /**
+     * This function can only be called after operator=(lineNum_set_t) has been called.
+     * @return the line number of the last line managed by this object.
+     */
+    unsigned lastLineNum() const;
+
+    /**
+     * position the object onto a line number.
+     * This function can only be called after operator=(lineNum_set_t) has been called.
+     * @return true if the line number is managed by this object; false if the line was not found.
+     */
+    bool go_to(const unsigned lineNum);
+
+    /**
      * check if the first line is displayed.
      * This function can only be called after start() has been called.
      * @return true if the first line of the file is displayed.

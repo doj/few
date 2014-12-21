@@ -1,5 +1,3 @@
-- read tab width from vim/emacs comments
-
 - preconfigure filter and display regex and search strings from command line
 - when exiting, write command line to restore regex and search strings
 
@@ -14,3 +12,4 @@
 - cache regular expression containers
 - support cursor in line_edit()
 - write man page
+- read tab width from vim/emacs comments
