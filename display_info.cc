@@ -85,3 +85,12 @@ DisplayInfo::page_down()
 {
     topLineIt = bottomLineIt;
 }
+
+unsigned
+DisplayInfo::bottomLineNum() const
+{
+    if (bottomLineIt == displayedLineNum.end()) {
+	return 0;
+    }
+    return *bottomLineIt;
+}

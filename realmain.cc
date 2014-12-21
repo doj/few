@@ -55,9 +55,8 @@ namespace {
 
     std::vector<regex_container_t> regex_vec;
 
-
-
-
+    /// an information string that is displayed in the lower right corner of the lines window
+    std::string info;
 
     /// @return number of digits in i.
     int digits(uint64_t i)
@@ -152,7 +151,7 @@ namespace {
 
 		    // are we at the end of the lines window?
 		    if (++y >= w_lines_height) {
-			return;
+			goto display_lines_done;
 		    }
 
 		    // do we have another line to display?
@@ -201,7 +200,7 @@ namespace {
 
 		    // are we at the end of the lines window?
 		    if (++y >= w_lines_height) {
-			return;
+			goto display_lines_done;
 		    }
 		}
 
@@ -219,6 +218,15 @@ namespace {
 
 	while(y < w_lines_height) {
 	    fill(y++, 0);
+	}
+
+    display_lines_done:
+	if (! info.empty()) {
+	    if (info.size() > screen_width) {
+		info.resize(screen_width);
+	    }
+	    curses_attr a(A_BOLD);
+	    mvprintw(w_lines_height - 1, screen_width - info.size(), "%s", info.c_str());
 	}
     }
 
@@ -396,6 +404,7 @@ namespace {
     void key_npage()
     {
 	if (display_info.isLastLineDisplayed()) {
+	    info = "nothing to display";
 	    return;
 	}
 	display_info.page_down();
@@ -405,12 +414,21 @@ namespace {
 
     void key_ppage()
     {
-	if (display_info.isFirstLineDisplayed()) {
+	if (! display_info.start()) {
+	    info = "nothing to display";
 	    return;
 	}
-	// \todo make this more intelligent
-	display_info.up();
-	refresh_lines();
+
+	// scroll up until the old top line is the current bottom line
+	const unsigned oldTopLineNum = display_info.current();
+	while (!display_info.isFirstLineDisplayed()) {
+	    display_info.up();
+	    refresh_lines();
+	    if (display_info.bottomLineNum() == oldTopLineNum) {
+		break;
+	    }
+	}
+
 	refresh();
     }
 
@@ -610,6 +628,8 @@ int realmain_impl(int argc, const char* argv[])
 
     f_idx = std::make_shared<file_index>(filename);
     apply_regex();
+    const std::string stdinfo = filename + " (" + std::to_string(f_idx->size()) + " lines)";
+    info = stdinfo;
 
     get_screen_size();
     if (screen_width == 0) {
@@ -622,6 +642,8 @@ int realmain_impl(int argc, const char* argv[])
     initialize_curses();
 
     while(true) {
+	info = stdinfo;
+
 	int key = getch();
 	if (key == 'q') {
 	    break;

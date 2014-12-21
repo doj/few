@@ -51,6 +51,12 @@ public:
     unsigned linesDisplayed() const;
 
     /**
+     * This function can only be called after start() has been called.
+     * @return the line number of the bottom line on the display.
+     */
+    unsigned bottomLineNum() const;
+
+    /**
      * check if the first line is displayed.
      * This function can only be called after start() has been called.
      * @return true if the first line of the file is displayed.
