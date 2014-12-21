@@ -786,9 +786,16 @@ int realmain_impl(int argc, char * const argv[])
     close_curses();
     std::cout << "fewer"
 	      << " --tabwidth " << tab_width
-	      << " " << filename
-	      << std::endl
 	;
+
+    for(const auto& c : regex_vec) {
+	if (c.rgx_.empty()) {
+	    continue;
+	}
+	std::cout << " --regex '" << c.rgx_ << "'";
+    }
+
+    std::cout << " " << filename << std::endl;
     return EXIT_SUCCESS;
 }
 

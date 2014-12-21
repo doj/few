@@ -1,19 +1,29 @@
+- parse and apply --regex
+
 - 'd' scroll down half a screen
 - 'u' scroll up half a screen
 - 'R' repaint screen
 - '%' goto percent inside file
 - 'P' goto line
-- 'n' goto next search result
-- 'N' goto prev search result
 
-- preconfigure filter and display regex and search strings from command line
-- when exiting, write command line to restore regex and search strings
+- display filters
+ + add DF with F1..F9 keys
+ + apply DF to output
+ + print DF upon exit
+ + parse DF upon start from command line
+
+- search
+ + edit search
+ + print search upon exit
+ + parse search upon start
+ + visualize search
+ + 'n' goto next search result
+ + 'N' goto prev search result
 
 - when starting, only parse the first screen height lines from the file and display them
  + then parse the remaining lines in a background thread
 - when adding a regex, let it run in a background thread and apply once done
 
-- modify how lines are displayed with regex
 - test UTF8
 - use color
 - cache regular expression containers
