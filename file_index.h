@@ -5,11 +5,9 @@
 #pragma once
 #include "memorymap.h"
 #include "line.h"
+#include "types.h"
 #include <vector>
 #include <cassert>
-#include <set>
-
-typedef std::set<unsigned> lineNum_set_t;
 
 class file_index
 {
@@ -33,7 +31,7 @@ public:
     explicit file_index(const std::string& filename);
 
     /// @return the number of currently parsed lines. This could be less than the total number of lines in the file.
-    unsigned lines() const
+    unsigned size() const
     {
 	return line_.size() - 1;
     }
@@ -106,7 +104,7 @@ public:
 	    if (line_num_ == 0) {
 		++(*this);
 	    }
-	    assert(line_num_ <= f_idx_->lines());
+	    assert(line_num_ <= f_idx_->size());
 	    line_t l = f_idx_->line_[line_num_];
 	    assert(l.num_ == line_num_);
 	    return l;

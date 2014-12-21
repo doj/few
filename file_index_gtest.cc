@@ -12,7 +12,7 @@ TEST(file_index, counts_lines_correctly)
 {
     auto f_idx = std::make_shared<file_index>("test.txt");
     f_idx->parse_all();
-    ASSERT_EQ(25u, f_idx->lines());
+    ASSERT_EQ(25u, f_idx->size());
 }
 
 TEST(file_index, throws_exception_if_line_index_is_too_large)

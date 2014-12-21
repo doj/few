@@ -16,6 +16,7 @@
 #include "file_index.h"
 #include "regex_index.h"
 #include "error.h"
+#include "display_info.h"
 
 namespace {
     /// width of screen in characters
@@ -31,14 +32,17 @@ namespace {
     // the y position of the search window
     unsigned search_y;
 
-    // the y position of the regex window
-    unsigned regex_y;
-
-    unsigned top_line = 1;
+    /// the file that is displayed
     std::shared_ptr<file_index> f_idx;
+
+    /// object to manage displayed lines
+    DisplayInfo display_info;
 
     /// height of the lines window
     unsigned w_lines_height;
+
+    // the y position of the regex window
+    unsigned regex_y;
 
     struct regex_container_t
     {
@@ -50,12 +54,6 @@ namespace {
     };
 
     std::vector<regex_container_t> regex_vec;
-
-    /// the number of lines currently displayed in the lines window. Can be less than lines window height.
-    unsigned lines_currently_displayed;
-
-    /// true if refresh_lines() printed the last line of the file
-    bool last_line_printed;
 
 
 
@@ -135,33 +133,14 @@ namespace {
 
     void refresh_lines()
     {
-	lines_currently_displayed = 0;
-	last_line_printed = false;
-
-	// the number of the last line printed
-	unsigned last_line_num = 0;
-
-	// intersect lines from file with regular expression matches
-	auto s = f_idx->lineNum_set();
-	for(const auto& c : regex_vec) {
-	    if (c.r_idx_) {
-		s = c.r_idx_->intersect(s);
-	    }
-	}
-
 	unsigned y = 0;
-	for(auto i : s) {
-	    if (y >= w_lines_height) {
-		break;
-	    }
-	    if (i < top_line) {
-		continue;
-	    }
+	display_info.start();
+	while(/*! isLastLineDisplayed() &&*/ y < w_lines_height) {
+	    const unsigned current_line_num = display_info.current();
+	    const line_t line = f_idx->line(current_line_num);
+	    assert(current_line_num == line.num_);
 
-	    ++lines_currently_displayed;
-
-	    const line_t line = f_idx->line(i);
-	    unsigned line_num_width = digits(i);
+	    unsigned line_num_width = digits(current_line_num);
 	    if (line_num_width < tab_width) {
 		line_num_width = tab_width;
 	    }
@@ -170,51 +149,103 @@ namespace {
 	    if (line.beg_ == line.end_) {
 		unsigned x = print_line_prefix(y, line.num_, 0, line_num_width);
 		fill(y, x);
-		++y;
-		last_line_num = line.num_;
-		continue;
+
+		// are we at the end of the lines window?
+		if (++y >= w_lines_height) {
+		    return;
+		}
+
+		// do we have another line to display?
+		if (display_info.next()) {
+		    continue; // there is a next line to display
+		} else {
+		    break; // last line displayed
+		}
 	    }
 
+	    // print the current line
 	    const char *beg = line.beg_;
-	    while(beg < line.end_)
+	    while(beg < line.end_ && y < w_lines_height) {
+		unsigned x = 0;
+		// block to print left info column
 		{
-		    unsigned x = 0;
-		    {
-			curses_attr a(A_REVERSE);
-			if (beg == line.beg_) {
-			    x += print_line_prefix(y, line.num_, line.end_ - beg, line_num_width);
-			    last_line_num = line.num_;
-			} else {
-			    for(; x < line_num_width; ++x) {
-				mvaddch(y, x, ' ');
-			    }
+		    curses_attr a(A_REVERSE);
+		    // are we at the start of the line?
+		    if (beg == line.beg_) {
+			// print line number
+			x += print_line_prefix(y, line.num_, line.end_ - beg, line_num_width);
+		    } else {
+			// print empty space
+			for(; x < line_num_width; ++x) {
+			    mvaddch(y, x, ' ');
 			}
 		    }
-		    while(beg < line.end_ && x < screen_width) {
-			char c = *beg++;
-			if (c == '\t') {
-			    do {
-				mvaddch(y, x++, ' ');
-			    } while (x % tab_width);
-			} else {
-			    if (! isprint(c)) {
-				c = ' ';
-			    }
-			    mvaddch(y, x++, c);
-			}
-		    }
-		    fill(y, x);
-		    ++y;
 		}
-	}
+		// print line in chunks of screen width
+		while(beg < line.end_ && x < screen_width) {
+		    char c = *beg++;
+		    // handle tab character
+		    if (c == '\t') {
+			do {
+			    mvaddch(y, x++, ' ');
+			} while (x % tab_width);
+		    } else {
+			// replace non printable characters with a space
+			if (! isprint(c)) {
+			    c = ' ';
+			}
+			mvaddch(y, x++, c);
+		    }
+		}
+		fill(y, x);
 
-	if (last_line_num == f_idx->lines()) {
-	    last_line_printed = true;
+		// are we at the end of the lines window?
+		if (++y >= w_lines_height) {
+		    return;
+		}
+	    }
+
+	    // did we display the full line?
+	    if (beg == line.end_) {
+		// do we have another line to display?
+		if (display_info.next()) {
+		    continue; // there is a next line to display
+		} else {
+		    break; // last line displayed
+		}
+	    }
 	}
 
 	while(y < w_lines_height) {
 	    fill(y++, 0);
 	}
+    }
+
+    /**
+     * print the string s at the screen at position x,y.
+     * The string does not print beyond screen_width.
+     * @param y vertical coordinate.
+     * @param x horizontal coordinate.
+     * @param s string.
+     * @return number of characters printed.
+     */
+    unsigned print_string(const unsigned y, const unsigned x, std::string s)
+    {
+	if (x >= screen_width) {
+	    return 0;
+	}
+	if (y >= screen_height) {
+	    return 0;
+	}
+	if (s.empty()) {
+	    return 0;
+	}
+	if (s.size() > screen_width - x) {
+	    s.resize(screen_width - x);
+	}
+	assert(x + s.size() < screen_width);
+	mvprintw(y, x, "%s", s.c_str());
+	return s.size();
     }
 
     void refresh_regex()
@@ -234,16 +265,28 @@ namespace {
 		title = "error";
 	    }
 
+	    unsigned X = 0;
 	    {
 		curses_attr a(A_BOLD);
-		mvprintw(y, 0, "%s %u ", title, ++cnt);
+		mvprintw(y, X, "%s %u ", title, ++cnt);
+		X += 8;
 	    }
-	    if (s.size() > screen_width - 8) {
-		s.resize(screen_width - 8);
+
+	    if (! s.empty()) {
+		X += print_string(y, X, s);
+
+		curses_attr a(A_BOLD);
+		s = " (";
+		const unsigned num = c.r_idx_->size();
+		s += std::to_string(num);
+		s += ") match";
+		if (num != 1) {
+		    s += "es";
+		}
+		X += print_string(y, X, s);
 	    }
-	    assert(8 + s.size() < screen_width);
-	    mvprintw(y, 8, "%s", s.c_str());
-	    fill(y, 8 + s.size());
+
+	    fill(y, X);
 
 	    ++y;
 	}
@@ -329,61 +372,74 @@ namespace {
 	signal(SIGWINCH, handle_winch);
     }
 
-    void key_up_impl()
-    {
-	if (top_line > 1) {
-	    --top_line;
-	}
-    }
-
     void key_up()
     {
-	key_up_impl();
+	if (display_info.isFirstLineDisplayed()) {
+	    return;
+	}
+	display_info.up();
 	refresh_lines();
 	refresh();
     }
 
-    void key_down_impl()
-    {
-	if (last_line_printed) {
-	    return;
-	}
-
-	++top_line;
-    }
-
     void key_down()
     {
-	key_down_impl();
+	if (display_info.isLastLineDisplayed()) {
+	    return;
+	}
+	display_info.down();
 	refresh_lines();
 	refresh();
     }
 
     void key_npage()
     {
-	for(unsigned i = 0; i < lines_currently_displayed; ++i) {
-	    key_down_impl();
+	if (display_info.isLastLineDisplayed()) {
+	    return;
 	}
+	display_info.page_down();
 	refresh_lines();
 	refresh();
     }
 
     void key_ppage()
     {
-	for(unsigned i = 0; i < w_lines_height; ++i) {
-	    key_up_impl();
+	if (display_info.isFirstLineDisplayed()) {
+	    return;
 	}
+	// \todo make this more intelligent
+	display_info.up();
 	refresh_lines();
 	refresh();
     }
 
     void key_g()
     {
-	if (top_line != 1) {
-	    top_line = 1;
-	    refresh_lines();
-	    refresh();
+	if (display_info.isFirstLineDisplayed()) {
+	    return;
 	}
+	display_info.top();
+	refresh_lines();
+	refresh();
+    }
+
+    /**
+     * provision the display_info object.
+     * use the lines from f_idx and filter with the regular expression vector regex_vec.
+     */
+    void apply_regex()
+    {
+	// get lines from file
+	auto s = f_idx->lineNum_set();
+
+	// intersect lines from file with regular expression matches
+	for(const auto& c : regex_vec) {
+	    if (c.r_idx_) {
+		s = c.r_idx_->intersect(s);
+	    }
+	}
+
+	display_info = s;
     }
 
     /**
@@ -533,6 +589,7 @@ namespace {
 	    }
 	}
 
+	apply_regex();
 	create_windows();
     }
 }
@@ -551,6 +608,7 @@ int realmain_impl(int argc, const char* argv[])
     setlocale(LC_ALL, "");
 
     f_idx = std::make_shared<file_index>(filename);
+    apply_regex();
 
     get_screen_size();
     if (screen_width == 0) {

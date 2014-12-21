@@ -35,6 +35,46 @@ TEST(regex_index, intersect_works)
 
     regex_index b(f_idx, "contains", "");
     auto s = b.intersect(a);
-
     ASSERT_EQ(1u, s.size());
+
+    regex_index c(f_idx, "this does not match anything", "");
+    ASSERT_EQ(0u, c.size());
+    s = c.intersect(a);
+    ASSERT_EQ(0u, s.size());
+}
+
+TEST(regex_index, intersect_works_on_test2_txt)
+{
+    auto file = std::make_shared<file_index>("test2.txt");
+    file->parse_all();
+    ASSERT_EQ(6u, file->size());
+
+    regex_index word_characters(file, "\\w", "");
+    ASSERT_EQ(6u, word_characters.size());
+
+    regex_index b(file, "b+", "");
+    ASSERT_EQ(1u, b.size());
+
+    auto s = file->lineNum_set();
+    ASSERT_EQ(6u, s.size());
+    s = word_characters.intersect(s);
+    ASSERT_EQ(6u, s.size());
+    s = b.intersect(s);
+    ASSERT_EQ(1u, s.size());
+
+    s = file->lineNum_set();
+    ASSERT_EQ(6u, s.size());
+    s = b.intersect(s);
+    ASSERT_EQ(1u, s.size());
+    s = word_characters.intersect(s);
+    ASSERT_EQ(1u, s.size());
+
+    regex_index z(file, "z", "");
+    ASSERT_EQ(0u, z.size());
+    s = file->lineNum_set();
+    ASSERT_EQ(6u, s.size());
+    s = z.intersect(s);
+    ASSERT_EQ(0u, s.size());
+    s = b.intersect(s);
+    ASSERT_EQ(0u, s.size());
 }

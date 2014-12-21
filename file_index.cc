@@ -28,14 +28,14 @@ bool file_index::parse_line(const unsigned index)
 	return false;
     }
 
-    if (index <= lines()) {
+    if (index <= size()) {
 	return true;
     }
 
     unsigned num = 0;
     const c_t* it = nullptr;
-    if (index > 1 && lines() > 0) {
-	line_t current_line = line_[lines()];
+    if (index > 1 && size() > 0) {
+	line_t current_line = line_[size()];
 	it = current_line.next_;
 	num = current_line.num_;
     } else {
@@ -97,9 +97,9 @@ namespace std {
 
 line_t file_index::line(const unsigned idx)
 {
-    if (idx > lines()) {
+    if (idx > size()) {
 	if (! parse_line(idx)) {
-	    throw std::runtime_error("file_index::line(" + std::to_string(idx) + "): index too large, file only contains " + std::to_string(lines()));
+	    throw std::runtime_error("file_index::line(" + std::to_string(idx) + "): index too large, file only contains " + std::to_string(size()));
 	}
     }
     return line_[idx];
@@ -113,7 +113,7 @@ file_index::lineNum_set()
     }
     assert(has_parsed_all_);
     lineNum_set_t s;
-    for(unsigned i = 1; i <= lines(); ++i) {
+    for(unsigned i = 1; i <= size(); ++i) {
 	s.insert(i);
     }
     return s;

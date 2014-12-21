@@ -1,8 +1,4 @@
 - with a regex filter applied scrolling doesn't make sense
- + rethink how regex_index stores it's matches
- + when scrolling down or up, we need to find the next line that is above or below and matching
- + have global vector of line numbers which are displayed
- + write apply_regex() which configures the global vector of line numbers
 
 - configure tab width from command line
 - read tab width from vim/emacs comments
