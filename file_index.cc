@@ -3,13 +3,18 @@
  * :indentSize=4:tabSize=8:
  */
 #include "file_index.h"
-#include <stdexcept>
+#include "error.h"
 #include <cassert>
+#include <sysexits.h>
 
-file_index::file_index(const file_t& f) :
-    file_(f),
+file_index::file_index(const std::string& filename) :
+    file_(filename),
     has_parsed_all_(false)
 {
+    if (file_.empty()) {
+	throw error("could not memory map: " + filename, EX_NOINPUT);
+    }
+
     // we start counting lines with number 1. So add an invalid pointer to index 0.
     line_.push_back(line_t(nullptr, nullptr, nullptr, 0));
 }
@@ -28,7 +33,7 @@ bool file_index::parse_line(const unsigned index)
     }
 
     unsigned num = 0;
-    file_t::const_iterator it = nullptr;
+    const c_t* it = nullptr;
     if (index > 1 && lines() > 0) {
 	line_t current_line = line_[lines()];
 	it = current_line.next_;
@@ -41,10 +46,10 @@ bool file_index::parse_line(const unsigned index)
 	return false;
     }
 
-    file_t::const_iterator beg = it;
+    const c_t* beg = it;
     while(num < index) {
 	if (*it == '\n') {
-	    file_t::const_iterator next = it + 1;
+	    const c_t* next = it + 1;
 	    push_line(beg, it, next, ++num);
 	    beg = next;
 	}
@@ -62,7 +67,7 @@ bool file_index::parse_line(const unsigned index)
 }
 
 void
-file_index::push_line(file_t::const_iterator beg, file_t::const_iterator end, file_t::const_iterator next, const unsigned num)
+file_index::push_line(const c_t* beg, const c_t* end, const c_t* next, const unsigned num)
 {
     while(beg < end) {
 	if (*(end - 1) == '\n') {
@@ -100,14 +105,14 @@ line_t file_index::line(const unsigned idx)
     return line_[idx];
 }
 
-index_set_t
-file_index::index_set()
+lineNum_set_t
+file_index::lineNum_set()
 {
     if (! has_parsed_all_) {
 	parse_all();
     }
     assert(has_parsed_all_);
-    index_set_t s;
+    lineNum_set_t s;
     for(unsigned i = 1; i <= lines(); ++i) {
 	s.insert(i);
     }

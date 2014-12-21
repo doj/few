@@ -4,11 +4,12 @@
  */
 #pragma once
 #include "file_index.h"
+#include <memory>
 
 class regex_index
 {
 protected:
-    index_set_t index_set_;
+    lineNum_set_t lineNum_set_;
 
 public:
     /**
@@ -19,11 +20,11 @@ public:
      *
      * @throws std::runtime_error if regular expression could not be parsed.
      */
-    regex_index(file_index& f_idx, const std::string& rgx, const std::string& flags);
+    regex_index(std::shared_ptr<file_index> f_idx, const std::string& rgx, const std::string& flags);
 
-    unsigned size() const { return index_set_.size(); }
+    unsigned size() const { return lineNum_set_.size(); }
 
-    const index_set_t& index_set() const { return index_set_; }
+    const lineNum_set_t& lineNum_set() const { return lineNum_set_; }
 
     /**
      * intersect the object's index set with s.
@@ -31,10 +32,10 @@ public:
      * @param[in] s index set.
      * @return new set with the common elements.
      */
-    index_set_t intersect(const index_set_t& s);
+    lineNum_set_t intersect(const lineNum_set_t& s);
 
-    index_set_t intersect(const regex_index& r)
+    lineNum_set_t intersect(const regex_index& r)
     {
-	return intersect(r.index_set());
+	return intersect(r.lineNum_set());
     }
 };

@@ -9,12 +9,14 @@
 #include <cassert>
 #include <set>
 
-typedef doj::memorymap_ptr<char> file_t;
-typedef std::set<unsigned> index_set_t;
+typedef std::set<unsigned> lineNum_set_t;
 
 class file_index
 {
-    const file_t& file_;
+    /// the character type we are using. Maybe we use wide characters one day.
+    typedef char c_t;
+
+    doj::memorymap_ptr<c_t> file_;
     std::vector<line_t> line_;
     bool has_parsed_all_;
 
@@ -25,10 +27,10 @@ class file_index
      */
     bool parse_line(const unsigned index);
 
-    void push_line(file_t::const_iterator beg, file_t::const_iterator end, file_t::const_iterator next, const unsigned num);
+    void push_line(const c_t* beg, const c_t* end, const c_t* next, const unsigned num);
 
 public:
-    explicit file_index(const file_t& f);
+    explicit file_index(const std::string& filename);
 
     /// @return the number of currently parsed lines. This could be less than the total number of lines in the file.
     unsigned lines() const
@@ -137,6 +139,6 @@ public:
 #endif
     }
 
-    index_set_t index_set();
+    lineNum_set_t lineNum_set();
 
 };

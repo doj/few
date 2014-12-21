@@ -8,32 +8,28 @@
 
 TEST(regex_index, does_filter_non_empty_lines)
 {
-    file_t f("test.txt");
-    file_index f_idx(f);
+    auto f_idx = std::make_shared<file_index>("test.txt");
     regex_index r_idx(f_idx, "\\w", "");
     ASSERT_GE(r_idx.size(), 3u);
 }
 
 TEST(regex_index, i_flag)
 {
-    file_t f("test.txt");
-    file_index f_idx(f);
+    auto f_idx = std::make_shared<file_index>("test.txt");
     regex_index r_idx(f_idx, "this is line #10.", "i");
     ASSERT_EQ(1u, r_idx.size());
 }
 
 TEST(regex_index, not_flag)
 {
-    file_t f("test.txt");
-    file_index f_idx(f);
+    auto f_idx = std::make_shared<file_index>("test.txt");
     regex_index r_idx(f_idx, "#", "!");
     ASSERT_GE(r_idx.size(), 3u);
 }
 
 TEST(regex_index, intersect_works)
 {
-    file_t f("test.txt");
-    file_index f_idx(f);
+    auto f_idx = std::make_shared<file_index>("test.txt");
 
     regex_index a(f_idx, "#", "!");
 

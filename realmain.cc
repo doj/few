@@ -13,9 +13,9 @@
 #include <stdint.h>
 #include <memory>
 #include <regex>
-#include "memorymap.h"
 #include "file_index.h"
 #include "regex_index.h"
+#include "error.h"
 
 namespace {
     /// width of screen in characters
@@ -35,7 +35,7 @@ namespace {
     unsigned regex_y;
 
     unsigned top_line = 1;
-    file_index *f_idx = nullptr;
+    std::shared_ptr<file_index> f_idx;
 
     /// height of the lines window
     unsigned w_lines_height;
@@ -142,7 +142,7 @@ namespace {
 	unsigned last_line_num = 0;
 
 	// intersect lines from file with regular expression matches
-	auto s = f_idx->index_set();
+	auto s = f_idx->lineNum_set();
 	for(const auto& c : regex_vec) {
 	    if (c.r_idx_) {
 		s = c.r_idx_->intersect(s);
@@ -177,35 +177,35 @@ namespace {
 
 	    const char *beg = line.beg_;
 	    while(beg < line.end_)
-	    {
-		unsigned x = 0;
 		{
-		    curses_attr a(A_REVERSE);
-		    if (beg == line.beg_) {
-			x += print_line_prefix(y, line.num_, line.end_ - beg, line_num_width);
-			last_line_num = line.num_;
-		    } else {
-			for(; x < line_num_width; ++x) {
-			    mvaddch(y, x, ' ');
+		    unsigned x = 0;
+		    {
+			curses_attr a(A_REVERSE);
+			if (beg == line.beg_) {
+			    x += print_line_prefix(y, line.num_, line.end_ - beg, line_num_width);
+			    last_line_num = line.num_;
+			} else {
+			    for(; x < line_num_width; ++x) {
+				mvaddch(y, x, ' ');
+			    }
 			}
 		    }
-		}
-		while(beg < line.end_ && x < screen_width) {
-		    char c = *beg++;
-		    if (c == '\t') {
-			do {
-			    mvaddch(y, x++, ' ');
-			} while (x % tab_width);
-		    } else {
-			if (! isprint(c)) {
-			    c = ' ';
+		    while(beg < line.end_ && x < screen_width) {
+			char c = *beg++;
+			if (c == '\t') {
+			    do {
+				mvaddch(y, x++, ' ');
+			    } while (x % tab_width);
+			} else {
+			    if (! isprint(c)) {
+				c = ' ';
+			    }
+			    mvaddch(y, x++, c);
 			}
-			mvaddch(y, x++, c);
 		    }
+		    fill(y, x);
+		    ++y;
 		}
-		fill(y, x);
-		++y;
-	    }
 	}
 
 	if (last_line_num == f_idx->lines()) {
@@ -526,7 +526,7 @@ namespace {
 	    }
 
 	    try {
-		c.r_idx_ = std::make_shared<regex_index>(*f_idx, rgx, flags);
+		c.r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags);
 		c.err_.erase();
 	    } catch (std::regex_error& e) {
 		c.err_ << e.code();
@@ -537,7 +537,7 @@ namespace {
     }
 }
 
-int realmain(int argc, const char* argv[])
+int realmain_impl(int argc, const char* argv[])
 {
     if (argc < 2) {
 	return EX_USAGE;
@@ -546,13 +546,11 @@ int realmain(int argc, const char* argv[])
 	return EX_USAGE;
     }
 
-    doj::memorymap_ptr<char> file_ptr(argv[1]);
-    if (file_ptr.empty()) {
-	std::cerr << "could not memory map: " << argv[1] << std::endl;
-	return EX_NOINPUT;
-    }
+    const std::string filename = argv[1];
 
     setlocale(LC_ALL, "");
+
+    f_idx = std::make_shared<file_index>(filename);
 
     get_screen_size();
     if (screen_width == 0) {
@@ -560,9 +558,6 @@ int realmain(int argc, const char* argv[])
 	return EX_USAGE;
     }
     signal(SIGWINCH, handle_winch);
-
-    file_index fi(file_ptr);
-    f_idx = &fi;
 
     atexit(close_curses);
     initialize_curses();
@@ -630,4 +625,31 @@ int realmain(int argc, const char* argv[])
     }
 
     return EXIT_SUCCESS;
+}
+
+int realmain(int argc, const char* argv[])
+{
+    int exit_status = EXIT_FAILURE;
+    std::string exit_msg;
+
+    try {
+	exit_status = realmain_impl(argc, argv);
+    }
+    catch (const error& e) {
+	exit_msg = e.what();
+	exit_status = e.exit_status();
+    }
+    catch (const std::exception& e) {
+	exit_msg = e.what();
+    }
+    catch (...) {
+	exit_msg = "caught unknown exception";
+    }
+
+    if (! exit_msg.empty()) {
+	std::cerr << std::endl << exit_msg << std::endl;
+    }
+
+    f_idx = nullptr;
+    return exit_status;
 }

@@ -5,7 +5,7 @@
 #include "regex_index.h"
 #include <regex>
 #include <iostream>
-regex_index::regex_index(file_index& f_idx, const std::string& rgx, const std::string& flags)
+regex_index::regex_index(std::shared_ptr<file_index> f_idx, const std::string& rgx, const std::string& flags)
 {
     bool positive_match = true;
     std::regex_constants::syntax_option_type fl = std::regex::ECMAScript | std::regex::optimize;
@@ -20,24 +20,24 @@ regex_index::regex_index(file_index& f_idx, const std::string& rgx, const std::s
     }
 
     std::regex r(rgx, fl);
-    for(auto line : f_idx) {
+    for(auto line : *f_idx) {
 	//std::clog << line.num_ << ":" << line.to_string();
 	bool res = std::regex_search(line.beg_, line.end_, r);
 	if (( positive_match &&  res) ||
 	    (!positive_match && !res)) {
-	    index_set_.insert(line.num_);
+	    lineNum_set_.insert(line.num_);
 	    //std::clog << " !match!";
 	}
 	//std::clog << std::endl;
     }
 }
 
-index_set_t
-regex_index::intersect(const index_set_t& s)
+lineNum_set_t
+regex_index::intersect(const lineNum_set_t& s)
 {
-    index_set_t res;
+    lineNum_set_t res;
     if (! s.empty()) {
-	for(auto i : index_set_) {
+	for(auto i : lineNum_set_) {
 	    if (s.count(i)) {
 		res.insert(i);
 	    }
