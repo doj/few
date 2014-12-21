@@ -16,3 +16,7 @@
 # Executables
 fewer
 test
+
+# editor files
+*~
+.emacs*

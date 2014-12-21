@@ -134,84 +134,85 @@ namespace {
     void refresh_lines()
     {
 	unsigned y = 0;
-	display_info.start();
-	while(/*! isLastLineDisplayed() &&*/ y < w_lines_height) {
-	    const unsigned current_line_num = display_info.current();
-	    const line_t line = f_idx->line(current_line_num);
-	    assert(current_line_num == line.num_);
+	if (display_info.start()) {
+	    while(/*! isLastLineDisplayed() &&*/ y < w_lines_height) {
+		const unsigned current_line_num = display_info.current();
+		const line_t line = f_idx->line(current_line_num);
+		assert(current_line_num == line.num_);
 
-	    unsigned line_num_width = digits(current_line_num);
-	    if (line_num_width < tab_width) {
-		line_num_width = tab_width;
-	    }
-
-	    // empty line?
-	    if (line.beg_ == line.end_) {
-		unsigned x = print_line_prefix(y, line.num_, 0, line_num_width);
-		fill(y, x);
-
-		// are we at the end of the lines window?
-		if (++y >= w_lines_height) {
-		    return;
+		unsigned line_num_width = digits(current_line_num);
+		if (line_num_width < tab_width) {
+		    line_num_width = tab_width;
 		}
 
-		// do we have another line to display?
-		if (display_info.next()) {
-		    continue; // there is a next line to display
-		} else {
-		    break; // last line displayed
-		}
-	    }
+		// empty line?
+		if (line.beg_ == line.end_) {
+		    unsigned x = print_line_prefix(y, line.num_, 0, line_num_width);
+		    fill(y, x);
 
-	    // print the current line
-	    const char *beg = line.beg_;
-	    while(beg < line.end_ && y < w_lines_height) {
-		unsigned x = 0;
-		// block to print left info column
-		{
-		    curses_attr a(A_REVERSE);
-		    // are we at the start of the line?
-		    if (beg == line.beg_) {
-			// print line number
-			x += print_line_prefix(y, line.num_, line.end_ - beg, line_num_width);
+		    // are we at the end of the lines window?
+		    if (++y >= w_lines_height) {
+			return;
+		    }
+
+		    // do we have another line to display?
+		    if (display_info.next()) {
+			continue; // there is a next line to display
 		    } else {
-			// print empty space
-			for(; x < line_num_width; ++x) {
-			    mvaddch(y, x, ' ');
-			}
+			break; // last line displayed
 		    }
 		}
-		// print line in chunks of screen width
-		while(beg < line.end_ && x < screen_width) {
-		    char c = *beg++;
-		    // handle tab character
-		    if (c == '\t') {
-			do {
-			    mvaddch(y, x++, ' ');
-			} while (x % tab_width);
-		    } else {
-			// replace non printable characters with a space
-			if (! isprint(c)) {
-			    c = ' ';
+
+		// print the current line
+		const char *beg = line.beg_;
+		while(beg < line.end_ && y < w_lines_height) {
+		    unsigned x = 0;
+		    // block to print left info column
+		    {
+			curses_attr a(A_REVERSE);
+			// are we at the start of the line?
+			if (beg == line.beg_) {
+			    // print line number
+			    x += print_line_prefix(y, line.num_, line.end_ - beg, line_num_width);
+			} else {
+			    // print empty space
+			    for(; x < line_num_width; ++x) {
+				mvaddch(y, x, ' ');
+			    }
 			}
-			mvaddch(y, x++, c);
+		    }
+		    // print line in chunks of screen width
+		    while(beg < line.end_ && x < screen_width) {
+			char c = *beg++;
+			// handle tab character
+			if (c == '\t') {
+			    do {
+				mvaddch(y, x++, ' ');
+			    } while (x % tab_width);
+			} else {
+			    // replace non printable characters with a space
+			    if (! isprint(c)) {
+				c = ' ';
+			    }
+			    mvaddch(y, x++, c);
+			}
+		    }
+		    fill(y, x);
+
+		    // are we at the end of the lines window?
+		    if (++y >= w_lines_height) {
+			return;
 		    }
 		}
-		fill(y, x);
 
-		// are we at the end of the lines window?
-		if (++y >= w_lines_height) {
-		    return;
-		}
-	    }
-
-	    // did we display the full line?
-	    if (beg == line.end_) {
-		// do we have another line to display?
-		if (display_info.next()) {
-		    continue; // there is a next line to display
-		} else {
-		    break; // last line displayed
+		// did we display the full line?
+		if (beg == line.end_) {
+		    // do we have another line to display?
+		    if (display_info.next()) {
+			continue; // there is a next line to display
+		    } else {
+			break; // last line displayed
+		    }
 		}
 	    }
 	}
