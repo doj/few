@@ -1,16 +1,15 @@
-- 'd' scroll down half a screen
-- 'u' scroll up half a screen
-- '%' goto percent inside file
-- 'h' show help
-
 - search
- + edit search
  + print search upon exit
  + parse search upon start
  + visualize search
  + 'n' goto next search result
  + 'N' goto prev search result
  + should search apply before or after display filter?
+
+- 'd' scroll down half a screen
+- 'u' scroll up half a screen
+- '%' goto percent inside file
+- 'h' show help
 
 - when starting, only parse the first screen height lines from the file and display them
  + then parse the remaining lines in a background thread
@@ -22,6 +21,6 @@
 - support cursor in line_edit()
 - read tab width from vim/emacs comments
 - create homepage on llg.cubic.org
-- enforce minimul window height
+- enforce minimal window height
 - test with large files
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash

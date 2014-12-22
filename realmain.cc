@@ -31,7 +31,7 @@ namespace {
     unsigned tab_width = 8;
 
     /// current search regular expression
-    std::string search;
+    std::string search_rgx;
     // the y position of the search window
     unsigned search_y;
 
@@ -355,10 +355,10 @@ namespace {
 	refresh_regex_window(filter_y, "regex", filter_vec);
 	refresh_regex_window(df_y, "dispf", df_vec);
 
-	if (! search.empty()) {
+	if (! search_rgx.empty()) {
 	    curses_attr a(A_BOLD);
-	    mvprintw(search_y, 0, "Search: %s", search.c_str());
-	    fill(search_y, 8+search.size());
+	    mvprintw(search_y, 0, "Search: %s", search_rgx.c_str());
+	    fill(search_y, 8 + search_rgx.size());
 	}
 
 	refresh();
@@ -369,7 +369,7 @@ namespace {
 	w_lines_height = screen_height;
 	w_lines_height -= filter_vec.size();
 	w_lines_height -= df_vec.size();
-	if (! search.empty()) {
+	if (! search_rgx.empty()) {
 	    --w_lines_height;
 	}
 	assert(w_lines_height > 0);
@@ -400,12 +400,6 @@ namespace {
     {
 	calculate_window_sizes();
 	refresh_windows();
-    }
-
-    void enter_search()
-    {
-	search = "Dirk";
-	create_windows();
     }
 
     void initialize_curses()
@@ -766,6 +760,17 @@ namespace {
 	}
 	refresh_windows();
     }
+
+    void edit_search()
+    {
+	{
+	    curses_attr a(A_BOLD);
+	    mvprintw(search_y, 0, "Search: ");
+	    search_rgx = normalize_regex( line_edit(search_y, 8, search_rgx, screen_width - 8) );
+	}
+	create_windows();
+    }
+
 }
 
 void help();
@@ -881,7 +886,9 @@ int realmain_impl(int argc, char * const argv[])
 	    break;
 	}
 	switch(key) {
-	case '/': enter_search(); break;
+	case '/':
+	    edit_search();
+	    break;
 
 	case 'p':
 	case KEY_UP:
@@ -893,7 +900,7 @@ int realmain_impl(int argc, char * const argv[])
 	    break;
 
 	case 'n':
-	    if (search.empty()) {
+	    if (search_rgx.empty()) {
 		key_down();
 	    } else {
 
