@@ -9,9 +9,29 @@
 DisplayInfo&
 DisplayInfo::operator= (const lineNum_set_t& s)
 {
+    unsigned old_line_num = 0;
+    if (topLineIt != displayedLineNum.end()) {
+	old_line_num = *topLineIt;
+    }
+
     displayedLineNum.resize(s.size());
     std::copy(s.begin(), s.end(), displayedLineNum.begin());
-    top();
+
+    if (old_line_num == 0) {
+	top();
+    } else {
+	topLineIt = std::lower_bound(displayedLineNum.begin(), displayedLineNum.end(), old_line_num);
+	if (topLineIt == displayedLineNum.begin()) {
+	    // do nothing
+	} else if (topLineIt == displayedLineNum.end()) {
+	    --topLineIt;
+	} else if (*topLineIt == old_line_num) {
+	    // do nothing
+	} else {
+	    --topLineIt;
+	}
+    }
+
     return *this;
 }
 

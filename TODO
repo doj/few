@@ -1,5 +1,4 @@
 - display filters
- + when DF is entered display jumps to top
  + print DF upon exit
  + parse DF upon start from command line
 

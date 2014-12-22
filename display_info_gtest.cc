@@ -89,3 +89,41 @@ TEST(DisplayInfo, up_does_not_go_through_the_ceiling)
     i.start();
     ASSERT_EQ(1u, i.current());
 }
+
+TEST(DisplayInfo, stays_near_current_line_if_new_set_is_assigned)
+{
+    DisplayInfo i; i = s();
+
+    i.start();
+    i.down();
+    i.down();
+    i.start();
+    ASSERT_EQ(3u, i.current());
+
+    i = s();
+    i.start();
+    ASSERT_EQ(3u, i.current());
+    i.down();
+    i.down();
+    i.down();
+    i.down();
+    i.start();
+    ASSERT_EQ(7u, i.current());
+
+    // a set with only every 5th line
+    lineNum_set_t a;
+    for(unsigned i = 1; i <= 100; i += 5) {
+	a.insert(i);
+    }
+    i = a;
+    i.start();
+    ASSERT_EQ(1u + 5u, i.current());
+
+    // a small set, move upward
+    a.clear();
+    a.insert(2);
+    a.insert(4);
+    i = a;
+    i.start();
+    ASSERT_EQ(4u, i.current());
+}
