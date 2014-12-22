@@ -80,14 +80,15 @@ The standard form of these regular expression has the following format:
 /regex/flags
 
 The regular expression is surrounded by two forward slash characters.
+The flags are optional.
 
 See <http://www.cplusplus.com/reference/regex/ECMAScript/> for details
 on the regular expression syntax. It is similar to perl regular
 expressions.
 
 ### Regular Expression Flags
-The regular expression can be modified with flag characters, the
-following characters are currently supported:
+The regular expression can be modified with optional flag characters,
+the following characters are currently supported:
 
 * **i**:
   case insensitive match
@@ -116,13 +117,13 @@ The fewer program will convert the short forms to the regular form.
 Display Filter change the way the lines are displayed. They take the
 form of a perl regular expression substitute:
 
-/regex/replace/
+/regex/replace/flags
 
 Because the parsing of this format is currently naive, the strings
 _regex_ and _replace_ may not contain any forward slash characters.
 
-The display filter allows the 'i' flag to indicate case insensitive
-matching.
+The display filter allows the optional 'i' flag to indicate case
+insensitive matching.
 
 AUTHOR
 ------
