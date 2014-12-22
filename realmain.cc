@@ -43,8 +43,8 @@ namespace {
     /// height of the lines window
     unsigned w_lines_height;
 
-    // the y position of the regex window
-    unsigned regex_y;
+    // the y position of the lines filter regex window
+    unsigned filter_y;
 
     struct regex_container_t
     {
@@ -55,7 +55,10 @@ namespace {
 	std::shared_ptr<regex_index> r_idx_;
     };
 
-    std::vector<regex_container_t> regex_vec;
+    typedef std::vector<regex_container_t> regex_vec_t;
+
+    /// the regular expressions for the lines filter
+    regex_vec_t filter_vec;
 
     /// an information string that is displayed in the lower right corner of the lines window
     std::string info;
@@ -267,9 +270,9 @@ namespace {
     void refresh_regex()
     {
 	curses_attr a(A_REVERSE);
-	unsigned y = regex_y;
+	unsigned y = filter_y;
 	unsigned cnt = 0;
-	for(const auto& c : regex_vec) {
+	for(const auto& c : filter_vec) {
 	    std::string s = c.rgx_;
 	    const char* title = nullptr;
 
@@ -329,13 +332,13 @@ namespace {
 	    --w_lines_height;
 	}
 
-	if (regex_vec.size() == 0) {
-	    regex_y = 0;
+	if (filter_vec.size() == 0) {
+	    filter_y = 0;
 	} else {
-	    assert(regex_vec.size() <= 9);
-	    w_lines_height -= regex_vec.size();
-	    regex_y = w_lines_height;
-	    assert(regex_y > 0);
+	    assert(filter_vec.size() <= 9);
+	    w_lines_height -= filter_vec.size();
+	    filter_y = w_lines_height;
+	    assert(filter_y > 0);
 	}
 
 	search_y = screen_height - 1;
@@ -482,7 +485,7 @@ namespace {
 
     /**
      * provision the display_info object.
-     * use the lines from f_idx and filter with the regular expression vector regex_vec.
+     * use the lines from f_idx and filter with the regular expression vector filter_vec.
      */
     void apply_regex()
     {
@@ -490,7 +493,7 @@ namespace {
 	auto s = f_idx->lineNum_set();
 
 	// intersect lines from file with regular expression matches
-	for(const auto& c : regex_vec) {
+	for(const auto& c : filter_vec) {
 	    if (c.r_idx_) {
 		s = c.r_idx_->intersect(s);
 	    }
@@ -594,28 +597,28 @@ namespace {
 	return s;
     }
 
-    void add_regex(const unsigned regex_num, std::string rgx)
+    void add_regex(const unsigned regex_num, std::string rgx, regex_vec_t& vec)
     {
 	assert(regex_num < 9);
 	assert(! rgx.empty());
-
-	// check if we need to expand regex_vec
-	if (regex_vec.size() <= regex_num) {
-	    regex_vec.resize(regex_num + 1);
-	}
 
 	// normalize regular expression
 	rgx = normalize_regex(rgx);
 	assert(rgx.size() >= 3);
 	assert(rgx[0] == '/');
 
-	auto& c = regex_vec[regex_num];
+	// check if we need to expand vec
+	if (vec.size() <= regex_num) {
+	    vec.resize(regex_num + 1);
+	}
+
+	auto& c = vec[regex_num];
 	c.rgx_ = rgx;
 
 	// check for flags
 	std::string flags;
 	unsigned last_idx = rgx.size() - 1;
-	while(last_idx > 3) {
+	while(last_idx >= 2) {
 	    const char last_c = rgx[last_idx];
 	    rgx.erase(last_idx); // erase last character
 	    if (last_c == '/') {
@@ -629,40 +632,39 @@ namespace {
 	try {
 	    c.r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags);
 	    c.err_.erase();
+	    c.err_ = rgx;
 	} catch (std::regex_error& e) {
 	    c.err_ << e.code();
 	}
     }
 
-    void edit_regex(const unsigned regex_num)
+    void edit_regex(const unsigned regex_num, regex_vec_t& vec)
     {
-	if (regex_num >= 9) {
-	    return;
-	}
+	assert(regex_num < 9);
 
-	// check if we need to expand regex_vec
-	if (regex_vec.size() <= regex_num) {
-	    regex_vec.resize(regex_num + 1);
+	// check if we need to expand vec
+	if (vec.size() <= regex_num) {
+	    vec.resize(regex_num + 1);
 	}
 
 	create_windows();
 
 	// get new regex string
-	auto& c = regex_vec[regex_num];
+	auto& c = vec[regex_num];
 	{
 	    curses_attr a(A_REVERSE);
-	    c.rgx_ = line_edit(regex_y + regex_num, 8, c.rgx_, screen_width - 8);
+	    c.rgx_ = line_edit(filter_y + regex_num, 8, c.rgx_, screen_width - 8);
 	}
 
 	if (c.rgx_.empty()) {
 	    c.err_.erase();
 	    c.r_idx_ = nullptr;
 	    // pop regular expression container from vector if they're empty
-	    while(regex_vec.size() > 0 && regex_vec[regex_vec.size()-1].rgx_.empty()) {
-		regex_vec.resize(regex_vec.size() - 1);
+	    while(vec.size() > 0 && vec[vec.size()-1].rgx_.empty()) {
+		vec.resize(vec.size() - 1);
 	    }
 	} else {
-	    add_regex(regex_num, c.rgx_);
+	    add_regex(regex_num, c.rgx_, vec);
 	}
 
 	apply_regex();
@@ -693,7 +695,7 @@ int realmain_impl(int argc, char * const argv[])
 	{ nullptr, 0, nullptr, 0 }
     };
 
-    std::vector<std::string> command_line_regex;
+    std::vector<std::string> command_line_filter_regex;
     int key;
     while((key = getopt_long(argc, argv, "", longopts, nullptr)) > 0) {
 	switch(key) {
@@ -703,14 +705,14 @@ int realmain_impl(int argc, char * const argv[])
 	    return EXIT_FAILURE;
 
 	case opt_regex:
-	    if (command_line_regex.size() >= 9) {
+	    if (command_line_filter_regex.size() >= 9) {
 		std::cerr << "can only add up to 9 regular expressions with the --regex argument" << std::endl;
 		return EX_USAGE;
 	    }
 	    {
 		std::string s = optarg;
 		if (! s.empty()) {
-		    command_line_regex.push_back(s);
+		    command_line_filter_regex.push_back(s);
 		}
 	    }
 	    break;
@@ -739,8 +741,8 @@ int realmain_impl(int argc, char * const argv[])
     setlocale(LC_ALL, "");
 
     f_idx = std::make_shared<file_index>(filename);
-    for(unsigned u = 0; u != command_line_regex.size(); ++u) {
-	add_regex(u, command_line_regex[u]);
+    for(unsigned u = 0; u != command_line_filter_regex.size(); ++u) {
+	add_regex(u, command_line_filter_regex[u], filter_vec);
     }
     apply_regex();
 
@@ -815,7 +817,7 @@ int realmain_impl(int argc, char * const argv[])
 	case '7':
 	case '8':
 	case '9':
-	    edit_regex(key - '1');
+	    edit_regex(key - '1', filter_vec);
 	    break;
 
 	case '0':
@@ -829,7 +831,7 @@ int realmain_impl(int argc, char * const argv[])
 	      << " --tabwidth " << tab_width
 	;
 
-    for(const auto& c : regex_vec) {
+    for(const auto& c : filter_vec) {
 	if (c.rgx_.empty()) {
 	    continue;
 	}

@@ -1,15 +1,15 @@
+- display filters
+ + add DF with F1..F9 keys
+ + apply DF to output
+ + print DF upon exit
+ + parse DF upon start from command line
+
 - 'd' scroll down half a screen
 - 'u' scroll up half a screen
 - 'R' repaint screen
 - '%' goto percent inside file
 - 'P' goto line
 - 'h' show help
-
-- display filters
- + add DF with F1..F9 keys
- + apply DF to output
- + print DF upon exit
- + parse DF upon start from command line
 
 - search
  + edit search
@@ -18,6 +18,7 @@
  + visualize search
  + 'n' goto next search result
  + 'N' goto prev search result
+ + should search apply before or after display filter?
 
 - when starting, only parse the first screen height lines from the file and display them
  + then parse the remaining lines in a background thread
@@ -27,5 +28,5 @@
 - use color
 - cache regular expression containers
 - support cursor in line_edit()
-- write man page
 - read tab width from vim/emacs comments
+- create homepage on llg.cubic.org
