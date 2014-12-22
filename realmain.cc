@@ -904,6 +904,10 @@ int realmain_impl(int argc, char * const argv[])
 	    key_G();
 	    break;
 
+	case 'R':
+	    refresh_windows();
+	    break;
+
 	case '1':
 	case '2':
 	case '3':

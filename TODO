@@ -1,6 +1,5 @@
 - 'd' scroll down half a screen
 - 'u' scroll up half a screen
-- 'R' repaint screen
 - '%' goto percent inside file
 - 'P' goto line
 - 'h' show help
