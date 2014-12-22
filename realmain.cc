@@ -766,14 +766,16 @@ int realmain_impl(int argc, char * const argv[])
     enum {
 	opt_tabwidth = 500,
 	opt_regex,
+	opt_df,
     };
     const struct option longopts[] = {
 	{ "tabwidth", required_argument, nullptr, opt_tabwidth },
 	{ "regex", required_argument, nullptr, opt_regex },
+	{ "df", required_argument, nullptr, opt_df },
 	{ nullptr, 0, nullptr, 0 }
     };
 
-    std::vector<std::string> command_line_filter_regex;
+    std::vector<std::string> command_line_filter_regex, command_line_df_regex;
     int key;
     while((key = getopt_long(argc, argv, "", longopts, nullptr)) > 0) {
 	switch(key) {
@@ -791,6 +793,19 @@ int realmain_impl(int argc, char * const argv[])
 		std::string s = optarg;
 		if (! s.empty()) {
 		    command_line_filter_regex.push_back(s);
+		}
+	    }
+	    break;
+
+	case opt_df:
+	    if (command_line_df_regex.size() >= 9) {
+		std::cerr << "can only add up to 9 display filters with the --df argument" << std::endl;
+		return EX_USAGE;
+	    }
+	    {
+		std::string s = optarg;
+		if (! s.empty()) {
+		    command_line_df_regex.push_back(s);
 		}
 	    }
 	    break;
@@ -821,6 +836,9 @@ int realmain_impl(int argc, char * const argv[])
     f_idx = std::make_shared<file_index>(filename);
     for(unsigned u = 0; u != command_line_filter_regex.size(); ++u) {
 	add_regex(u, command_line_filter_regex[u], filter_vec, true);
+    }
+    for(unsigned u = 0; u != command_line_df_regex.size(); ++u) {
+	add_regex(u, command_line_df_regex[u], df_vec, false);
     }
     apply_regex();
 

@@ -124,9 +124,23 @@ form of a perl regular expression substitute:
 
 Because the parsing of this format is currently naive, the strings
 _regex_ and _replace_ may not contain any forward slash characters.
-
 The display filter allows the optional 'i' flag to indicate case
-insensitive matching.
+insensitive matching.  The replace string can contain back references
+to the regular expression. The following back references or available:
+
+* **$1** .. **$99**:
+  numbered back reference to a match group.
+* **$&**:
+  the entire match.
+* **$`**:
+  prefix to the match.
+* **$'**:
+  suffix to the match.
+* **$$**:
+  a single $ character.
+
+See <http://www.cplusplus.com/reference/regex/regex_replace/> for
+details on how the C++ regex library is matching and replaceing.
 
 AUTHOR
 ------
