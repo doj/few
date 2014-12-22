@@ -12,6 +12,7 @@
 #include <ncurses.h>
 #include <cassert>
 #include <stdint.h>
+#include <stdlib.h>
 #include <memory>
 #include <regex>
 #include "file_index.h"
@@ -748,6 +749,23 @@ namespace {
 	apply_regex();
 	create_windows();
     }
+
+    void go_to_line()
+    {
+	static const std::string title = "Go To Line #: ";
+	mvprintw(search_y, 0, "%s", title.c_str());
+	std::string line_num = line_edit(search_y, title.size(), "", screen_width - title.size());
+	if (line_num.empty()) {
+	    return;
+	}
+	int64_t l_n = atoll(line_num.c_str());
+	if (l_n < 1) {
+	    info = "invalid line number: " + line_num;
+	} else if (! display_info.go_to(l_n)) {
+	    info = "line number " + line_num + " not currently displayed";
+	}
+	refresh_windows();
+    }
 }
 
 void help();
@@ -906,6 +924,10 @@ int realmain_impl(int argc, char * const argv[])
 
 	case 'R':
 	    refresh_windows();
+	    break;
+
+	case 'P':
+	    go_to_line();
 	    break;
 
 	case '1':
