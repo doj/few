@@ -928,6 +928,13 @@ int realmain_impl(int argc, char * const argv[])
 	std::cout << " --regex '" << c.rgx_ << "'";
     }
 
+    for(const auto& c : df_vec) {
+	if (c.rgx_.empty()) {
+	    continue;
+	}
+	std::cout << " --df '" << c.rgx_ << "'";
+    }
+
     std::cout << " '" << filename << "'" << std::endl;
     return EXIT_SUCCESS;
 }

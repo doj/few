@@ -9,8 +9,10 @@
  */
 void help()
 {
-    std::cout << "usage: fewer [--regex 'REGEX']* [--tabwidth 'NUM'] 'FILE'" << std::endl
-	      << "--regex      preset regular expressions to filter the file." << std::endl
-	      << "--tabwidth   set the width of a tab character in spaces." << std::endl
+    std::cout << "usage: fewer [--regex '/REGEX/flags']* [--df '/REGEX/REPLACE/flags']* [--tabwidth 'NUM'] 'FILE'" << std::endl
+	      << "--regex      preset regular expressions to filter the file" << std::endl
+	      << "--tabwidth   set the width of a tab character in spaces" << std::endl
+	      << "--df         preset a display filter regular expression and replace text" << std::endl
+	      << "Study the man page fewer(1) for more details." << std::endl
 	;
 }

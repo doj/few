@@ -1,5 +1,4 @@
 - display filters
- + print DF upon exit
  + parse DF upon start from command line
 
 - 'd' scroll down half a screen
