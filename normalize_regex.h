@@ -5,3 +5,9 @@
 #pragma once
 #include <string>
 std::string normalize_regex(std::string regex);
+
+/// @return flags of normalized regular expression string.
+std::string get_regex_flags(std::string str);
+
+/// @return regular expression string (the characters between the forward slashes) of normalized regular expression string.
+std::string get_regex_str(std::string str);

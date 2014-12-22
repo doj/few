@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <memory>
 #include <regex>
+#include <map>
 #include "file_index.h"
 #include "regex_index.h"
 #include "error.h"
@@ -30,9 +31,13 @@ namespace {
     /// width of a tab character in characters
     unsigned tab_width = 8;
 
-    /// current search regular expression
-    std::string search_rgx;
-    // the y position of the search window
+    /// current search regular expression string
+    std::string search_str;
+    /// compiled search regular expression
+    std::regex search_rgx;
+    /// error string if search regular expression could not be compiled
+    std::string search_err;
+    /// the y position of the search window
     unsigned search_y;
 
     /// the file that is displayed
@@ -194,6 +199,7 @@ namespace {
 		    line.assign(l);
 		}
 
+		// handle empty line
 		if (line.empty()) {
 		    unsigned x = print_line_prefix(y, line.num_, 0, line_num_width);
 		    fill(y, x);
@@ -208,6 +214,23 @@ namespace {
 			continue; // there is a next line to display
 		    } else {
 			break; // last line displayed
+		    }
+		}
+
+		// map of pointers into the line and a corresponding curses attribute for the character
+		std::map<const char*, unsigned> character_attr;
+
+		// apply search?
+		if (search_err.empty()) {
+		    // apply search regex to line
+		    for(auto it = std::cregex_iterator(line.beg_, line.end_, search_rgx); it != std::cregex_iterator(); ++it ) {
+			const char *b = line.beg_ + it->position();
+			const char *e = b + it->length();
+			assert(b <= e);
+			// set character attribute for all matched characters
+			for(const char *it = b; it != e; ++it) {
+			    character_attr[it] |= A_REVERSE;
+			}
 		    }
 		}
 
@@ -230,8 +253,8 @@ namespace {
 			}
 		    }
 		    // print line in chunks of screen width
-		    while(beg < line.end_ && x < screen_width) {
-			char c = *beg++;
+		    for(; beg < line.end_ && x < screen_width; ++beg) {
+			char c = *beg;
 			// handle tab character
 			if (c == '\t') {
 			    do {
@@ -242,6 +265,7 @@ namespace {
 			    if (! isprint(c)) {
 				c = ' ';
 			    }
+			    curses_attr a(character_attr[beg]);
 			    mvaddch(y, x++, c);
 			}
 		    }
@@ -355,10 +379,10 @@ namespace {
 	refresh_regex_window(filter_y, "regex", filter_vec);
 	refresh_regex_window(df_y, "dispf", df_vec);
 
-	if (! search_rgx.empty()) {
+	if (! search_str.empty()) {
 	    curses_attr a(A_BOLD);
-	    mvprintw(search_y, 0, "Search: %s", search_rgx.c_str());
-	    fill(search_y, 8 + search_rgx.size());
+	    mvprintw(search_y, 0, "Search: %s %s", search_str.c_str(), search_err.c_str());
+	    fill(search_y, 8 + search_str.size());
 	}
 
 	refresh();
@@ -369,7 +393,7 @@ namespace {
 	w_lines_height = screen_height;
 	w_lines_height -= filter_vec.size();
 	w_lines_height -= df_vec.size();
-	if (! search_rgx.empty()) {
+	if (! search_str.empty()) {
 	    --w_lines_height;
 	}
 	assert(w_lines_height > 0);
@@ -662,19 +686,8 @@ namespace {
 	c.clear();
 	c.rgx_ = rgx;
 
-	// check for flags
-	std::string flags;
-	unsigned last_idx = rgx.size() - 1;
-	while(last_idx >= 2) {
-	    const char last_c = rgx[last_idx];
-	    rgx.erase(last_idx); // erase last character
-	    if (last_c == '/') {
-		break;
-	    }
-	    flags += last_c;
-	    --last_idx;
-	}
-	rgx.erase(0, 1); // erase first '/'
+	const std::string flags = get_regex_flags(rgx);
+	rgx = get_regex_str(rgx);
 
 	try {
 	    if (isFilterRgx) {
@@ -761,12 +774,54 @@ namespace {
 	refresh_windows();
     }
 
+    /**
+     * compile a regular expression string.
+     * If str is the empty string, the function does not compile anything and returns the empty string.
+     * @param[in] str regular expression string.
+     * @param[out] regex compiled regular expression if function returns empty string.
+     * @return empty string upon success; error string otherwise.
+     */
+    std::string compile_regex(std::string str, std::regex& regex)
+    {
+	if (str.empty()) {
+	    return str;
+	}
+
+	str = normalize_regex(str);
+	std::string flags = get_regex_flags(str);
+	std::string rgx = get_regex_str(str);
+	std::regex_constants::syntax_option_type fl;
+	bool positiveMatch;
+	convert(flags, fl, positiveMatch);
+	std::string err;
+	try {
+	    std::regex r(rgx, fl);
+	    regex = r;
+	} catch (std::regex_error& e) {
+	    err << e.code();
+	} catch (std::runtime_error& e) {
+	    err = e.what();
+	} catch (...) {
+	    err = "caught unknown exception";
+	}
+	return err;
+    }
+
+    void compile_search_regex(const std::string& str)
+    {
+	search_str = normalize_regex(str);
+	search_err = compile_regex(str, search_rgx);
+	if (! search_err.empty()) {
+	    search_err = ": " + search_err;
+	}
+    }
+
     void edit_search()
     {
 	{
 	    curses_attr a(A_BOLD);
 	    mvprintw(search_y, 0, "Search: ");
-	    search_rgx = normalize_regex( line_edit(search_y, 8, search_rgx, screen_width - 8) );
+	    compile_search_regex( line_edit(search_y, 8, search_str, screen_width - 8) );
 	}
 	create_windows();
     }
@@ -836,7 +891,7 @@ int realmain_impl(int argc, char * const argv[])
 	    break;
 
 	case opt_search:
-	    search_rgx = normalize_regex(optarg);
+	    compile_search_regex(optarg);
 	    break;
 
 	case opt_tabwidth:
@@ -906,7 +961,7 @@ int realmain_impl(int argc, char * const argv[])
 	    break;
 
 	case 'n':
-	    if (search_rgx.empty()) {
+	    if (search_str.empty()) {
 		key_down();
 	    } else {
 
@@ -990,8 +1045,8 @@ int realmain_impl(int argc, char * const argv[])
 	std::cout << " --df '" << c.rgx_ << "'";
     }
 
-    if (! search_rgx.empty()) {
-	std::cout << " --search '" << search_rgx << "'";
+    if (! search_str.empty()) {
+	std::cout << " --search '" << search_str << "'";
     }
 
     std::cout << " --tabwidth " << tab_width

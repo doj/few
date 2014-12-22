@@ -1,8 +1,6 @@
 - search
- + visualize search
  + 'n' goto next search result
  + 'N' goto prev search result
- + should search apply before or after display filter?
 
 - 'd' scroll down half a screen
 - 'u' scroll up half a screen

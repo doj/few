@@ -53,3 +53,17 @@ TEST(normalize_regex, recognizes_missing_slash_as_short_form)
     std::string expected = "//a/bcd/";
     ASSERT_EQ(expected, normalize_regex(s));
 }
+
+TEST(get_regex_flags, works)
+{
+    ASSERT_EQ(std::string(""), get_regex_flags(""));
+    ASSERT_EQ(std::string(""), get_regex_flags("/dirk/"));
+    ASSERT_EQ(std::string("cba"), get_regex_flags("/dirk/abc"));
+}
+
+TEST(get_regex_str, works)
+{
+    ASSERT_EQ(std::string(""), get_regex_str(""));
+    ASSERT_EQ(std::string("dirk"), get_regex_str("/dirk/"));
+    ASSERT_EQ(std::string("dirk"), get_regex_str("/dirk/abc"));
+}

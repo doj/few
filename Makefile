@@ -13,6 +13,9 @@ all:	run_test fewer
 fewer:	$(OBJS) main.o
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 
+debug:	fewer
+	gdb fewer
+
 fewer.1:	README.md
 	cp -f $< fewer.md
 	ronn --roff --organization=Cubic fewer.md
