@@ -17,6 +17,5 @@
 - support cursor in line_edit()
 - read tab width from vim/emacs comments
 - create homepage on llg.cubic.org
-- enforce minimal window height
 - test with large files
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash

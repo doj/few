@@ -23,6 +23,16 @@
 #include "normalize_regex.h"
 
 namespace {
+    /// minimum screen height
+    const unsigned min_screen_height = 1 // lines
+	+ 9 // filters
+	+ 9 // display filters
+	+ 1 // search
+	;
+
+    /// minimum screen width
+    const unsigned min_screen_width = 16;
+
     /// width of screen in characters
     unsigned screen_width;
     /// height of screen in characters
@@ -373,16 +383,34 @@ namespace {
 	}
     }
 
+    void print_centered(const std::string s)
+    {
+	int x = screen_width / 2 - s.size() / 2;
+	if (x < 0) { x = 0; }
+	mvprintw(screen_height / 2, x, "%s", s.c_str());
+    }
+
     void refresh_windows()
     {
-	refresh_lines_window();
-	refresh_regex_window(filter_y, "regex", filter_vec);
-	refresh_regex_window(df_y, "dispf", df_vec);
+	if (screen_height >= min_screen_height && screen_width >= min_screen_width) {
+	    refresh_lines_window();
+	    refresh_regex_window(filter_y, "regex", filter_vec);
+	    refresh_regex_window(df_y, "dispf", df_vec);
 
-	if (! search_str.empty()) {
-	    curses_attr a(A_BOLD);
-	    mvprintw(search_y, 0, "Search: %s %s", search_str.c_str(), search_err.c_str());
-	    fill(search_y, 8 + search_str.size());
+	    if (! search_str.empty()) {
+		curses_attr a(A_BOLD);
+		mvprintw(search_y, 0, "Search: %s %s", search_str.c_str(), search_err.c_str());
+		fill(search_y, 8 + search_str.size());
+	    }
+	} else if (screen_height < min_screen_height) {
+	    erase();
+	    print_centered("Minimum screen height is " + std::to_string(min_screen_height) + " lines.");
+	} else if (screen_width < min_screen_width) {
+	    erase();
+	    print_centered("Min Width: " + std::to_string(min_screen_width));
+	} else {
+	    // this case should not happen
+	    assert(false);
 	}
 
 	refresh();
@@ -390,6 +418,10 @@ namespace {
 
     void calculate_window_sizes()
     {
+	if (screen_height < min_screen_height) {
+	    return;
+	}
+
 	w_lines_height = screen_height;
 	w_lines_height -= filter_vec.size();
 	w_lines_height -= df_vec.size();
@@ -932,6 +964,10 @@ int realmain_impl(int argc, char * const argv[])
     get_screen_size();
     if (screen_width == 0) {
 	std::cerr << "screen width is 0. Are you executing this program in an interactive terminal?" << std::endl;
+	return EX_USAGE;
+    }
+    if (screen_height < min_screen_height) {
+	std::cerr << "screen height is " << screen_height << " lines. Minimum required screen height is " << min_screen_height << " lines." << std::endl;
 	return EX_USAGE;
     }
     signal(SIGWINCH, handle_winch);
