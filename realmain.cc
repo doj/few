@@ -43,8 +43,11 @@ namespace {
     /// height of the lines window
     unsigned w_lines_height;
 
-    // the y position of the lines filter regex window
+    /// the y position of the lines filter regex window
     unsigned filter_y;
+
+    /// the y position of the display filter regex window
+    unsigned df_y;
 
     struct regex_container_t
     {
@@ -52,13 +55,35 @@ namespace {
 	std::string rgx_;
 	/// an error string if rgx_ is invalid
 	std::string err_;
+	/// object used for lines filter
 	std::shared_ptr<regex_index> r_idx_;
+
+	///@{
+
+	/// regex object used for display filter
+	std::shared_ptr<std::regex> df_rgx_;
+	/// display filter replacement
+	std::string df_replace_;
+
+	///@}
+
+	void clear()
+	{
+	    rgx_.erase();
+	    err_.erase();
+	    r_idx_ = nullptr;
+	    df_rgx_ = nullptr;
+	    df_replace_.erase();
+	}
     };
 
     typedef std::vector<regex_container_t> regex_vec_t;
 
     /// the regular expressions for the lines filter
     regex_vec_t filter_vec;
+
+    /// the regular expressions for the display filter
+    regex_vec_t df_vec;
 
     /// an information string that is displayed in the lower right corner of the lines window
     std::string info;
@@ -135,7 +160,7 @@ namespace {
 	return x;
     }
 
-    void refresh_lines()
+    void refresh_lines_window()
     {
 	assert(tab_width > 0);
 
@@ -143,7 +168,7 @@ namespace {
 	if (display_info.start()) {
 	    while(y < w_lines_height) {
 		const unsigned current_line_num = display_info.current();
-		const line_t line = f_idx->line(current_line_num);
+		line_t line = f_idx->line(current_line_num);
 		assert(current_line_num == line.num_);
 
 		unsigned line_num_width = digits(current_line_num);
@@ -154,8 +179,21 @@ namespace {
 		    line_num_width = 8;
 		}
 
-		// empty line?
-		if (line.beg_ == line.end_) {
+		// apply Display Filters?
+		if (! df_vec.empty() && !line.empty()) {
+		    static std::string l;
+		    l = line.to_string();
+
+		    for(const auto& df : df_vec) {
+			if (df.df_rgx_) {
+			    l = std::regex_replace(l, *(df.df_rgx_), df.df_replace_);
+			}
+		    }
+
+		    line.assign(l);
+		}
+
+		if (line.empty()) {
 		    unsigned x = print_line_prefix(y, line.num_, 0, line_num_width);
 		    fill(y, x);
 
@@ -267,18 +305,15 @@ namespace {
 	return s.size();
     }
 
-    void refresh_regex()
+    void refresh_regex_window(unsigned y, const std::string& title_param, const regex_vec_t& vec)
     {
 	curses_attr a(A_REVERSE);
-	unsigned y = filter_y;
 	unsigned cnt = 0;
-	for(const auto& c : filter_vec) {
+	for(const auto& c : vec) {
 	    std::string s = c.rgx_;
-	    const char* title = nullptr;
+	    std::string title = title_param;
 
-	    if (c.err_.empty()) {
-		title = "regex";
-	    } else {
+	    if (! c.err_.empty()) {
 		s += " : ";
 		s += c.err_;
 		title = "error";
@@ -287,22 +322,24 @@ namespace {
 	    unsigned X = 0;
 	    {
 		curses_attr a(A_BOLD);
-		mvprintw(y, X, "%s %u ", title, ++cnt);
+		mvprintw(y, X, "%s %u ", title.c_str(), ++cnt);
 		X += 8;
 	    }
 
 	    if (! s.empty()) {
 		X += print_string(y, X, s);
 
-		curses_attr a(A_BOLD);
-		s = " (";
-		const unsigned num = c.r_idx_->size();
-		s += std::to_string(num);
-		s += ") match";
-		if (num != 1) {
-		    s += "es";
+		if (c.r_idx_) {
+		    curses_attr a(A_BOLD);
+		    s = " (";
+		    const unsigned num = c.r_idx_->size();
+		    s += std::to_string(num);
+		    s += ") match";
+		    if (num != 1) {
+			s += "es";
+		    }
+		    X += print_string(y, X, s);
 		}
-		X += print_string(y, X, s);
 	    }
 
 	    fill(y, X);
@@ -313,8 +350,9 @@ namespace {
 
     void refresh_windows()
     {
-	refresh_lines();
-	refresh_regex();
+	refresh_lines_window();
+	refresh_regex_window(filter_y, "regex", filter_vec);
+	refresh_regex_window(df_y, "dispf", df_vec);
 
 	if (! search.empty()) {
 	    curses_attr a(A_BOLD);
@@ -328,17 +366,30 @@ namespace {
     void calculate_window_sizes()
     {
 	w_lines_height = screen_height;
+	w_lines_height -= filter_vec.size();
+	w_lines_height -= df_vec.size();
 	if (! search.empty()) {
 	    --w_lines_height;
 	}
+	assert(w_lines_height > 0);
+
+	// lines window
+	unsigned y = w_lines_height;
 
 	if (filter_vec.size() == 0) {
 	    filter_y = 0;
 	} else {
 	    assert(filter_vec.size() <= 9);
-	    w_lines_height -= filter_vec.size();
-	    filter_y = w_lines_height;
-	    assert(filter_y > 0);
+	    filter_y = y;
+	    y += filter_vec.size();
+	}
+
+	if (df_vec.size() == 0) {
+	    df_y = 0;
+	} else {
+	    assert(df_vec.size() <= 9);
+	    df_y = y;
+	    y += df_vec.size();
 	}
 
 	search_y = screen_height - 1;
@@ -398,7 +449,7 @@ namespace {
 	} else {
 	    display_info.up();
 	}
-	refresh_lines();
+	refresh_lines_window();
 	refresh();
     }
 
@@ -409,7 +460,7 @@ namespace {
 	} else {
 	    display_info.down();
 	}
-	refresh_lines();
+	refresh_lines_window();
 	refresh();
     }
 
@@ -420,7 +471,7 @@ namespace {
 	} else {
 	    display_info.page_down();
 	}
-	refresh_lines();
+	refresh_lines_window();
 	refresh();
     }
 
@@ -435,14 +486,14 @@ namespace {
 	    const unsigned oldTopLineNum = display_info.current();
 	    while (!display_info.isFirstLineDisplayed()) {
 		display_info.up();
-		refresh_lines();
+		refresh_lines_window();
 		if (display_info.bottomLineNum() == oldTopLineNum) {
 		    break;
 		}
 	    }
 	}
 
-	refresh_lines();
+	refresh_lines_window();
 	refresh();
     }
 
@@ -454,7 +505,7 @@ namespace {
 	} else {
 	    display_info.top();
 	}
-	refresh_lines();
+	refresh_lines_window();
 	refresh();
     }
 
@@ -471,7 +522,7 @@ namespace {
 	    // scroll up until we don't print the last line any more
 	    while (!display_info.isFirstLineDisplayed()) {
 		display_info.up();
-		refresh_lines();
+		refresh_lines_window();
 		if (display_info.bottomLineNum() != lastLineNum) {
 		    break;
 		}
@@ -479,7 +530,7 @@ namespace {
 	    // now scroll down again one line, so we see the last line
 	    display_info.down();
 	}
-	refresh_lines();
+	refresh_lines_window();
 	refresh();
     }
 
@@ -597,7 +648,7 @@ namespace {
 	return s;
     }
 
-    void add_regex(const unsigned regex_num, std::string rgx, regex_vec_t& vec)
+    void add_regex(const unsigned regex_num, std::string rgx, regex_vec_t& vec, const bool isFilterRgx)
     {
 	assert(regex_num < 9);
 	assert(! rgx.empty());
@@ -613,6 +664,7 @@ namespace {
 	}
 
 	auto& c = vec[regex_num];
+	c.clear();
 	c.rgx_ = rgx;
 
 	// check for flags
@@ -630,15 +682,41 @@ namespace {
 	rgx.erase(0, 1); // erase first '/'
 
 	try {
-	    c.r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags);
-	    c.err_.erase();
-	    c.err_ = rgx;
+	    if (isFilterRgx) {
+		// Lines Filter
+		c.r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags);
+	    } else {
+		// Display Filter
+
+		// parse flags
+		bool positive_match = true;
+		std::regex_constants::syntax_option_type fl;
+		convert(flags, fl, positive_match);
+
+		// separate regex and replacement
+		std::string::size_type pos = rgx.find('/');
+		if (pos == std::string::npos) {
+		    c.err_ = "could not separate regex and replace parts";
+		} else {
+		    // create replace string
+		    c.df_replace_ = rgx;
+		    c.df_replace_.erase(0, pos + 1);
+
+		    // construct regex
+		    rgx.erase(pos);
+		    c.df_rgx_ = std::make_shared<std::regex>(rgx, fl);
+		}
+	    }
 	} catch (std::regex_error& e) {
 	    c.err_ << e.code();
+	} catch (std::runtime_error& e) {
+	    c.err_ = e.what();
+	} catch (...) {
+	    c.err_ = "caught unknown exception";
 	}
     }
 
-    void edit_regex(const unsigned regex_num, regex_vec_t& vec)
+    void edit_regex(unsigned& y, const unsigned regex_num, regex_vec_t& vec, const bool isFilterRgx)
     {
 	assert(regex_num < 9);
 
@@ -653,18 +731,18 @@ namespace {
 	auto& c = vec[regex_num];
 	{
 	    curses_attr a(A_REVERSE);
-	    c.rgx_ = line_edit(filter_y + regex_num, 8, c.rgx_, screen_width - 8);
+	    c.rgx_ = line_edit(y + regex_num, 8, c.rgx_, screen_width - 8);
 	}
 
 	if (c.rgx_.empty()) {
-	    c.err_.erase();
-	    c.r_idx_ = nullptr;
+	    c.clear();
 	    // pop regular expression container from vector if they're empty
 	    while(vec.size() > 0 && vec[vec.size()-1].rgx_.empty()) {
 		vec.resize(vec.size() - 1);
 	    }
+	    // c may be invalid at this point
 	} else {
-	    add_regex(regex_num, c.rgx_, vec);
+	    add_regex(regex_num, c.rgx_, vec, isFilterRgx);
 	}
 
 	apply_regex();
@@ -742,7 +820,7 @@ int realmain_impl(int argc, char * const argv[])
 
     f_idx = std::make_shared<file_index>(filename);
     for(unsigned u = 0; u != command_line_filter_regex.size(); ++u) {
-	add_regex(u, command_line_filter_regex[u], filter_vec);
+	add_regex(u, command_line_filter_regex[u], filter_vec, true);
     }
     apply_regex();
 
@@ -817,10 +895,22 @@ int realmain_impl(int argc, char * const argv[])
 	case '7':
 	case '8':
 	case '9':
-	    edit_regex(key - '1', filter_vec);
+	    edit_regex(filter_y, key - '1', filter_vec, true);
 	    break;
 
 	case '0':
+	    break;
+
+	case KEY_F(1):
+	case KEY_F(2):
+	case KEY_F(3):
+	case KEY_F(4):
+	case KEY_F(5):
+	case KEY_F(6):
+	case KEY_F(7):
+	case KEY_F(8):
+	case KEY_F(9):
+	    edit_regex(df_y, key - KEY_F(1), df_vec, false);
 	    break;
 	}
     }

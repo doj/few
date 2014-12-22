@@ -1,6 +1,5 @@
 - display filters
- + add DF with F1..F9 keys
- + apply DF to output
+ + when DF is entered display jumps to top
  + print DF upon exit
  + parse DF upon start from command line
 
@@ -30,3 +29,5 @@
 - support cursor in line_edit()
 - read tab width from vim/emacs comments
 - create homepage on llg.cubic.org
+- enforce minimul window height
+- test with large files

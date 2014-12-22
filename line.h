@@ -37,4 +37,12 @@ public:
 	return std::string(beg_, end_);
     }
 
+    bool empty() const { return beg_ == end_; }
+
+    line_t& assign(const std::string& s)
+    {
+	beg_ = s.data();
+	end_ = s.data() + s.size();
+	return *this;
+    }
 };

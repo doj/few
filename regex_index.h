@@ -5,6 +5,17 @@
 #pragma once
 #include "file_index.h"
 #include <memory>
+#include <regex>
+
+/**
+ * parse regular expression flags string.
+ * Valid flags are 'i' and '!'.
+ * @param[in] flags string with regular expression flags.
+ * @param[out] fl std::regex flags.
+ * @param[out] positiveMatch false if the '!' flag was found; true otherwise.
+ * @throws std::runtime_error if an unknown flag was found.
+ */
+void convert(const std::string& flags, std::regex_constants::syntax_option_type& fl, bool& positiveMatch);
 
 class regex_index
 {

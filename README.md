@@ -111,6 +111,19 @@ can start your regular expression with a '!' character.
 
 The fewer program will convert the short forms to the regular form.
 
+### Display Filter Regular Expressions
+
+Display Filter change the way the lines are displayed. They take the
+form of a perl regular expression substitute:
+
+/regex/replace/
+
+Because the parsing of this format is currently naive, the strings
+_regex_ and _replace_ may not contain any forward slash characters.
+
+The display filter allows the 'i' flag to indicate case insensitive
+matching.
+
 AUTHOR
 ------
 fewer is written by Dirk Jagdmann <doj@cubic.org>. You can write him
