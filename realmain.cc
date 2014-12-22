@@ -18,6 +18,7 @@
 #include "regex_index.h"
 #include "error.h"
 #include "display_info.h"
+#include "normalize_regex.h"
 
 namespace {
     /// width of screen in characters
@@ -595,32 +596,35 @@ namespace {
 
     void add_regex(const unsigned regex_num, std::string rgx)
     {
-	if (regex_num >= 9) {
-	    return;
-	}
+	assert(regex_num < 9);
+	assert(! rgx.empty());
 
 	// check if we need to expand regex_vec
 	if (regex_vec.size() <= regex_num) {
 	    regex_vec.resize(regex_num + 1);
 	}
 
+	// normalize regular expression
+	rgx = normalize_regex(rgx);
+	assert(rgx.size() >= 3);
+	assert(rgx[0] == '/');
+
 	auto& c = regex_vec[regex_num];
 	c.rgx_ = rgx;
 
 	// check for flags
 	std::string flags;
-	unsigned s = rgx.size();
-	if (s >= 4 &&
-	    rgx[0] == '/' &&
-	    rgx[s - 2] == '/' &&
-	    (rgx[s - 1] == 'i' || rgx[s - 1] == '!') ) {
-	    flags = rgx[s - 1];
-	    rgx.erase(s - 2);
-	    rgx.erase(0, 1);
-	} else if (s > 1 && rgx[0] == '!') {
-	    flags = "!";
-	    rgx.erase(0, 1);
+	unsigned last_idx = rgx.size() - 1;
+	while(last_idx > 3) {
+	    const char last_c = rgx[last_idx];
+	    rgx.erase(last_idx); // erase last character
+	    if (last_c == '/') {
+		break;
+	    }
+	    flags += last_c;
+	    --last_idx;
 	}
+	rgx.erase(0, 1); // erase first '/'
 
 	try {
 	    c.r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags);
@@ -703,7 +707,12 @@ int realmain_impl(int argc, char * const argv[])
 		std::cerr << "can only add up to 9 regular expressions with the --regex argument" << std::endl;
 		return EX_USAGE;
 	    }
-	    command_line_regex.push_back(optarg);
+	    {
+		std::string s = optarg;
+		if (! s.empty()) {
+		    command_line_regex.push_back(s);
+		}
+	    }
 	    break;
 
 	case opt_tabwidth:

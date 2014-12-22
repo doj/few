@@ -29,8 +29,57 @@ h - show help text
 n - go to next search match if a search regex is set.
 N - go to previous search match.
 
-Links
-=====
+Regular Expressions
+===================
+
+For filters (key 0..9), display filters (key F1..F9) and search (key
+/) ECMAScript (javascript) style regular expressions, as provided by
+the C++11 regular expression standard library are used. You will
+typically enter the regular expression after the fewer program has
+started and will see the file display change if the regular expression
+matches. You can also preset these regular expressions with the
+command line arguments.
+
+The standard form of these regular expression has the following format:
+
+/regex/flags
+
+The regular expression is surrounded by two forward slash characters.
+
+See http://www.cplusplus.com/reference/regex/ECMAScript/ for details
+on the regular expression syntax. It is similar to perl regular
+expressions.
+
+Regular Expression Flags
+------------------------
+
+The regular expression can be modified with flag characters, the
+following characters are currently supported:
+
+i - case insensitive match
+! - negative match
+
+By default the regular expression is a positive match. Only lines in
+the file that (partially) match the regular expression will be
+displayed. If you use the '!' flag the regular expression becomes a
+negative match. Only lines that do *not* match the regular expression
+are displayed.
+
+Regular Expression Short Form
+-----------------------------
+
+If you do not need to supply flags for the regular expression and the
+regular expression does not start with a forward slash, you can omit
+the surrounding slashes.
+
+If you want a negative match and your regular expression does not
+start with a '!' character and you don't need additional flags, you
+can start your regular expression with a '!' character.
+
+The fewer program will convert the short forms to the regular form.
+
+See Also
+========
 
 https://github.com/doj/fewer the source code is hosted on Github.
 Dirk Jagdmann <doj@cubic.org> the main author, can answer your questions.
