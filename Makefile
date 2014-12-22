@@ -13,6 +13,15 @@ all:	run_test fewer
 fewer:	$(OBJS) main.o
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 
+fewer.1:	README.md
+	cp -f $< fewer.md
+	ronn --roff --organization=Cubic fewer.md
+	rm -f fewer.md
+	mv -f fewer $@
+
+dist:	clean fewer.1
+	echo 'TODO: create .tar.gz of source code'
+
 TEST_SRCS = $(shell find . -name '*_gtest.cc') gtest/gtest-all.cc gtest/gtest_main.cc $(SRCS)
 TEST_OBJS = $(TEST_SRCS:.cc=.o)
 TEST_DEPS = $(TEST_SRCS:.cc=.d)
@@ -35,4 +44,4 @@ redhat-setup:
 	yum install -y gcc gcc-c++ gdb ncurses-devel
 
 debian-setup:
-	apt-get install -y ncurses-doc asciidoc
+	apt-get install -y ncurses-doc ruby-ronn

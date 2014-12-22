@@ -3,10 +3,14 @@
  * :indentSize=4:tabSize=8:
  */
 #include <iostream>
+/**
+ * print command line help text to stdout.
+ * \todo keep this in sync with README.md
+ */
 void help()
 {
-    std::cout << "usage: fewer [--regex <regular expression>]* [--tabwidth <num>] <filename>" << std::endl
-	      << "--regex      preset regular expressions to filter the fil" << std::endl
-	      << "--tabwidth   configure the width of a tab character in spaces" << std::endl
+    std::cout << "usage: fewer [--regex 'REGEX']* [--tabwidth 'NUM'] 'FILE'" << std::endl
+	      << "--regex      preset regular expressions to filter the file." << std::endl
+	      << "--tabwidth   set the width of a tab character in spaces." << std::endl
 	;
 }
