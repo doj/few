@@ -1,6 +1,4 @@
 - search
- + print search upon exit
- + parse search upon start
  + visualize search
  + 'n' goto next search result
  + 'N' goto prev search result

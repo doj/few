@@ -7,7 +7,7 @@ fewer - a file viewer with regular expression filters.
 
 SYNOPSIS
 --------
-**fewer** [--regex '/REGEX/flags']* [--df '/REGEX/REPLACE/flags']* [--tabwidth 'NUM'] 'FILE'
+**fewer** [--regex '/REGEX/flags']* [--df '/REGEX/REPLACE/flags']* [--search '/REGEX/flags'] [--tabwidth 'NUM'] 'FILE'
 
 DESCRIPTION
 -----------
@@ -24,6 +24,9 @@ OPTIONS
 
 * **--df** '/REGEX/REPLACE/flags':
   preset a display filter regular expression and replace text.
+
+* **--search** '/REGEX/flags':
+  preset search regular expression.
 
 Keys
 ----

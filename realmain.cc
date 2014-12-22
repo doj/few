@@ -790,11 +790,13 @@ int realmain_impl(int argc, char * const argv[])
 	opt_tabwidth = 500,
 	opt_regex,
 	opt_df,
+	opt_search,
     };
     const struct option longopts[] = {
 	{ "tabwidth", required_argument, nullptr, opt_tabwidth },
 	{ "regex", required_argument, nullptr, opt_regex },
 	{ "df", required_argument, nullptr, opt_df },
+	{ "search", required_argument, nullptr, opt_search },
 	{ nullptr, 0, nullptr, 0 }
     };
 
@@ -831,6 +833,10 @@ int realmain_impl(int argc, char * const argv[])
 		    command_line_df_regex.push_back(s);
 		}
 	    }
+	    break;
+
+	case opt_search:
+	    search_rgx = normalize_regex(optarg);
 	    break;
 
 	case opt_tabwidth:
@@ -968,9 +974,7 @@ int realmain_impl(int argc, char * const argv[])
 
     // print command line
     close_curses();
-    std::cout << "fewer"
-	      << " --tabwidth " << tab_width
-	;
+    std::cout << "fewer";
 
     for(const auto& c : filter_vec) {
 	if (c.rgx_.empty()) {
@@ -986,7 +990,12 @@ int realmain_impl(int argc, char * const argv[])
 	std::cout << " --df '" << c.rgx_ << "'";
     }
 
-    std::cout << " '" << filename << "'" << std::endl;
+    if (! search_rgx.empty()) {
+	std::cout << " --search '" << search_rgx << "'";
+    }
+
+    std::cout << " --tabwidth " << tab_width
+	      << " '" << filename << "'" << std::endl;
     return EXIT_SUCCESS;
 }
 
