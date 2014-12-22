@@ -3,6 +3,7 @@
 - 'R' repaint screen
 - '%' goto percent inside file
 - 'P' goto line
+- 'h' show help
 
 - display filters
  + add DF with F1..F9 keys

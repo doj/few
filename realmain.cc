@@ -814,6 +814,7 @@ int realmain_impl(int argc, char * const argv[])
 	}
     }
 
+    // print command line
     close_curses();
     std::cout << "fewer"
 	      << " --tabwidth " << tab_width
@@ -826,7 +827,7 @@ int realmain_impl(int argc, char * const argv[])
 	std::cout << " --regex '" << c.rgx_ << "'";
     }
 
-    std::cout << " " << filename << std::endl;
+    std::cout << " '" << filename << "'" << std::endl;
     return EXIT_SUCCESS;
 }
 

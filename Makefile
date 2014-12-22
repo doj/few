@@ -32,4 +32,7 @@ clean:
 -include $(TEST_DEPS)
 
 redhat-setup:
-	yum install -y gcc gcc-c++ gdb ncurses-devel ncurses-doc
+	yum install -y gcc gcc-c++ gdb ncurses-devel
+
+debian-setup:
+	apt-get install -y ncurses-doc asciidoc
