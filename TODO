@@ -1,7 +1,3 @@
-- support cursor in line_edit()
- + with cursor up, down move through history
- + save and log line edit history
-
 - search
  + 'n' goto next search result
  + 'N' goto prev search result
@@ -23,3 +19,4 @@
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash
 - support more than 4GB lines?
  + manage all line numbers as 64bit unsigned
+- line edit history is not 100% bug free, when startin to go up a strange entry is made.
