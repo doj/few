@@ -247,6 +247,8 @@ namespace {
 		    }
 		}
 
+		auto wline = to_wide(std::string(line.beg_, line.end_));
+
 		// map of pointers into the line and a corresponding curses attribute for the character
 		std::map<const char*, unsigned> character_attr;
 
@@ -265,7 +267,6 @@ namespace {
 		}
 
 		// print the current line
-		auto wline = to_wide(std::string(line.beg_, line.end_));
 		auto it = wline.begin();
 		while(it != wline.end() && y < w_lines_height) {
 		    unsigned x = 0;
