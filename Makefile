@@ -12,7 +12,7 @@ endif
 SRCS = realmain.cc memorymap.cc file_index.cc regex_index.cc display_info.cc help.cc normalize_regex.cc progress_functor.cc
 OBJS = $(SRCS:.cc=.o)
 
-LIBS = -lncurses -lpthread
+LIBS = -lncursesw -lpthread
 
 all:	run_test fewer
 
@@ -21,7 +21,7 @@ fewer:	$(OBJS) main.o
 
 debug:	fewer
 ifeq ($(DEBUG),1)
-	gdb --args ./fewer realmain.cc
+	gdb --args ./fewer UTF-8-demo.txt
 else
 	$(MAKE) clean
 	$(MAKE) $@ DEBUG=1
@@ -63,4 +63,4 @@ redhat-setup:
 	yum install -y gcc gcc-c++ gdb ncurses-devel
 
 debian-setup:
-	apt-get install -y ncurses-doc ruby-ronn
+	apt-get install -y ncurses-doc ruby-ronn libncursesw5-dev

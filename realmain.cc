@@ -3,6 +3,7 @@
  * :indentSize=4:tabSize=8:
  */
 
+#include <wchar.h>
 #include <getopt.h>
 #include <sysexits.h>
 #include <iostream>
@@ -175,6 +176,18 @@ namespace {
 	return x;
     }
 
+    void mv_add_wchar(unsigned y, unsigned x, wchar_t c)
+    {
+	wchar_t wc[2] = { c, 0 };
+	cchar_t wch;
+	int result = setcchar(&wch, wc, 0, 0, NULL);
+	if (result == OK) {
+	    mvadd_wch(y, x, &wch);
+	} else {
+	    mvaddch(y, x, '?');
+	}
+    }
+
     void refresh_lines_window()
     {
 	assert(tab_width > 0);
@@ -243,17 +256,29 @@ namespace {
 		    }
 		}
 
+		// convert line to wide characters
+		std::string cline(line.beg_, line.end_);
+		std::wstring wline(cline.size(), L' ');
+		const char *src = cline.c_str();
+		mbstate_t ps = { 0 };
+		auto w_line_size = mbsrtowcs(const_cast<wchar_t*>(wline.c_str()), &src, wline.size(), &ps);
+		if (w_line_size == (size_t) -1) {
+		    info = "invalid multi byte sequence";
+		} else {
+		    wline.resize(w_line_size);
+		}
+
 		// print the current line
-		const char *beg = line.beg_;
-		while(beg < line.end_ && y < w_lines_height) {
+		auto it = wline.begin();
+		while(it != wline.end() && y < w_lines_height) {
 		    unsigned x = 0;
 		    // block to print left info column
 		    {
 			curses_attr a(A_REVERSE);
 			// are we at the start of the line?
-			if (beg == line.beg_) {
+			if (it == wline.begin()) {
 			    // print line number
-			    x += print_line_prefix(y, line.num_, line.end_ - beg, line_num_width);
+			    x += print_line_prefix(y, line.num_, wline.size(), line_num_width);
 			} else {
 			    // print empty space
 			    for(; x < line_num_width; ++x) {
@@ -262,8 +287,8 @@ namespace {
 			}
 		    }
 		    // print line in chunks of screen width
-		    for(; beg < line.end_ && x < screen_width; ++beg) {
-			char c = *beg;
+		    for(; it != wline.end() && x < screen_width; ++it) {
+			auto c = *it;
 			// handle tab character
 			if (c == '\t') {
 			    do {
@@ -271,11 +296,14 @@ namespace {
 			    } while (x % tab_width);
 			} else {
 			    // replace non printable characters with a space
-			    if (! isprint(c)) {
-				c = ' ';
+			    if (iswprint(c)) {
+				// \todo fix character attribute map
+				// curses_attr a(character_attr[it]);
+				mv_add_wchar(y, x, c);
+			    } else {
+				mvaddch(y, x, ' '); // \todo maybe print a special symbol to show non-printable character?
 			    }
-			    curses_attr a(character_attr[beg]);
-			    mvaddch(y, x++, c);
+			    ++x;
 			}
 		    }
 		    fill(y, x);
@@ -287,7 +315,7 @@ namespace {
 		}
 
 		// did we display the full line?
-		if (beg == line.end_) {
+		if (it == wline.end()) {
 		    // do we have another line to display?
 		    if (display_info.next()) {
 			continue; // there is a next line to display

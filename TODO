@@ -11,9 +11,11 @@
 - when adding a regex, let it run in a background thread and apply once done
 
 - support UTF8
- + mbstowcs()
- + add_wch()
- + setcchar()
+ + detect UTF8 bom
+ + support utf8 in filter regex
+ + support utf8 in display filter
+ + support utf8 in search
+
 - use color
 - support cursor in line_edit()
 - read tab width from vim/emacs comments
