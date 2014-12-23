@@ -21,7 +21,7 @@ fewer:	$(OBJS) main.o
 
 debug:	fewer
 ifeq ($(DEBUG),1)
-	gdb --args ./fewer /tmp/medium.txt
+	gdb --args ./fewer realmain.cc
 else
 	$(MAKE) clean
 	$(MAKE) $@ DEBUG=1

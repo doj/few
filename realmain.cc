@@ -85,21 +85,29 @@ namespace {
 	std::string df_replace_;
 
 	///@}
-
-	void clear()
-	{
-	    rgx_.erase();
-	    err_.erase();
-	    r_idx_ = nullptr;
-	    df_rgx_ = nullptr;
-	    df_replace_.erase();
-	}
     };
 
-    typedef std::vector<regex_container_t> regex_vec_t;
+    typedef std::vector<std::shared_ptr<regex_container_t>> regex_vec_t;
+
+    void regex_vec_resize(regex_vec_t& vec, const unsigned num)
+    {
+	while(vec.size() < num) {
+	    vec.push_back(std::make_shared<regex_container_t>());
+	}
+    }
+
+    /**
+     * type of a regex_container_t cache.
+     * key is the regular expression string and has to be equal to value->rgx_.
+     * value is a shared pointer to the regex container object.
+     */
+    typedef std::map<std::string, std::shared_ptr<regex_container_t>> regex_cache_t;
 
     /// the regular expressions for the lines filter
     regex_vec_t filter_vec;
+
+    /// the filter regex cache
+    regex_cache_t filter_cache;
 
     /// the regular expressions for the display filter
     regex_vec_t df_vec;
@@ -191,9 +199,9 @@ namespace {
 		    static std::string l;
 		    l = line.to_string();
 
-		    for(const auto& df : df_vec) {
-			if (df.df_rgx_) {
-			    l = std::regex_replace(l, *(df.df_rgx_), df.df_replace_);
+		    for(auto df : df_vec) {
+			if (df->df_rgx_) {
+			    l = std::regex_replace(l, *(df->df_rgx_), df->df_replace_);
 			}
 		    }
 
@@ -335,13 +343,13 @@ namespace {
     {
 	curses_attr a(A_REVERSE);
 	unsigned cnt = 0;
-	for(const auto& c : vec) {
-	    std::string s = c.rgx_;
+	for(auto c : vec) {
+	    std::string s = c->rgx_;
 	    std::string title = title_param;
 
-	    if (! c.err_.empty()) {
+	    if (! c->err_.empty()) {
 		s += " : ";
-		s += c.err_;
+		s += c->err_;
 		title = "error";
 	    }
 
@@ -355,10 +363,10 @@ namespace {
 	    if (! s.empty()) {
 		X += print_string(y, X, s);
 
-		if (c.r_idx_) {
+		if (c->r_idx_) {
 		    curses_attr a(A_BOLD);
 		    s = " (";
-		    const unsigned num = c.r_idx_->size();
+		    const unsigned num = c->r_idx_->size();
 		    s += std::to_string(num);
 		    s += ") match";
 		    if (num != 1) {
@@ -591,9 +599,9 @@ namespace {
 	++cnt; func->progress(2, cnt * 100 / total_steps);
 
 	// intersect lines from file with regular expression matches
-	for(const auto& c : filter_vec) {
-	    if (c.r_idx_) {
-		s = c.r_idx_->intersect(s);
+	for(auto c : filter_vec) {
+	    if (c->r_idx_) {
+		s = c->r_idx_->intersect(s);
 		++cnt; func->progress(3, cnt * 100 / total_steps);
 	    }
 	}
@@ -708,14 +716,23 @@ namespace {
 	assert(rgx.size() >= 3);
 	assert(rgx[0] == '/');
 
-	// check if we need to expand vec
-	if (vec.size() <= regex_num) {
-	    vec.resize(regex_num + 1);
+	regex_vec_resize(vec, regex_num + 1);
+
+	// do we have the regex container already in the cache?
+	if (isFilterRgx) {
+	    auto it = filter_cache.find(rgx);
+	    if (it != filter_cache.end()) {
+		// check that cache key really matches the value rgx_
+		assert(it->first == it->second->rgx_);
+		vec[regex_num] = it->second;
+		info = "found regex in cache";
+		return;
+	    }
 	}
 
-	auto& c = vec[regex_num];
-	c.clear();
-	c.rgx_ = rgx;
+	// create new regex container object
+	auto c = std::make_shared<regex_container_t>();
+	c->rgx_ = rgx;
 
 	const std::string flags = get_regex_flags(rgx);
 	rgx = get_regex_str(rgx);
@@ -723,7 +740,7 @@ namespace {
 	try {
 	    if (isFilterRgx) {
 		// Lines Filter
-		c.r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags, func);
+		c->r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags, func);
 	    } else {
 		// Display Filter
 
@@ -735,54 +752,58 @@ namespace {
 		// separate regex and replacement
 		std::string::size_type pos = rgx.find('/');
 		if (pos == std::string::npos) {
-		    c.err_ = "could not separate regex and replace parts";
+		    c->err_ = "could not separate regex and replace parts";
 		} else {
 		    // create replace string
-		    c.df_replace_ = rgx;
-		    c.df_replace_.erase(0, pos + 1);
+		    c->df_replace_ = rgx;
+		    c->df_replace_.erase(0, pos + 1);
 
 		    // construct regex
 		    rgx.erase(pos);
-		    c.df_rgx_ = std::make_shared<std::regex>(rgx, fl);
+		    c->df_rgx_ = std::make_shared<std::regex>(rgx, fl);
 		}
 	    }
 	} catch (std::regex_error& e) {
-	    c.err_ << e.code();
+	    c->err_ << e.code();
 	} catch (std::runtime_error& e) {
-	    c.err_ = e.what();
+	    c->err_ = e.what();
 	} catch (...) {
-	    c.err_ = "caught unknown exception";
+	    c->err_ = "caught unknown exception";
+	}
+
+	vec[regex_num] = c;
+	if (isFilterRgx) {
+	    filter_cache[c->rgx_] = c;
 	}
     }
 
     void edit_regex(unsigned& y, const unsigned regex_num, regex_vec_t& vec, const bool isFilterRgx)
     {
 	assert(regex_num < 9);
-
-	// check if we need to expand vec
-	if (vec.size() <= regex_num) {
-	    vec.resize(regex_num + 1);
-	}
+	regex_vec_resize(vec, regex_num + 1);
 
 	create_windows();
 
 	// get new regex string
-	auto& c = vec[regex_num];
+	auto c = vec[regex_num];
+	std::string rgx;
 	{
 	    curses_attr a(A_REVERSE);
-	    c.rgx_ = line_edit(y + regex_num, 8, c.rgx_, screen_width - 8);
+	    rgx = line_edit(y + regex_num, 8, c->rgx_, screen_width - 8);
+	    rgx = normalize_regex(rgx);
 	}
 
-	if (c.rgx_.empty()) {
-	    c.clear();
+	if (rgx.empty()) {
+	    vec[regex_num] = std::make_shared<regex_container_t>(); // overwrite with new/empty container object
 	    // pop regular expression container from vector if they're empty
-	    while(vec.size() > 0 && vec[vec.size()-1].rgx_.empty()) {
+	    while(vec.size() > 0 && vec[vec.size()-1]->rgx_.empty()) {
 		vec.resize(vec.size() - 1);
 	    }
-	    // c may be invalid at this point
+	} else if (rgx == c->rgx_) {
+	    // nothing changed, do nothing
 	} else {
 	    CursesProgressFunctor func(screen_height / 2, screen_width / 2 - 10, A_REVERSE|A_BOLD, " add regex: ");
-	    add_regex(regex_num, c.rgx_, vec, isFilterRgx, &func);
+	    add_regex(regex_num, rgx, vec, isFilterRgx, &func);
 	}
 
 	{
@@ -1104,18 +1125,18 @@ int realmain_impl(int argc, char * const argv[])
     close_curses();
     std::cout << "fewer";
 
-    for(const auto& c : filter_vec) {
-	if (c.rgx_.empty()) {
+    for(auto c : filter_vec) {
+	if (c->rgx_.empty()) {
 	    continue;
 	}
-	std::cout << " --regex '" << c.rgx_ << "'";
+	std::cout << " --regex '" << c->rgx_ << "'";
     }
 
-    for(const auto& c : df_vec) {
-	if (c.rgx_.empty()) {
+    for(auto c : df_vec) {
+	if (c->rgx_.empty()) {
 	    continue;
 	}
-	std::cout << " --df '" << c.rgx_ << "'";
+	std::cout << " --df '" << c->rgx_ << "'";
     }
 
     if (! search_str.empty()) {

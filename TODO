@@ -15,11 +15,9 @@
  + add_wch()
  + setcchar()
 - use color
-- cache regular expression containers
 - support cursor in line_edit()
 - read tab width from vim/emacs comments
 - create homepage on llg.cubic.org
-- test with large files
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash
 - support more than 4GB lines?
  + manage all line numbers as 64bit unsigned
