@@ -642,6 +642,7 @@ namespace {
 		mvaddch(y, x + i, ' ');
 	    }
 	    mvprintw(y, x, "%s", s.c_str());
+	    move(y, x+X);
 	    refresh();
 
 	    const int key = getch();
@@ -655,14 +656,18 @@ namespace {
 		return input;
 
 	    case KEY_BACKSPACE:
-		if (s.size() > 0) {
-		    s.resize(s.size() - 1);
+		if (X > 0) {
+		    s.erase(--X,1);
 		}
 		break;
 
 	    default:
 		if (key >= 32 && key < 256 && s.size() < max_width) {
-		    s += static_cast<char>(key);
+		    if (X == s.size()) {
+			s += static_cast<char>(key);
+		    } else {
+
+		    }
 		    ++X;
 		}
 		break;
