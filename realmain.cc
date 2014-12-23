@@ -661,12 +661,29 @@ namespace {
 		}
 		break;
 
+	    case KEY_DC:
+		s.erase(X,1);
+		break;
+
+	    case KEY_LEFT:
+		if (X > 0) {
+		    --X;
+		}
+		break;
+
+	    case KEY_RIGHT:
+		if (X < s.size()) {
+		    ++X;
+		}
+		break;
+
 	    default:
 		if (key >= 32 && key < 256 && s.size() < max_width) {
 		    if (X == s.size()) {
 			s += static_cast<char>(key);
 		    } else {
-
+			char str[2] = { static_cast<char>(key), 0 };
+			s.insert(X, str);
 		    }
 		    ++X;
 		}
