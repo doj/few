@@ -11,10 +11,8 @@
 - when adding a regex, let it run in a background thread and apply once done
 
 - support UTF8
- + detect UTF8 bom
- + support utf8 in filter regex
- + support utf8 in display filter
- + support utf8 in search
+ + find out why LANG!=en_US.UTF-8 the program doesn't want to show the UTF8 sample text
+ + currently developed on the "utf8" git branch
 
 - use color
 - support cursor in line_edit()

@@ -48,7 +48,7 @@ namespace {
     /// current search regular expression string
     std::string search_str;
     /// compiled search regular expression
-    std::regex search_rgx;
+    std::wregex search_rgx;
     /// error string if search regular expression could not be compiled
     std::string search_err;
     /// the y position of the search window
@@ -250,18 +250,18 @@ namespace {
 		auto wline = to_wide(std::string(line.beg_, line.end_));
 
 		// map of pointers into the line and a corresponding curses attribute for the character
-		std::map<const char*, unsigned> character_attr;
+		std::map<std::wstring::iterator, unsigned> character_attr;
 
 		// apply search?
 		if (search_err.empty()) {
 		    // apply search regex to line
-		    for(auto it = std::cregex_iterator(line.beg_, line.end_, search_rgx); it != std::cregex_iterator(); ++it ) {
-			const char *b = line.beg_ + it->position();
-			const char *e = b + it->length();
+		    for(auto it = std::wsregex_iterator(wline.begin(), wline.end(), search_rgx); it != std::wsregex_iterator(); ++it ) {
+			std::wstring::iterator b = wline.begin() + it->position();
+			std::wstring::iterator e = b + it->length();
 			assert(b <= e);
 			// set character attribute for all matched characters
-			for(const char *it = b; it != e; ++it) {
-			    character_attr[it] |= A_REVERSE;
+			for(std::wstring::iterator i = b; i != e; ++i) {
+			    character_attr[i] |= A_REVERSE;
 			}
 		    }
 		}
@@ -295,8 +295,7 @@ namespace {
 			} else {
 			    // replace non printable characters with a space
 			    if (iswprint(c)) {
-				// \todo fix character attribute map
-				// curses_attr a(character_attr[it]);
+				curses_attr a(character_attr[it]);
 				mvaddwch(y, x, c);
 			    } else {
 				mvaddch(y, x, ' '); // \todo maybe print a special symbol to show non-printable character?
@@ -880,7 +879,7 @@ namespace {
      * @param[out] regex compiled regular expression if function returns empty string.
      * @return empty string upon success; error string otherwise.
      */
-    std::string compile_regex(std::string str, std::regex& regex)
+    std::string compile_regex(std::string str, std::wregex& regex)
     {
 	if (str.empty()) {
 	    return str;
@@ -894,7 +893,7 @@ namespace {
 	convert(flags, fl, positiveMatch);
 	std::string err;
 	try {
-	    std::regex r(rgx, fl);
+	    std::wregex r(to_wide(rgx), fl);
 	    regex = r;
 	} catch (std::regex_error& e) {
 	    err << e.code();
