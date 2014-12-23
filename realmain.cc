@@ -538,7 +538,7 @@ namespace {
 	    while (!display_info.isFirstLineDisplayed()) {
 		display_info.up();
 		refresh_lines_window();
-		if (display_info.bottomLineNum() == oldTopLineNum) {
+		if (display_info.bottomLineNum() <= oldTopLineNum) {
 		    break;
 		}
 	    }

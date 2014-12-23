@@ -11,7 +11,10 @@
  + then parse the remaining lines in a background thread
 - when adding a regex, let it run in a background thread and apply once done
 
-- test UTF8
+- support UTF8
+ + mbstowcs()
+ + add_wch()
+ + setcchar()
 - use color
 - cache regular expression containers
 - support cursor in line_edit()
