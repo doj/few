@@ -6,7 +6,29 @@
 #include "display_info.h"
 #include <algorithm>
 
-//#include <iostream>
+/**
+ * position the object on line_num.
+ * If line_num is not included in the object, position on the previous line.
+ */
+void
+DisplayInfo::go_to_approx(const unsigned line_num)
+{
+    if (line_num == 0 || displayedLineNum.empty()) {
+	top();
+    } else {
+	topLineIt = std::lower_bound(displayedLineNum.begin(), displayedLineNum.end(), line_num);
+	if (topLineIt == displayedLineNum.begin()) {
+	    // do nothing
+	} else if (topLineIt == displayedLineNum.end()) {
+	    --topLineIt;
+	} else if (*topLineIt == line_num) {
+	    // do nothing
+	} else {
+	    --topLineIt;
+	}
+    }
+}
+
 DisplayInfo&
 DisplayInfo::operator= (const lineNum_set_t& s)
 {
@@ -15,27 +37,9 @@ DisplayInfo::operator= (const lineNum_set_t& s)
 	old_line_num = *topLineIt;
     }
 
-    //std::clog << "  X\n";
     displayedLineNum.resize(s.size());
-    //std::clog << "  Y\n";
     std::copy(s.begin(), s.end(), displayedLineNum.begin());
-    //std::clog << "  Z\n";
-
-    if (old_line_num == 0) {
-	top();
-    } else {
-	topLineIt = std::lower_bound(displayedLineNum.begin(), displayedLineNum.end(), old_line_num);
-	if (topLineIt == displayedLineNum.begin()) {
-	    // do nothing
-	} else if (topLineIt == displayedLineNum.end()) {
-	    --topLineIt;
-	} else if (*topLineIt == old_line_num) {
-	    // do nothing
-	} else {
-	    --topLineIt;
-	}
-    }
-
+    go_to_approx(old_line_num);
     return *this;
 }
 
@@ -137,4 +141,17 @@ DisplayInfo::go_to(const unsigned lineNum)
     }
     bottomLineIt = topLineIt = i;
     return true;
+}
+
+void
+DisplayInfo::go_to_perc(unsigned p)
+{
+    if (p == 0) {
+	top();
+	return;
+    }
+    if (p > 100) {
+	p = 100;
+    }
+    go_to_approx(static_cast<uint64_t>(lastLineNum()) * static_cast<uint64_t>(p) / static_cast<uint64_t>(100u));
 }

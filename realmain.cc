@@ -809,6 +809,23 @@ namespace {
 	refresh_windows();
     }
 
+    void go_to_perc()
+    {
+	static const std::string title = "Go To Percent %: ";
+	mvprintw(search_y, 0, "%s", title.c_str());
+	std::string perc = line_edit(search_y, title.size(), "", screen_width - title.size());
+	if (perc.empty()) {
+	    return;
+	}
+	int64_t p = atoll(perc.c_str());
+	if (p < 0) {
+	    info = "invalid percentage: " + perc;
+	} else {
+	    display_info.go_to_perc(p);
+	}
+	refresh_windows();
+    }
+
     /**
      * compile a regular expression string.
      * If str is the empty string, the function does not compile anything and returns the empty string.
@@ -1048,6 +1065,10 @@ int realmain_impl(int argc, char * const argv[])
 
 	case 'P':
 	    go_to_line();
+	    break;
+
+	case '%':
+	    go_to_perc();
 	    break;
 
 	case '1':

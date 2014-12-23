@@ -16,6 +16,8 @@ class DisplayInfo
     displayedLineNum_t::iterator topLineIt;
     displayedLineNum_t::iterator bottomLineIt;
 
+    void go_to_approx(const unsigned line_num);
+
 public:
 
     DisplayInfo& operator= (const lineNum_set_t& s);
@@ -62,6 +64,12 @@ public:
      * @return true if the line number is managed by this object; false if the line was not found.
      */
     bool go_to(const unsigned lineNum);
+
+    /**
+     * position the object onto a line number approximately p percent into the lines.
+     * @param p percentage, between [0..100].
+     */
+    void go_to_perc(unsigned p);
 
     /**
      * check if the first line is displayed.

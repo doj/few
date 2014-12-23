@@ -4,7 +4,6 @@
 
 - 'd' scroll down half a screen
 - 'u' scroll up half a screen
-- '%' goto percent inside file
 - 'h' show help
 
 - when starting, only parse the first screen height lines from the file and display them
@@ -22,3 +21,5 @@
 - create homepage on llg.cubic.org
 - test with large files
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash
+- support more than 4GB lines?
+ + manage all line numbers as 64bit unsigned
