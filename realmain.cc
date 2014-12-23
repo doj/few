@@ -141,6 +141,20 @@ namespace {
 	return 20;
     }
 
+    std::wstring to_wide(std::string s)
+    {
+	std::wstring wline(s.size(), L' ');
+	auto src = s.c_str();
+	mbstate_t ps = { 0 };
+	auto w_line_size = mbsrtowcs(const_cast<wchar_t*>(wline.c_str()), &src, wline.size(), &ps);
+	if (w_line_size == (size_t) -1) {
+	    wline = L"invalid multi byte sequence";
+	} else {
+	    wline.resize(w_line_size);
+	}
+	return wline;
+    }
+
     /// fill the row y between x and screen_width with space characters.
     void fill(unsigned y, unsigned x)
     {
@@ -176,16 +190,10 @@ namespace {
 	return x;
     }
 
-    void mv_add_wchar(unsigned y, unsigned x, wchar_t c)
+    void mvaddwch(unsigned y, unsigned x, wchar_t c)
     {
 	wchar_t wc[2] = { c, 0 };
-	cchar_t wch;
-	int result = setcchar(&wch, wc, 0, 0, NULL);
-	if (result == OK) {
-	    mvadd_wch(y, x, &wch);
-	} else {
-	    mvaddch(y, x, '?');
-	}
+        mvaddwstr(y, x, wc);
     }
 
     void refresh_lines_window()
@@ -256,19 +264,8 @@ namespace {
 		    }
 		}
 
-		// convert line to wide characters
-		std::string cline(line.beg_, line.end_);
-		std::wstring wline(cline.size(), L' ');
-		const char *src = cline.c_str();
-		mbstate_t ps = { 0 };
-		auto w_line_size = mbsrtowcs(const_cast<wchar_t*>(wline.c_str()), &src, wline.size(), &ps);
-		if (w_line_size == (size_t) -1) {
-		    info = "invalid multi byte sequence";
-		} else {
-		    wline.resize(w_line_size);
-		}
-
 		// print the current line
+		auto wline = to_wide(std::string(line.beg_, line.end_));
 		auto it = wline.begin();
 		while(it != wline.end() && y < w_lines_height) {
 		    unsigned x = 0;
@@ -299,7 +296,7 @@ namespace {
 			    if (iswprint(c)) {
 				// \todo fix character attribute map
 				// curses_attr a(character_attr[it]);
-				mv_add_wchar(y, x, c);
+				mvaddwch(y, x, c);
 			    } else {
 				mvaddch(y, x, ' '); // \todo maybe print a special symbol to show non-printable character?
 			    }
