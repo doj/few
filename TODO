@@ -1,6 +1,6 @@
 - support cursor in line_edit()
- + support ^a, ^e, ^k
  + with cursor up, down move through history
+ + save and log line edit history
 
 - search
  + 'n' goto next search result

@@ -611,6 +611,8 @@ namespace {
 	func->progress(5, 100);
     }
 
+    std::vector<std::string> line_edit_history;
+
     /**
      * read an input string with curses.
      * The input windows is positioned at coordinates x,y and has a maximum width of max_width.
@@ -636,6 +638,8 @@ namespace {
 	    s.resize(max_width);
 	}
 
+	auto history_it = line_edit_history.rbegin();
+
 	// the cursor position
 	unsigned X = s.size();
 
@@ -652,6 +656,7 @@ namespace {
 	    case '\r':
 	    case '\n':
 	    case KEY_ENTER:
+		line_edit_history.push_back(s);
 		return s;
 
 	    case '\e':
@@ -707,6 +712,32 @@ namespace {
 		if (! killring.empty()) {
 		    s.insert(X, killring);
 		    X += killring.size();
+		}
+		break;
+
+	    case KEY_UP:
+		// save current edit state in history
+		if (history_it == line_edit_history.rbegin()) {
+		    line_edit_history.push_back(s);
+		    history_it = line_edit_history.rbegin();
+		    ++history_it;
+		}
+		if (history_it != line_edit_history.rend()) {
+		    s = *history_it;
+		    X = s.size();
+		    ++history_it;
+		}
+		break;
+
+	    case KEY_DOWN:
+		if (history_it != line_edit_history.rbegin()) {
+		    --history_it;
+		    s = *history_it;
+		    if (history_it == line_edit_history.rbegin()) {
+			assert(line_edit_history.size() > 0);
+			line_edit_history.resize(line_edit_history.size() - 1);
+			history_it = line_edit_history.rbegin();
+		    }
 		}
 		break;
 
