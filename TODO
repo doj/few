@@ -10,10 +10,6 @@
  + then parse the remaining lines in a background thread
 - when adding a regex, let it run in a background thread and apply once done
 
-- support UTF8
- + find out why LANG!=en_US.UTF-8 the program doesn't want to show the UTF8 sample text
- + currently developed on the "utf8" git branch
-
 - use color
 - support cursor in line_edit()
 - read tab width from vim/emacs comments

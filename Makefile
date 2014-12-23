@@ -9,7 +9,17 @@ else
 CXXFLAGS += -O2
 endif
 
-SRCS = realmain.cc memorymap.cc file_index.cc regex_index.cc display_info.cc help.cc normalize_regex.cc progress_functor.cc
+SRCS = \
+	display_info.cc \
+	file_index.cc \
+	help.cc \
+	memorymap.cc \
+	normalize_regex.cc \
+	progress_functor.cc \
+	realmain.cc \
+	regex_index.cc \
+	to_wide.cc \
+#
 OBJS = $(SRCS:.cc=.o)
 
 LIBS = -lncursesw -lpthread

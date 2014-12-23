@@ -22,6 +22,7 @@
 #include "display_info.h"
 #include "normalize_regex.h"
 #include "curses_attr.h"
+#include "to_wide.h"
 
 namespace {
     /// verbosity level
@@ -139,20 +140,6 @@ namespace {
 	if (i < 1000000000000000000llu) return 18;
 	if (i < 10000000000000000000llu) return 19;
 	return 20;
-    }
-
-    std::wstring to_wide(std::string s)
-    {
-	std::wstring wline(s.size(), L' ');
-	auto src = s.c_str();
-	mbstate_t ps = { 0 };
-	auto w_line_size = mbsrtowcs(const_cast<wchar_t*>(wline.c_str()), &src, wline.size(), &ps);
-	if (w_line_size == (size_t) -1) {
-	    wline = L"invalid multi byte sequence";
-	} else {
-	    wline.resize(w_line_size);
-	}
-	return wline;
     }
 
     /// fill the row y between x and screen_width with space characters.
@@ -298,7 +285,7 @@ namespace {
 				curses_attr a(character_attr[it]);
 				mvaddwch(y, x, c);
 			    } else {
-				mvaddch(y, x, ' '); // \todo maybe print a special symbol to show non-printable character?
+				mvaddwch(y, x, L'\uFFFD');
 			    }
 			    ++x;
 			}
