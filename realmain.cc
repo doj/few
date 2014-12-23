@@ -9,7 +9,6 @@
 #include <sys/ioctl.h>
 #include <signal.h>
 #include <unistd.h>
-#include <ncurses.h>
 #include <cassert>
 #include <stdint.h>
 #include <stdlib.h>
@@ -21,8 +20,12 @@
 #include "error.h"
 #include "display_info.h"
 #include "normalize_regex.h"
+#include "curses_attr.h"
 
 namespace {
+    /// verbosity level
+    unsigned verbose = 0;
+
     /// minimum screen height
     const unsigned min_screen_height = 1 // lines
 	+ 9 // filters
@@ -128,18 +131,6 @@ namespace {
 	if (i < 10000000000000000000llu) return 19;
 	return 20;
     }
-
-    /**
-     * helper class to manage curses attributes.
-     * The constructor sets an attribute, the destructor unsets it.
-     */
-    class curses_attr
-    {
-	const unsigned a_;
-    public:
-	explicit curses_attr(unsigned a) : a_(a) { attron(a_); }
-	~curses_attr() { attroff(a_); }
-    };
 
     /// fill the row y between x and screen_width with space characters.
     void fill(unsigned y, unsigned x)
@@ -589,19 +580,27 @@ namespace {
      * provision the display_info object.
      * use the lines from f_idx and filter with the regular expression vector filter_vec.
      */
-    void apply_regex()
+    void apply_regex(ProgressFunctor *func)
     {
+	const unsigned total_steps = filter_vec.size() + 3;
+	unsigned cnt = 0;
+	++cnt; func->progress(1, cnt * 100 / total_steps);
+
 	// get lines from file
 	auto s = f_idx->lineNum_set();
+	++cnt; func->progress(2, cnt * 100 / total_steps);
 
 	// intersect lines from file with regular expression matches
 	for(const auto& c : filter_vec) {
 	    if (c.r_idx_) {
 		s = c.r_idx_->intersect(s);
+		++cnt; func->progress(3, cnt * 100 / total_steps);
 	    }
 	}
+	func->progress(4, cnt * 100 / total_steps);
 
 	display_info = s;
+	func->progress(5, 100);
     }
 
     /**
@@ -699,7 +698,7 @@ namespace {
 	return s;
     }
 
-    void add_regex(const unsigned regex_num, std::string rgx, regex_vec_t& vec, const bool isFilterRgx)
+    void add_regex(const unsigned regex_num, std::string rgx, regex_vec_t& vec, const bool isFilterRgx, ProgressFunctor *func)
     {
 	assert(regex_num < 9);
 	assert(! rgx.empty());
@@ -724,7 +723,7 @@ namespace {
 	try {
 	    if (isFilterRgx) {
 		// Lines Filter
-		c.r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags);
+		c.r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags, func);
 	    } else {
 		// Display Filter
 
@@ -782,10 +781,14 @@ namespace {
 	    }
 	    // c may be invalid at this point
 	} else {
-	    add_regex(regex_num, c.rgx_, vec, isFilterRgx);
+	    CursesProgressFunctor func(screen_height / 2, screen_width / 2 - 10, A_REVERSE|A_BOLD, " add regex: ");
+	    add_regex(regex_num, c.rgx_, vec, isFilterRgx, &func);
 	}
 
-	apply_regex();
+	{
+	    CursesProgressFunctor func(screen_height / 2, screen_width / 2 - 10, A_REVERSE|A_BOLD, " apply regex: ");
+	    apply_regex(&func);
+	}
 	create_windows();
     }
 
@@ -889,12 +892,16 @@ int realmain_impl(int argc, char * const argv[])
 
     std::vector<std::string> command_line_filter_regex, command_line_df_regex;
     int key;
-    while((key = getopt_long(argc, argv, "", longopts, nullptr)) > 0) {
+    while((key = getopt_long(argc, argv, "vh", longopts, nullptr)) > 0) {
 	switch(key) {
 	case '?':
 	case 'h':
 	    help();
 	    return EXIT_FAILURE;
+
+	case 'v':
+	    ++verbose;
+	    break;
 
 	case opt_regex:
 	    if (command_line_filter_regex.size() >= 9) {
@@ -950,13 +957,22 @@ int realmain_impl(int argc, char * const argv[])
     setlocale(LC_ALL, "");
 
     f_idx = std::make_shared<file_index>(filename);
+    {
+	OStreamProgressFunctor func(std::clog, "parsing line: ");
+	f_idx->parse_all(&func);
+    }
     for(unsigned u = 0; u != command_line_filter_regex.size(); ++u) {
-	add_regex(u, command_line_filter_regex[u], filter_vec, true);
+	OStreamProgressFunctor func(std::clog, "apply regex: " + command_line_filter_regex[u] + " : ");
+	add_regex(u, command_line_filter_regex[u], filter_vec, true, &func);
     }
     for(unsigned u = 0; u != command_line_df_regex.size(); ++u) {
-	add_regex(u, command_line_df_regex[u], df_vec, false);
+	OStreamProgressFunctor func(std::clog, "apply regex: " + command_line_df_regex[u] + " : ");
+	add_regex(u, command_line_df_regex[u], df_vec, false, &func);
     }
-    apply_regex();
+    {
+	OStreamProgressFunctor func(std::clog, "apply regular expressions: ");
+	apply_regex(&func);
+    }
 
     const std::string stdinfo = filename + " (" + std::to_string(f_idx->size()) + " lines)";
     info = stdinfo;

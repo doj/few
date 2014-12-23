@@ -31,7 +31,7 @@ public:
      *
      * @throws std::runtime_error if regular expression could not be parsed.
      */
-    regex_index(std::shared_ptr<file_index> f_idx, const std::string& rgx, const std::string& flags);
+    regex_index(std::shared_ptr<file_index> f_idx, const std::string& rgx, const std::string& flags, ProgressFunctor *func = nullptr);
 
     unsigned size() const { return lineNum_set_.size(); }
 

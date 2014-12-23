@@ -8,6 +8,7 @@
 #include "types.h"
 #include <vector>
 #include <cassert>
+#include "progress_functor.h"
 
 class file_index
 {
@@ -15,8 +16,19 @@ class file_index
     typedef char c_t;
 
     doj::memorymap_ptr<c_t> file_;
+
+    /**
+     *all lines, indexed by their line number.
+     * The first line in the file has line number 1.
+     * The entry with index 0 is invalid and should not be used.
+     */
     std::vector<line_t> line_;
+
+    /// true if the entire file has been parsed.
     bool has_parsed_all_;
+
+    /// this set contains the line number of all currently parsed lines.
+    lineNum_set_t lineNum_set_;
 
     /**
      * parse line number "index" from the file.
@@ -28,6 +40,10 @@ class file_index
     void push_line(const c_t* beg, const c_t* end, const c_t* next, const unsigned num);
 
 public:
+    /**
+     * construct and initialize the file_index with the contents of filename.
+     * @param filename file name to initialize lines from.
+     */
     explicit file_index(const std::string& filename);
 
     /// @return the number of currently parsed lines. This could be less than the total number of lines in the file.
@@ -122,21 +138,12 @@ public:
 	return iterator(false);
     }
 
-    void parse_all()
-    {
-	if (has_parsed_all_) {
-	    return;
-	}
-#if 1
-	for(auto l : *this) { (void)l; }
-#else
-	iterator it = begin();
-	while(it != end()) {
-	    ++it;
-	}
-#endif
-    }
+    /**
+     * @param os output stream to print progress information on, can be nullptr.
+     */
+    void parse_all(ProgressFunctor *func = nullptr);
 
-    lineNum_set_t lineNum_set();
+    /// @return the line number set of all lines in the file.
+    const lineNum_set_t& lineNum_set();
 
 };

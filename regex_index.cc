@@ -24,11 +24,14 @@ void convert(const std::string& flags, std::regex_constants::syntax_option_type&
     fl = flg;
 }
 
-regex_index::regex_index(std::shared_ptr<file_index> f_idx, const std::string& rgx, const std::string& flags)
+regex_index::regex_index(std::shared_ptr<file_index> f_idx, const std::string& rgx, const std::string& flags, ProgressFunctor *func)
 {
     bool positive_match = true;
     std::regex_constants::syntax_option_type fl;
     convert(flags, fl, positive_match);
+
+    const uint64_t total_lines = f_idx->size();
+    uint64_t cnt = 0;
 
     std::regex r(rgx, fl);
     for(auto line : *f_idx) {
@@ -40,6 +43,10 @@ regex_index::regex_index(std::shared_ptr<file_index> f_idx, const std::string& r
 	    //std::clog << " !match!";
 	}
 	//std::clog << std::endl;
+
+	if (func && ((++cnt) % 10000) == 0) {
+	    func->progress(cnt, cnt * 100 / total_lines);
+	}
     }
 }
 

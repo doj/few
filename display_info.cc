@@ -6,6 +6,7 @@
 #include "display_info.h"
 #include <algorithm>
 
+//#include <iostream>
 DisplayInfo&
 DisplayInfo::operator= (const lineNum_set_t& s)
 {
@@ -14,8 +15,11 @@ DisplayInfo::operator= (const lineNum_set_t& s)
 	old_line_num = *topLineIt;
     }
 
+    //std::clog << "  X\n";
     displayedLineNum.resize(s.size());
+    //std::clog << "  Y\n";
     std::copy(s.begin(), s.end(), displayedLineNum.begin());
+    //std::clog << "  Z\n";
 
     if (old_line_num == 0) {
 	top();

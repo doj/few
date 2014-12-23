@@ -21,8 +21,6 @@ file_index::file_index(const std::string& filename) :
 
 bool file_index::parse_line(const unsigned index)
 {
-    //asm("int3");
-
     if (file_.empty()) {
 	has_parsed_all_ = true;
 	return false;
@@ -45,7 +43,11 @@ bool file_index::parse_line(const unsigned index)
     if (it == file_.end()) {
 	return false;
     }
+    if (it == nullptr) {
+	return false;
+    }
 
+    assert(it);
     const c_t* beg = it;
     while(num < index) {
 	if (*it == '\n') {
@@ -81,18 +83,7 @@ file_index::push_line(const c_t* beg, const c_t* end, const c_t* next, const uns
 	break;
     }
     line_.push_back(line_t(beg, end, next, num));
-}
-
-/// \todo remove this function once we have a better compiler!
-#include <sstream>
-namespace std {
-    template <typename T>
-    std::string to_string(const T& t)
-    {
-	std::ostringstream os;
-	os << t;
-	return os.str();
-    }
+    lineNum_set_.insert(num);
 }
 
 line_t file_index::line(const unsigned idx)
@@ -105,16 +96,34 @@ line_t file_index::line(const unsigned idx)
     return line_[idx];
 }
 
-lineNum_set_t
+const lineNum_set_t&
 file_index::lineNum_set()
 {
     if (! has_parsed_all_) {
 	parse_all();
     }
     assert(has_parsed_all_);
-    lineNum_set_t s;
-    for(unsigned i = 1; i <= size(); ++i) {
-	s.insert(i);
+    return lineNum_set_;
+}
+
+void
+file_index::parse_all(ProgressFunctor *func)
+{
+    if (has_parsed_all_) {
+	return;
     }
-    return s;
+    unsigned cnt = 0;
+#if 1
+    for(auto l : *this) {
+	(void)l;
+#else
+    iterator it = begin();
+    while(it != end()) {
+	++it;
+#endif
+	if (func && (((++cnt) % 10000) == 0)) {
+	    const uint64_t pos = line_[cnt].end_ - line_[1].beg_;
+	    func->progress(cnt, pos * 100 / file_.size());
+	}
+    }
 }

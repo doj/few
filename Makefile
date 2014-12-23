@@ -4,12 +4,12 @@ INCLUDE_FLAGS += -I.
 CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_FLAGS) -std=c++11 -MMD
 
 ifeq ($(DEBUG),1)
-CXXFLAGS += -g -O2
+CXXFLAGS += -g #-O2
 else
 CXXFLAGS += -O2
 endif
 
-SRCS = realmain.cc memorymap.cc file_index.cc regex_index.cc display_info.cc help.cc normalize_regex.cc
+SRCS = realmain.cc memorymap.cc file_index.cc regex_index.cc display_info.cc help.cc normalize_regex.cc progress_functor.cc
 OBJS = $(SRCS:.cc=.o)
 
 LIBS = -lncurses -lpthread
@@ -21,7 +21,7 @@ fewer:	$(OBJS) main.o
 
 debug:	fewer
 ifeq ($(DEBUG),1)
-	gdb --args ./fewer /tmp/large.txt
+	gdb --args ./fewer /tmp/medium.txt
 else
 	$(MAKE) clean
 	$(MAKE) $@ DEBUG=1
