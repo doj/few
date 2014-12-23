@@ -625,6 +625,8 @@ namespace {
      */
     std::string line_edit(const unsigned y, const unsigned x, const std::string& input, const unsigned max_width)
     {
+	static std::string killring;
+
 	if (max_width < 1) {
 	    return input;
 	}
@@ -661,19 +663,50 @@ namespace {
 		}
 		break;
 
-	    case KEY_DC:
+	    case KEY_DC: // delete character
+	    case 'd'-96: // CTRL+d
 		s.erase(X,1);
 		break;
 
 	    case KEY_LEFT:
+	    case 'b'-96: // CTRL+b
 		if (X > 0) {
 		    --X;
 		}
 		break;
 
 	    case KEY_RIGHT:
+	    case 'f'-96: // CTRL+f
 		if (X < s.size()) {
 		    ++X;
+		}
+		break;
+
+	    case KEY_HOME:
+	    case 'a'-96: // CTRL+a
+		X = 0;
+		break;
+
+	    case KEY_END:
+	    case 'e'-96: // CTRL+e
+		X = s.size();
+		break;
+
+	    case 'k'-96: // CTRL+k
+		{
+		    std::string k = s;
+		    k.erase(0,X);
+		    if (k.size() > 0) {
+			killring = k;
+		    }
+		    s.erase(X);
+		}
+		break;
+
+	    case 'y'-96: // CTRL+y
+		if (! killring.empty()) {
+		    s.insert(X, killring);
+		    X += killring.size();
 		}
 		break;
 
