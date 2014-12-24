@@ -11,7 +11,7 @@
  * If line_num is not included in the object, position on the previous line.
  */
 void
-DisplayInfo::go_to_approx(const unsigned line_num)
+DisplayInfo::go_to_approx(const line_number_t line_num)
 {
     if (line_num == 0 || displayedLineNum.empty()) {
 	top();
@@ -50,7 +50,7 @@ DisplayInfo::start()
     return bottomLineIt != displayedLineNum.end();
 }
 
-unsigned
+line_number_t
 DisplayInfo::current() const
 {
     return *bottomLineIt;
@@ -108,7 +108,7 @@ DisplayInfo::page_down()
     topLineIt = bottomLineIt;
 }
 
-unsigned
+line_number_t
 DisplayInfo::bottomLineNum() const
 {
     if (bottomLineIt == displayedLineNum.end()) {
@@ -123,7 +123,7 @@ DisplayInfo::info() const
     return "top #" + std::to_string(*topLineIt) + " bottom #" + std::to_string(*bottomLineIt);
 }
 
-unsigned
+line_number_t
 DisplayInfo::lastLineNum() const
 {
     if (displayedLineNum.size() == 0) {
@@ -133,7 +133,7 @@ DisplayInfo::lastLineNum() const
 }
 
 bool
-DisplayInfo::go_to(const unsigned lineNum)
+DisplayInfo::go_to(const line_number_t lineNum)
 {
     displayedLineNum_t::iterator i = std::find(displayedLineNum.begin(), displayedLineNum.end(), lineNum);
     if (i == displayedLineNum.end()) {

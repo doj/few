@@ -10,13 +10,13 @@
 
 class DisplayInfo
 {
-    typedef std::vector<unsigned> displayedLineNum_t;
+    typedef std::vector<line_number_t> displayedLineNum_t;
 
     displayedLineNum_t displayedLineNum;
     displayedLineNum_t::iterator topLineIt;
     displayedLineNum_t::iterator bottomLineIt;
 
-    void go_to_approx(const unsigned line_num);
+    void go_to_approx(const line_number_t line_num);
 
 public:
 
@@ -37,7 +37,7 @@ public:
      * This function can only be called after start() has been called.
      * @return the current line number.
      */
-    unsigned current() const;
+    line_number_t current() const;
 
     /**
      * advance to the next line.
@@ -50,20 +50,20 @@ public:
      * This function can only be called after start() has been called.
      * @return the line number of the bottom line on the display.
      */
-    unsigned bottomLineNum() const;
+    line_number_t bottomLineNum() const;
 
     /**
      * This function can only be called after operator=(lineNum_set_t) has been called.
      * @return the line number of the last line managed by this object.
      */
-    unsigned lastLineNum() const;
+    line_number_t lastLineNum() const;
 
     /**
      * position the object onto a line number.
      * This function can only be called after operator=(lineNum_set_t) has been called.
      * @return true if the line number is managed by this object; false if the line was not found.
      */
-    bool go_to(const unsigned lineNum);
+    bool go_to(const line_number_t lineNum);
 
     /**
      * position the object onto a line number approximately p percent into the lines.

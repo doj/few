@@ -6,6 +6,7 @@
 #pragma once
 #include <string>
 #include <cassert>
+#include "types.h"
 
 class line_t
 {
@@ -17,9 +18,9 @@ public:
     /// first character of next line, can be nullptr.
     const char *next_;
     /// line number.
-    /*const*/ unsigned num_;
+    /*const*/ line_number_t num_;
 
-    line_t(const char *begin, const char *end, const char *next, const unsigned num) :
+    line_t(const char *begin, const char *end, const char *next, const line_number_t num) :
 	beg_(begin),
 	end_(end),
 	next_(next),

@@ -4,5 +4,7 @@
  */
 #pragma once
 #include <set>
+#include <stdint.h>
 
-typedef std::set<unsigned> lineNum_set_t;
+typedef uint32_t line_number_t;
+typedef std::set<line_number_t> lineNum_set_t;

@@ -19,20 +19,21 @@ file_index::file_index(const std::string& filename) :
     line_.push_back(line_t(nullptr, nullptr, nullptr, 0));
 }
 
-bool file_index::parse_line(const unsigned index)
+bool
+file_index::parse_line(const line_number_t num_)
 {
     if (file_.empty()) {
 	has_parsed_all_ = true;
 	return false;
     }
 
-    if (index <= size()) {
+    if (num_ <= size()) {
 	return true;
     }
 
-    unsigned num = 0;
+    line_number_t num = 0;
     const c_t* it = nullptr;
-    if (index > 1 && size() > 0) {
+    if (num_ > 1 && size() > 0) {
 	line_t current_line = line_[size()];
 	it = current_line.next_;
 	num = current_line.num_;
@@ -49,7 +50,7 @@ bool file_index::parse_line(const unsigned index)
 
     assert(it);
     const c_t* beg = it;
-    while(num < index) {
+    while(num < num_) {
 	if (*it == '\n') {
 	    const c_t* next = it + 1;
 	    push_line(beg, it, next, ++num);
@@ -65,11 +66,11 @@ bool file_index::parse_line(const unsigned index)
 	}
     }
 
-    return num == index;
+    return num == num_;
 }
 
 void
-file_index::push_line(const c_t* beg, const c_t* end, const c_t* next, const unsigned num)
+file_index::push_line(const c_t* beg, const c_t* end, const c_t* next, const line_number_t num)
 {
     while(beg < end) {
 	if (*(end - 1) == '\n') {
@@ -86,14 +87,14 @@ file_index::push_line(const c_t* beg, const c_t* end, const c_t* next, const uns
     lineNum_set_.insert(num);
 }
 
-line_t file_index::line(const unsigned idx)
+line_t file_index::line(const line_number_t num)
 {
-    if (idx > size()) {
-	if (! parse_line(idx)) {
-	    throw std::runtime_error("file_index::line(" + std::to_string(idx) + "): index too large, file only contains " + std::to_string(size()));
+    if (num > size()) {
+	if (! parse_line(num)) {
+	    throw std::runtime_error("file_index::line(" + std::to_string(num) + "): number too large, file only contains " + std::to_string(size()));
 	}
     }
-    return line_[idx];
+    return line_[num];
 }
 
 const lineNum_set_t&
@@ -112,7 +113,7 @@ file_index::parse_all(ProgressFunctor *func)
     if (has_parsed_all_) {
 	return;
     }
-    unsigned cnt = 0;
+    uint64_t cnt = 0;
 #if 1
     for(auto l : *this) {
 	(void)l;

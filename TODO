@@ -1,3 +1,5 @@
+- --goto num
+
 - search
  + 'n' goto next search result
  + 'N' goto prev search result

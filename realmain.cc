@@ -68,7 +68,7 @@ namespace {
     unsigned w_lines_height;
 
     /// line number displayed at the middle of the lines window
-    unsigned middle_line_number = 0;
+    line_number_t middle_line_number = 0;
 
     /// the y position of the lines filter regex window
     unsigned filter_y;
@@ -191,7 +191,7 @@ namespace {
 	unsigned y = 0;
 	if (display_info.start()) {
 	    while(y < w_lines_height) {
-		const unsigned current_line_num = display_info.current();
+		const line_number_t current_line_num = display_info.current();
 		if (y < w_lines_height/2) {
 		    middle_line_number = current_line_num;
 		}
@@ -546,7 +546,7 @@ namespace {
 	    info = "moved to top";
 	} else {
 	    // scroll up until the old top line is the current bottom line
-	    const unsigned oldTopLineNum = display_info.current();
+	    const line_number_t oldTopLineNum = display_info.current();
 	    while (!display_info.isFirstLineDisplayed()) {
 		display_info.up();
 		refresh_lines_window();
@@ -580,7 +580,7 @@ namespace {
 	} else if (display_info.isLastLineDisplayed()) {
 	    info = "moved to bottom";
 	} else {
-	    const unsigned lastLineNum = display_info.lastLineNum();
+	    const line_number_t lastLineNum = display_info.lastLineNum();
 	    display_info.go_to(lastLineNum);
 	    // scroll up until we don't print the last line any more
 	    while (!display_info.isFirstLineDisplayed()) {
@@ -613,7 +613,7 @@ namespace {
 	    return;
 	}
 	// scroll up until the old middle line number is the bottom line
-	const unsigned old_mln = middle_line_number;
+	const line_number_t old_mln = middle_line_number;
 	while (!display_info.isFirstLineDisplayed() && display_info.bottomLineNum() > old_mln) {
 	    display_info.up();
 	    refresh_lines_window();
@@ -939,6 +939,8 @@ namespace {
 	int64_t l_n = atoll(line_num.c_str());
 	if (l_n < 1) {
 	    info = "invalid line number: " + line_num;
+	} else if (l_n > static_cast<int64_t>(std::numeric_limits<line_number_t>::max())) {
+	    info = "line number too big: " + line_num;
 	} else if (! display_info.go_to(l_n)) {
 	    info = "line number " + line_num + " not currently displayed";
 	}

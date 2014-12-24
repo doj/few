@@ -31,13 +31,13 @@ class file_index
     lineNum_set_t lineNum_set_;
 
     /**
-     * parse line number "index" from the file.
-     * @param index line number to parse, the first line has index 1.
+     * parse line number num from the file.
+     * @param num line number to parse, the first line is 1.
      * @return true if the line exists and was parsed; false if the line does not exist.
      */
-    bool parse_line(const unsigned index);
+    bool parse_line(const line_number_t num);
 
-    void push_line(const c_t* beg, const c_t* end, const c_t* next, const unsigned num);
+    void push_line(const c_t* beg, const c_t* end, const c_t* next, const line_number_t num);
 
 public:
     /**
@@ -53,15 +53,15 @@ public:
     }
 
     /**
-     * get line number "idx".
+     * get line number num.
      * @throws std::runtime_error if the line does not exist.
      */
-    line_t line(const unsigned idx);
+    line_t line(const line_number_t num);
 
     class iterator
     {
 	file_index* f_idx_;
-	unsigned line_num_;
+	line_number_t line_num_;
 
     public:
 	explicit iterator(file_index& f_idx) :
