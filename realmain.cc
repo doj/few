@@ -66,6 +66,9 @@ namespace {
     /// height of the lines window
     unsigned w_lines_height;
 
+    /// line number displayed at the middle of the lines window
+    unsigned middle_line_number;
+
     /// the y position of the lines filter regex window
     unsigned filter_y;
 
@@ -183,10 +186,15 @@ namespace {
     {
 	assert(tab_width > 0);
 
+	middle_line_number = 0;
 	unsigned y = 0;
 	if (display_info.start()) {
 	    while(y < w_lines_height) {
 		const unsigned current_line_num = display_info.current();
+		if (y < w_lines_height/2) {
+		    middle_line_number = current_line_num;
+		}
+
 		line_t line = f_idx->line(current_line_num);
 		assert(current_line_num == line.num_);
 
@@ -586,6 +594,15 @@ namespace {
 	}
 	refresh_lines_window();
 	refresh();
+    }
+
+    void key_d()
+    {
+	if (middle_line_number > 0) {
+	    display_info.go_to(middle_line_number);
+	    refresh_lines_window();
+	    refresh();
+	}
     }
 
     /**
@@ -1181,6 +1198,10 @@ int realmain_impl(int argc, char * const argv[])
 	case 'G':
 	case '>':
 	    key_G();
+	    break;
+
+	case 'd':
+	    key_d();
 	    break;
 
 	case 'R':

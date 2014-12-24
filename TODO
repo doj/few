@@ -2,7 +2,6 @@
  + 'n' goto next search result
  + 'N' goto prev search result
 
-- 'd' scroll down half a screen
 - 'u' scroll up half a screen
 - 'h' show help
 
