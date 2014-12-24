@@ -648,6 +648,35 @@ namespace {
     }
 
     std::vector<std::string> line_edit_history;
+    void push_to_line_edit_history(const std::string& s)
+    {
+	if (s.empty()) {
+	    return;
+	}
+	line_edit_history.push_back(s);
+    }
+
+    void read_line_edit_history()
+    {
+	line_edit_history_rc = std::string(getenv("HOME")) + "/" + line_edit_history_rc;
+	std::ifstream is(line_edit_history_rc);
+	while(is) {
+	    std::string l;
+	    getline(is, l);
+	    push_to_line_edit_history(l);
+	}
+	if (line_edit_history.size() > 1000u) {
+	    line_edit_history.erase(line_edit_history.begin(), line_edit_history.begin() + (line_edit_history.size()-1000u));
+	}
+    }
+
+    void write_line_edit_history()
+    {
+	std::ofstream os(line_edit_history_rc);
+	for(auto l : line_edit_history) {
+	    os << l << std::endl;
+	}
+    }
 
     /**
      * read an input string with curses.
@@ -692,7 +721,7 @@ namespace {
 	    case '\r':
 	    case '\n':
 	    case KEY_ENTER:
-		line_edit_history.push_back(s);
+		push_to_line_edit_history(s);
 		return s;
 
 	    case '\e':
@@ -1148,18 +1177,7 @@ int realmain_impl(int argc, char * const argv[])
     }
     signal(SIGWINCH, handle_winch);
 
-    {
-	line_edit_history_rc = std::string(getenv("HOME")) + "/" + line_edit_history_rc;
-	std::ifstream is(line_edit_history_rc);
-	while(is) {
-	    std::string l;
-	    getline(is, l);
-	    line_edit_history.push_back(l);
-	}
-	if (line_edit_history.size() > 1000u) {
-	    line_edit_history.erase(line_edit_history.begin(), line_edit_history.begin() + (line_edit_history.size()-1000u));
-	}
-    }
+    read_line_edit_history();
 
     atexit(close_curses);
     initialize_curses();
@@ -1289,12 +1307,7 @@ int realmain_impl(int argc, char * const argv[])
     std::cout << " --tabwidth " << tab_width
 	      << " '" << filename << "'" << std::endl;
 
-    {
-	std::ofstream os(line_edit_history_rc);
-	for(auto l : line_edit_history) {
-	    os << l << std::endl;
-	}
-    }
+    write_line_edit_history();
 
     return EXIT_SUCCESS;
 }
