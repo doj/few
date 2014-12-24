@@ -1,3 +1,6 @@
+TODO
+----
+
 - search
  + 'n' goto next search result
  + 'N' goto prev search result
@@ -18,7 +21,7 @@
 
 - use color
 - read tab width from vim/emacs comments
-- create homepage on llg.cubic.org
+- create homepage on <http://llg.cubic.org>
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash
 - support more than 4GB lines?
  + manage all line numbers as 64bit unsigned

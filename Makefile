@@ -43,17 +43,15 @@ endif
 
 RONN=ronn --organization=Cubic --manual="User Commands"
 
-few.1:	README.md
-	cp -f $< fewR.md
-	$(RONN) --roff fewR.md
-	rm -f fewR.md
+few.md:	README.md TODO.md
+	cat $^ > $@
+
+few.1:	few.md
+	$(RONN) --roff $<
 	mv -f few $@
 
-few.html:	README.md
-	cp -f $< fewH.md
-	$(RONN) --html fewH.md
-	rm -f fewH.md
-	mv -f fewH.html $@
+few.html:	few.md
+	$(RONN) --html $<
 
 ##############################################################################
 # test the program
@@ -86,7 +84,10 @@ dist:	all few.1 few.html
 	echo 'TODO: create .tar.gz of source code'
 
 clean:
-	rm -f *~ test few few.1 few.html $(TEST_DEPS) $(TEST_OBJS) *.o *.d
+	rm -f *~ test few $(TEST_DEPS) $(TEST_OBJS) *.o *.d few.md
+
+distclean:	clean
+	rm -f few.1 few.html
 
 show-log:
 	git log --oneline --abbrev-commit --all --graph
