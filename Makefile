@@ -60,7 +60,7 @@ few.1:	README.md
 ##############################################################################
 # test the program
 
-TEST_SRCS = $(shell find . -name '*_gtest.cc') gtest/gtest-all.cc gtest/gtest_main.cc $(SRCS)
+TEST_SRCS = $(shell find . -name '*_gtest.cc') $(SRCS)
 TEST_OBJS = $(TEST_SRCS:.cc=.o)
 TEST_DEPS = $(TEST_SRCS:.cc=.d)
 
