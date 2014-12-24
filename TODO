@@ -18,3 +18,5 @@
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash
 - support more than 4GB lines?
  + manage all line numbers as 64bit unsigned
+- cache file index
+- cache regex filter index

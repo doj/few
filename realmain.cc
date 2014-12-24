@@ -22,10 +22,11 @@
 #include "display_info.h"
 #include "normalize_regex.h"
 #include "curses_attr.h"
+#include "history.h"
 
 namespace {
     /// file name of line edit history
-    std::string line_edit_history_rc = ".fewer.history";
+    const char* line_edit_history_rc = ".fewer.history";
 
     /// verbosity level
     unsigned verbose = 0;
@@ -647,36 +648,7 @@ namespace {
 	func->progress(5, 100);
     }
 
-    std::vector<std::string> line_edit_history;
-    void push_to_line_edit_history(const std::string& s)
-    {
-	if (s.empty()) {
-	    return;
-	}
-	line_edit_history.push_back(s);
-    }
-
-    void read_line_edit_history()
-    {
-	line_edit_history_rc = std::string(getenv("HOME")) + "/" + line_edit_history_rc;
-	std::ifstream is(line_edit_history_rc);
-	while(is) {
-	    std::string l;
-	    getline(is, l);
-	    push_to_line_edit_history(l);
-	}
-	if (line_edit_history.size() > 1000u) {
-	    line_edit_history.erase(line_edit_history.begin(), line_edit_history.begin() + (line_edit_history.size()-1000u));
-	}
-    }
-
-    void write_line_edit_history()
-    {
-	std::ofstream os(line_edit_history_rc);
-	for(auto l : line_edit_history) {
-	    os << l << std::endl;
-	}
-    }
+    History::ptr_t line_edit_history;
 
     /**
      * read an input string with curses.
@@ -703,15 +675,7 @@ namespace {
 	    s.resize(max_width);
 	}
 
-	const int history_size = static_cast<int>(line_edit_history.size());
-	// index into the line_edit_history vector
-	int history_idx = -1;
-	if (history_size > 0) {
-	    history_idx = history_size;
-	}
-
-	// the text that was edited. If the history is accessed this is where the old input is stored.
-	std::string history_stash;
+	History::iterator_t history_it;
 
 	// the cursor position
 	unsigned X = s.size();
@@ -729,7 +693,7 @@ namespace {
 	    case '\r':
 	    case '\n':
 	    case KEY_ENTER:
-		push_to_line_edit_history(s);
+		line_edit_history->add(s);
 		return s;
 
 	    case '\e':
@@ -789,32 +753,20 @@ namespace {
 		break;
 
 	    case KEY_UP:
-		// no history?
-		if (history_idx < 0) {
-		    break;
+		if (! history_it) {
+		    history_it = line_edit_history->begin(s);
 		}
-		if (history_idx == history_size) {
-		    history_stash = s;
-		}
-		if (history_idx > 0) {
-		    s = line_edit_history[--history_idx];
-		    X = s.size();
-		}
+		s = history_it->prev();
+		X = s.size();
 		break;
 
 	    case KEY_DOWN:
-		// no history?
-		if (history_idx < 0) {
-		    break;
-		}
-		if (history_idx < history_size) {
-		    ++history_idx;
-		    if (history_idx < history_size) {
-			s = line_edit_history[history_idx];
-		    } else {
-			s = history_stash;
-		    }
+		if (history_it) {
+		    s = history_it->next();
 		    X = s.size();
+		    if (history_it->atEnd()) {
+			history_it = nullptr;
+		    }
 		}
 		break;
 
@@ -1189,7 +1141,7 @@ int realmain_impl(int argc, char * const argv[])
     }
     signal(SIGWINCH, handle_winch);
 
-    read_line_edit_history();
+    line_edit_history = std::make_shared<History>(std::string(getenv("HOME")) + "/" + line_edit_history_rc);
 
     atexit(close_curses);
     initialize_curses();
@@ -1318,8 +1270,6 @@ int realmain_impl(int argc, char * const argv[])
 
     std::cout << " --tabwidth " << tab_width
 	      << " '" << filename << "'" << std::endl;
-
-    write_line_edit_history();
 
     return EXIT_SUCCESS;
 }
