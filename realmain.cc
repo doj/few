@@ -1037,6 +1037,7 @@ int realmain_impl(int argc, char * const argv[])
 	opt_df,
 	opt_search,
 	opt_goto,
+	opt_help,
     };
     const struct option longopts[] = {
 	{ "tabwidth", required_argument, nullptr, opt_tabwidth },
@@ -1044,16 +1045,18 @@ int realmain_impl(int argc, char * const argv[])
 	{ "df", required_argument, nullptr, opt_df },
 	{ "search", required_argument, nullptr, opt_search },
 	{ "goto", required_argument, nullptr, opt_goto },
+	{ "help", no_argument, nullptr, opt_help },
 	{ nullptr, 0, nullptr, 0 }
     };
 
     line_number_t topLine = 0;
     std::vector<std::string> command_line_filter_regex, command_line_df_regex;
     int key;
-    while((key = getopt_long(argc, argv, "vh", longopts, nullptr)) > 0) {
+    while((key = getopt_long(argc, argv, "vh?", longopts, nullptr)) > 0) {
 	switch(key) {
 	case '?':
 	case 'h':
+	case opt_help:
 	    help();
 	    return EXIT_FAILURE;
 

@@ -7,7 +7,7 @@ few - a file viewer with regular expression filters.
 
 SYNOPSIS
 --------
-**few** [--regex '/REGEX/flags']\* [--df '/REGEX/REPLACE/flags']\* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [--goto 'NUM'] [-v] 'FILE'
+**few** [--regex '/REGEX/flags']\* [--df '/REGEX/REPLACE/flags']\* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [--goto 'NUM'] [-v] [-h|-?|--help] 'FILE'
 
 DESCRIPTION
 -----------
@@ -33,6 +33,9 @@ OPTIONS
 
 * **-v**:
   increase verbosity for certain operations.
+
+* **-h**, **-?**, **--help**:
+  show help text.
 
 Keys
 ----

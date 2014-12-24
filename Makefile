@@ -41,11 +41,19 @@ else
 	$(MAKE) $@ DEBUG=1
 endif
 
+RONN=ronn --organization=Cubic --manual="User Commands"
+
 few.1:	README.md
-	cp -f $< few.md
-	ronn --roff --organization=Cubic few.md
-	rm -f few.md
+	cp -f $< fewR.md
+	$(RONN) --roff fewR.md
+	rm -f fewR.md
 	mv -f few $@
+
+few.html:	README.md
+	cp -f $< fewH.md
+	$(RONN) --html fewH.md
+	rm -f fewH.md
+	mv -f fewH.html $@
 
 ##############################################################################
 # test the program
@@ -73,12 +81,12 @@ endif
 ##############################################################################
 # misc targets
 
-dist:	all few.1
+dist:	all few.1 few.html
 	$(MAKE) clean
 	echo 'TODO: create .tar.gz of source code'
 
 clean:
-	rm -f *~ test few $(TEST_DEPS) $(TEST_OBJS) *.o *.d
+	rm -f *~ test few few.1 few.html $(TEST_DEPS) $(TEST_OBJS) *.o *.d
 
 show-log:
 	git log --oneline --abbrev-commit --all --graph
