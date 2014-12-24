@@ -67,7 +67,7 @@ namespace {
     unsigned w_lines_height;
 
     /// line number displayed at the middle of the lines window
-    unsigned middle_line_number;
+    unsigned middle_line_number = 0;
 
     /// the y position of the lines filter regex window
     unsigned filter_y;
@@ -598,11 +598,26 @@ namespace {
 
     void key_d()
     {
-	if (middle_line_number > 0) {
-	    display_info.go_to(middle_line_number);
-	    refresh_lines_window();
-	    refresh();
+	if (middle_line_number == 0) {
+	    return;
 	}
+	display_info.go_to(middle_line_number);
+	refresh_lines_window();
+	refresh();
+    }
+
+    void key_u()
+    {
+	if (middle_line_number == 0) {
+	    return;
+	}
+	// scroll up until the old middle line number is the bottom line
+	const unsigned old_mln = middle_line_number;
+	while (!display_info.isFirstLineDisplayed() && display_info.bottomLineNum() > old_mln) {
+	    display_info.up();
+	    refresh_lines_window();
+	}
+	refresh();
     }
 
     /**
@@ -1202,6 +1217,10 @@ int realmain_impl(int argc, char * const argv[])
 
 	case 'd':
 	    key_d();
+	    break;
+
+	case 'u':
+	    key_u();
 	    break;
 
 	case 'R':
