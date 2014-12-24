@@ -1,17 +1,17 @@
-fewer(1)
+few(1)
 ========
 
 NAME
 ----
-fewer - a file viewer with regular expression filters.
+few - a file viewer with regular expression filters.
 
 SYNOPSIS
 --------
-**fewer** [--regex '/REGEX/flags']* [--df '/REGEX/REPLACE/flags']* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [-v] 'FILE'
+**few** [--regex '/REGEX/flags']\* [--df '/REGEX/REPLACE/flags']\* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [-v] 'FILE'
 
 DESCRIPTION
 -----------
-fewer is a program to interactively filter log files with regular expressions and view the result.
+few is a program to interactively filter log files with regular expressions and view the result.
 It is similar to the less(1) program, but has the ability to filter what is displayed with regular expressions.
 
 OPTIONS
@@ -80,7 +80,7 @@ For filters (key **0** .. **9**), display filters (key **F1**
 .. **F9**) and search (key **/**) ECMAScript (javascript) style
 regular expressions, as provided by the C++11 regular expression
 standard library are used. You will typically enter the regular
-expression after the fewer program has started and will see the file
+expression after the few program has started and will see the file
 display change if the regular expression matches. You can also preset
 these regular expressions with the command line arguments.
 
@@ -119,7 +119,7 @@ If you want a negative match and your regular expression does not
 start with a '!' character and you don't need additional flags, you
 can start your regular expression with a '!' character.
 
-The fewer program will convert the short forms to the regular form.
+The few program will convert the short forms to the regular form.
 
 ### Display Filter Regular Expressions
 
@@ -150,7 +150,7 @@ details on how the C++ regex library is matching and replaceing.
 
 AUTHOR
 ------
-fewer is written by Dirk Jagdmann <doj@cubic.org>. You can write him
+few is written by Dirk Jagdmann <doj@cubic.org>. You can write him
 an email and ask questions about this program.
 
 RESOURCES

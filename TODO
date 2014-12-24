@@ -11,6 +11,7 @@
 
 - support UTF8
  + currently developed on the "utf8" git branch
+ + decide when to merge it to master
 
 - use color
 - read tab width from vim/emacs comments

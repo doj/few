@@ -22,7 +22,7 @@ TEST_F(realmainTest, recognizes_invalid_parameters)
     ASSERT_EQ(EX_USAGE, realmain(0,NULL));
     ASSERT_EQ(EX_USAGE, realmain(1,NULL));
     const char* const argv[] = {
-	"fewer",
+	"few",
 	NULL
     };
     ASSERT_EQ(EX_USAGE, realmain(0,const_cast<char * const *>(argv)));
@@ -32,7 +32,7 @@ TEST_F(realmainTest, recognizes_invalid_parameters)
 TEST_F(realmainTest, recognizes_non_existing_file)
 {
     const char* const argv[] = {
-	"fewer",
+	"few",
 	"non existing file",
 	NULL
     };
@@ -42,7 +42,7 @@ TEST_F(realmainTest, recognizes_non_existing_file)
 TEST_F(realmainTest, recognizes_tab_width_too_large)
 {
     const char* const argv[] = {
-	"fewer",
+	"few",
 	"--tabwidth",
 	"333",
 	NULL
@@ -53,7 +53,7 @@ TEST_F(realmainTest, recognizes_tab_width_too_large)
 TEST_F(realmainTest, recognizes_tab_width_too_small)
 {
     const char* const argv[] = {
-	"fewer",
+	"few",
 	"--tabwidth",
 	"-3",
 	NULL
@@ -64,7 +64,7 @@ TEST_F(realmainTest, recognizes_tab_width_too_small)
 TEST_F(realmainTest, recognizes_tab_width_0)
 {
     const char* const argv[] = {
-	"fewer",
+	"few",
 	"--tabwidth",
 	"0",
 	NULL
@@ -75,7 +75,7 @@ TEST_F(realmainTest, recognizes_tab_width_0)
 TEST_F(realmainTest, recognizes_too_many_regex)
 {
     const char* const argv[] = {
-	"fewer",
+	"few",
 	"--regex", "a",
 	"--regex", "a",
 	"--regex", "a",

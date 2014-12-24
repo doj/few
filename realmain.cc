@@ -26,7 +26,7 @@
 
 namespace {
     /// file name of line edit history
-    const char* line_edit_history_rc = ".fewer.history";
+    const char* line_edit_history_rc = ".few.history";
 
     /// verbosity level
     unsigned verbose = 0;
@@ -1248,7 +1248,7 @@ int realmain_impl(int argc, char * const argv[])
 
     // print command line
     close_curses();
-    std::cout << "fewer";
+    std::cout << "few";
 
     for(auto c : filter_vec) {
 	if (c->rgx_.empty()) {

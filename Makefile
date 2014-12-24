@@ -24,26 +24,27 @@ OBJS = $(SRCS:.cc=.o)
 
 LIBS = -lncurses -lpthread
 
-all:	run_test fewer
+all:	run_test few
 
-fewer:	$(OBJS) main.o
+few:	$(OBJS) main.o
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
 
-debug:	fewer
+debug:	few
 ifeq ($(DEBUG),1)
-	gdb --args ./fewer realmain.cc
+	gdb --args ./few realmain.cc
 else
 	$(MAKE) clean
 	$(MAKE) $@ DEBUG=1
 endif
 
-fewer.1:	README.md
-	cp -f $< fewer.md
-	ronn --roff --organization=Cubic fewer.md
-	rm -f fewer.md
-	mv -f fewer $@
+few.1:	README.md
+	cp -f $< few.md
+	ronn --roff --organization=Cubic few.md
+	rm -f few.md
+	mv -f few $@
 
-dist:	clean fewer.1
+dist:	all few.1
+	$(MAKE) clean
 	echo 'TODO: create .tar.gz of source code'
 
 TEST_SRCS = $(shell find . -name '*_gtest.cc') gtest/gtest-all.cc gtest/gtest_main.cc $(SRCS)
@@ -65,7 +66,7 @@ else
 endif
 
 clean:
-	rm -f *~ test fewer $(TEST_DEPS) $(TEST_OBJS) *.o *.d
+	rm -f *~ test few $(TEST_DEPS) $(TEST_OBJS) *.o *.d
 
 -include $(TEST_DEPS)
 

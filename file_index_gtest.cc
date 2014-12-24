@@ -24,7 +24,7 @@ TEST(file_index, throws_exception_if_line_index_is_too_large)
 TEST(file_index, can_get_first_line)
 {
     auto f_idx = std::make_shared<file_index>("test.txt");
-    ASSERT_EQ(std::string("This is a test file for the fewer program."), f_idx->line(1).to_string());
+    ASSERT_EQ(std::string("This is a test file for the few program."), f_idx->line(1).to_string());
 }
 
 TEST(file_index, can_get_10th_line)

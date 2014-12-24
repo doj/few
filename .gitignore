@@ -14,8 +14,8 @@
 *.lib
 
 # Executables
-fewer
-fewer.1
+few
+few.1
 test
 
 # editor files
