@@ -703,7 +703,15 @@ namespace {
 	    s.resize(max_width);
 	}
 
-	auto history_it = line_edit_history.rbegin();
+	const int history_size = static_cast<int>(line_edit_history.size());
+	// index into the line_edit_history vector
+	int history_idx = -1;
+	if (history_size > 0) {
+	    history_idx = history_size;
+	}
+
+	// the text that was edited. If the history is accessed this is where the old input is stored.
+	std::string history_stash;
 
 	// the cursor position
 	unsigned X = s.size();
@@ -781,28 +789,32 @@ namespace {
 		break;
 
 	    case KEY_UP:
-		// save current edit state in history
-		if (history_it == line_edit_history.rbegin()) {
-		    line_edit_history.push_back(s);
-		    history_it = line_edit_history.rbegin();
-		    ++history_it;
+		// no history?
+		if (history_idx < 0) {
+		    break;
 		}
-		if (history_it != line_edit_history.rend()) {
-		    s = *history_it;
+		if (history_idx == history_size) {
+		    history_stash = s;
+		}
+		if (history_idx > 0) {
+		    s = line_edit_history[--history_idx];
 		    X = s.size();
-		    ++history_it;
 		}
 		break;
 
 	    case KEY_DOWN:
-		if (history_it != line_edit_history.rbegin()) {
-		    --history_it;
-		    s = *history_it;
-		    if (history_it == line_edit_history.rbegin()) {
-			assert(line_edit_history.size() > 0);
-			line_edit_history.resize(line_edit_history.size() - 1);
-			history_it = line_edit_history.rbegin();
+		// no history?
+		if (history_idx < 0) {
+		    break;
+		}
+		if (history_idx < history_size) {
+		    ++history_idx;
+		    if (history_idx < history_size) {
+			s = line_edit_history[history_idx];
+		    } else {
+			s = history_stash;
 		    }
+		    X = s.size();
 		}
 		break;
 
