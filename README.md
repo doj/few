@@ -7,7 +7,7 @@ few - a file viewer with regular expression filters.
 
 SYNOPSIS
 --------
-**few** [--regex '/REGEX/flags']\* [--df '/REGEX/REPLACE/flags']\* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [-v] 'FILE'
+**few** [--regex '/REGEX/flags']\* [--df '/REGEX/REPLACE/flags']\* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [--goto 'NUM'] [-v] 'FILE'
 
 DESCRIPTION
 -----------
@@ -27,6 +27,9 @@ OPTIONS
 
 * **--tabwidth** 'NUM':
   set the width of a tab character in spaces.
+
+* **--goto** 'NUM':
+  go to line number NUM. If NUM is not included in the currently filtered lines, go to the previous filtered line.
 
 * **-v**:
   increase verbosity for certain operations.

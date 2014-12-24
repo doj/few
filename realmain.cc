@@ -1036,15 +1036,18 @@ int realmain_impl(int argc, char * const argv[])
 	opt_regex,
 	opt_df,
 	opt_search,
+	opt_goto,
     };
     const struct option longopts[] = {
 	{ "tabwidth", required_argument, nullptr, opt_tabwidth },
 	{ "regex", required_argument, nullptr, opt_regex },
 	{ "df", required_argument, nullptr, opt_df },
 	{ "search", required_argument, nullptr, opt_search },
+	{ "goto", required_argument, nullptr, opt_goto },
 	{ nullptr, 0, nullptr, 0 }
     };
 
+    line_number_t topLine = 0;
     std::vector<std::string> command_line_filter_regex, command_line_df_regex;
     int key;
     while((key = getopt_long(argc, argv, "vh", longopts, nullptr)) > 0) {
@@ -1099,6 +1102,14 @@ int realmain_impl(int argc, char * const argv[])
 		return EX_USAGE;
 	    }
 	    break;
+
+	case opt_goto:
+	    topLine = atoi(optarg);
+	    if (topLine < 1) {
+		std::cerr << "--goto line number is invalid: " << optarg << std::endl;
+		return EX_USAGE;
+	    }
+	    break;
 	}
     }
 
@@ -1144,6 +1155,10 @@ int realmain_impl(int argc, char * const argv[])
     signal(SIGWINCH, handle_winch);
 
     line_edit_history = std::make_shared<History>(std::string(getenv("HOME")) + "/" + line_edit_history_rc);
+
+    if (topLine > 0) {
+	display_info.go_to_approx(topLine);
+    }
 
     atexit(close_curses);
     initialize_curses();
@@ -1270,7 +1285,10 @@ int realmain_impl(int argc, char * const argv[])
 	std::cout << " --search '" << search_str << "'";
     }
 
+    display_info.start();
+
     std::cout << " --tabwidth " << tab_width
+	      << " --goto " << display_info.current()
 	      << " '" << filename << "'" << std::endl;
 
     return EXIT_SUCCESS;

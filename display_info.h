@@ -16,8 +16,6 @@ class DisplayInfo
     displayedLineNum_t::iterator topLineIt;
     displayedLineNum_t::iterator bottomLineIt;
 
-    void go_to_approx(const line_number_t line_num);
-
 public:
 
     DisplayInfo& operator= (const lineNum_set_t& s);
@@ -64,6 +62,13 @@ public:
      * @return true if the line number is managed by this object; false if the line was not found.
      */
     bool go_to(const line_number_t lineNum);
+
+    /**
+     * position the object on line_num.
+     * This function can only be called after operator=(lineNum_set_t) has been called.
+     * If line_num is not included in the object, position on the previous line.
+     */
+    void go_to_approx(const line_number_t line_num);
 
     /**
      * position the object onto a line number approximately p percent into the lines.

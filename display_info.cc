@@ -6,10 +6,6 @@
 #include "display_info.h"
 #include <algorithm>
 
-/**
- * position the object on line_num.
- * If line_num is not included in the object, position on the previous line.
- */
 void
 DisplayInfo::go_to_approx(const line_number_t line_num)
 {
