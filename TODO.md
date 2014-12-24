@@ -8,6 +8,9 @@
 - when starting, only parse the first screen height lines from the file and display them
  + then parse the remaining lines in a background thread
 - when adding a regex, let it run in a background thread and apply once done
+- when intersecting the filters use threads work on the intersection in a tree style
+ + we probably need > 4 filters to make this feasable
+ + maybe sort jobs based on the size of the filters?
 
 - support UTF8
  + currently developed on the "utf8" git branch
