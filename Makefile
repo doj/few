@@ -17,18 +17,8 @@ endif
 ##############################################################################
 # source code
 
-SRCS = \
-	display_info.cc \
-	file_index.cc \
-	help.cc \
-	history.cc \
-	memorymap.cc \
-	normalize_regex.cc \
-	progress_functor.cc \
-	realmain.cc \
-	regex_index.cc \
-#
-OBJS = $(SRCS:.cc=.o)
+SRCS := $(shell find -name '*.cc' -and -not -name '*_gtest.cc')
+OBJS := $(SRCS:.cc=.o)
 
 ##############################################################################
 # Linker Flags
@@ -60,9 +50,9 @@ few.1:	README.md
 ##############################################################################
 # test the program
 
-TEST_SRCS = $(shell find . -name '*_gtest.cc') $(SRCS)
-TEST_OBJS = $(TEST_SRCS:.cc=.o)
-TEST_DEPS = $(TEST_SRCS:.cc=.d)
+TEST_SRCS := $(shell find . -name '*_gtest.cc') $(SRCS)
+TEST_OBJS := $(TEST_SRCS:.cc=.o)
+TEST_DEPS := $(TEST_SRCS:.cc=.d)
 
 test:	$(TEST_OBJS)
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
