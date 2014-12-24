@@ -1,3 +1,8 @@
+# Makefile for the few program
+
+##############################################################################
+# Compiler Flags
+
 WARNING_FLAGS += -Wall -Werror
 INCLUDE_FLAGS += -I.
 
@@ -8,6 +13,9 @@ CXXFLAGS += -g #-O2
 else
 CXXFLAGS += -O2
 endif
+
+##############################################################################
+# source code
 
 SRCS = \
 	display_info.cc \
@@ -22,7 +30,13 @@ SRCS = \
 #
 OBJS = $(SRCS:.cc=.o)
 
+##############################################################################
+# Linker Flags
+
 LIBS = -lncurses -lpthread
+
+##############################################################################
+# build and debug the few program
 
 all:	run_test few
 
@@ -43,9 +57,8 @@ few.1:	README.md
 	rm -f few.md
 	mv -f few $@
 
-dist:	all few.1
-	$(MAKE) clean
-	echo 'TODO: create .tar.gz of source code'
+##############################################################################
+# test the program
 
 TEST_SRCS = $(shell find . -name '*_gtest.cc') gtest/gtest-all.cc gtest/gtest_main.cc $(SRCS)
 TEST_OBJS = $(TEST_SRCS:.cc=.o)
@@ -65,10 +78,23 @@ else
 	$(MAKE) $@ DEBUG=1
 endif
 
+-include $(TEST_DEPS)
+
+##############################################################################
+# misc targets
+
+dist:	all few.1
+	$(MAKE) clean
+	echo 'TODO: create .tar.gz of source code'
+
 clean:
 	rm -f *~ test few $(TEST_DEPS) $(TEST_OBJS) *.o *.d
 
--include $(TEST_DEPS)
+show-log:
+	git log --oneline --abbrev-commit --all --graph
+
+##############################################################################
+# install packages to build the program
 
 redhat-setup:
 	yum install -y gcc gcc-c++ gdb ncurses-devel rubygem-ronn
