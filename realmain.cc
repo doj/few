@@ -16,6 +16,7 @@
 #include <regex>
 #include <map>
 #include <fstream>
+#include <thread>
 #include "file_index.h"
 #include "regex_index.h"
 #include "error.h"
@@ -23,6 +24,7 @@
 #include "normalize_regex.h"
 #include "curses_attr.h"
 #include "history.h"
+#include "foreach.h"
 
 namespace {
     /// file name of line edit history
@@ -630,7 +632,8 @@ namespace {
 	// \todo use func again
 	(void)func;
 
-	std::vector<std::shared_ptr<ILineNumSetProvider>> v;
+	typedef std::vector<std::shared_ptr<ILineNumSetProvider>> v_t;
+	v_t v;
 	v.push_back(f_idx);
 	for(auto c : filter_vec) {
 	    if (c->r_idx_) {
@@ -638,12 +641,46 @@ namespace {
 	    }
 	}
 
-	auto it = v.begin();
-	auto s = it->lineNum_set();
-	for(++it; it != v.end(); ++it) {
-	    s = it->intersect(s);
-	}
+	// a lambda function to iterate the vector and intersect the sets
+	auto f = [](v_t::iterator begin, v_t::iterator end, lineNum_set_t& s)
+	    {
+		s = (*begin)->lineNum_set();
+		while(++begin != end) {
+		    s = (*begin)->intersect(s);
+		}
+	    };
 
+	lineNum_set_t s;
+	if (v.size() < 4) {
+	    // main thread works through v
+	    f(v.begin(), v.end(), s);
+	} else {
+	    // use two threads to work on the vector
+	    const unsigned mid = v.size() / 2u;
+	    lineNum_set_t r;
+	    std::thread t1(f, v.begin(), v.begin() + mid, std::ref(s));
+	    std::thread t2(f, v.begin() + mid, v.end(), std::ref(r));
+	    t1.join();
+	    t2.join();
+	    // if any set is empty, there's nothing to intersect
+	    if (s.empty() || r.empty()) {
+		s.clear();
+	    } else {
+		// ensure that s has less elements than r
+		if (s.size() > r.size()) {
+		    s.swap(r);
+		}
+		// loop over s and remove all elements not present in r
+		foreach_e(s, it) {
+		    if (r.count(*it) == 0) {
+			s.erase(it);
+		    }
+		    if (s.empty()) {
+			break;
+		    }
+		}
+	    }
+	}
 	display_info = s;
     }
 

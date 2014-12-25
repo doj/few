@@ -25,3 +25,5 @@ public:
      */
     lineNum_set_t intersect(const lineNum_set_t& s);
 };
+
+lineNum_set_t intersect(const lineNum_set_t& l, const lineNum_set_t& r);
