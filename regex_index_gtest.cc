@@ -34,12 +34,12 @@ TEST(regex_index, intersect_works)
     regex_index a(f_idx, "#", "!");
 
     regex_index b(f_idx, "contains", "");
-    auto s = b.intersect(a);
+    auto s = b.intersect(a.lineNum_set());
     ASSERT_EQ(1u, s.size());
 
     regex_index c(f_idx, "this does not match anything", "");
     ASSERT_EQ(0u, c.size());
-    s = c.intersect(a);
+    s = c.intersect(a.lineNum_set());
     ASSERT_EQ(0u, s.size());
 }
 

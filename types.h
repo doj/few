@@ -8,3 +8,20 @@
 
 typedef uint32_t line_number_t;
 typedef std::set<line_number_t> lineNum_set_t;
+
+/**
+ * an interface class to provide a methods to intersect lineNum_set_t objects.
+ */
+class ILineNumSetProvider
+{
+public:
+    virtual const lineNum_set_t& lineNum_set() = 0;
+
+    /**
+     * intersect the object's index set with s.
+     * Only the elements common to the object's index set and s are included in the result set.
+     * @param[in] s index set.
+     * @return new set with the common elements.
+     */
+    lineNum_set_t intersect(const lineNum_set_t& s);
+};

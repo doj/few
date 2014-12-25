@@ -10,7 +10,7 @@
 #include <cassert>
 #include "progress_functor.h"
 
-class file_index
+class file_index : public ILineNumSetProvider
 {
     /// the character type we are using. Maybe we use wide characters one day.
     typedef char c_t;
@@ -144,6 +144,5 @@ public:
     void parse_all(ProgressFunctor *func = nullptr);
 
     /// @return the line number set of all lines in the file.
-    const lineNum_set_t& lineNum_set();
-
+    virtual const lineNum_set_t& lineNum_set();
 };

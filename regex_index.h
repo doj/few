@@ -17,7 +17,7 @@
  */
 void convert(const std::string& flags, std::regex_constants::syntax_option_type& fl, bool& positiveMatch);
 
-class regex_index
+class regex_index : public ILineNumSetProvider
 {
 protected:
     lineNum_set_t lineNum_set_;
@@ -35,18 +35,5 @@ public:
 
     unsigned size() const { return lineNum_set_.size(); }
 
-    const lineNum_set_t& lineNum_set() const { return lineNum_set_; }
-
-    /**
-     * intersect the object's index set with s.
-     * Only the elements common to the object's index set and s are included in the result set.
-     * @param[in] s index set.
-     * @return new set with the common elements.
-     */
-    lineNum_set_t intersect(const lineNum_set_t& s);
-
-    lineNum_set_t intersect(const regex_index& r)
-    {
-	return intersect(r.lineNum_set());
-    }
+    virtual const lineNum_set_t& lineNum_set();
 };
