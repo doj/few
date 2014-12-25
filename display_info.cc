@@ -159,3 +159,12 @@ DisplayInfo::go_to_perc(unsigned p)
     }
     go_to_approx(static_cast<uint64_t>(lastLineNum()) * static_cast<uint64_t>(p) / static_cast<uint64_t>(100u));
 }
+
+line_number_t
+DisplayInfo::topLineNum() const
+{
+    if (topLineIt == displayedLineNum.end()) {
+	return 0;
+    }
+    return *topLineIt;
+}

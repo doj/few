@@ -144,3 +144,11 @@ file_index::parse_all()
     regex_index_vec_t v;
     parse_all(v);
 }
+
+unsigned
+file_index::perc(const line_number_t num)
+{
+    const line_number_t s = size();
+    if (num > s) { return 100u; }
+    return static_cast<uint64_t>(num) * 100llu / s;
+}

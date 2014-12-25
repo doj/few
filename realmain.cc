@@ -1230,9 +1230,13 @@ int realmain_impl(int argc, char * const argv[])
     initialize_curses();
 
     while(true) {
-	info = stdinfo;
 	if (verbose) {
-	    info += " use " + std::to_string(getCurrentRSS()/1024/1024) + " MB";
+	    info = stdinfo + " "
+		+ std::to_string(f_idx->perc(display_info.topLineNum())) + "%"
+		+ " use " + std::to_string(getCurrentRSS()/1024/1024) + " MB"
+		;
+	} else {
+	    info.erase();
 	}
 
 	key = getch();

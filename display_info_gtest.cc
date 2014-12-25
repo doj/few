@@ -142,3 +142,11 @@ TEST(DisplayInfo, stays_near_current_line_if_new_set_is_assigned)
     i.start();
     ASSERT_EQ(4u, i.current());
 }
+
+TEST(DisplayInfo, topLineNum)
+{
+    DisplayInfo i;
+    ASSERT_EQ(0u, i.topLineNum());
+    i = s();
+    ASSERT_EQ(1u, i.topLineNum());
+}

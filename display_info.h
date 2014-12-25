@@ -46,13 +46,19 @@ public:
 
     /**
      * This function can only be called after start() has been called.
-     * @return the line number of the bottom line on the display.
+     * @return the line number of the top line on the display; 0 if nothing is displayed.
+     */
+    line_number_t topLineNum() const;
+
+    /**
+     * This function can only be called after start() has been called.
+     * @return the line number of the bottom line on the display; 0 if nothing is displayed.
      */
     line_number_t bottomLineNum() const;
 
     /**
      * This function can only be called after operator=(lineNum_set_t) has been called.
-     * @return the line number of the last line managed by this object.
+     * @return the line number of the last line managed by this object; 0 if nothing is managed.
      */
     line_number_t lastLineNum() const;
 

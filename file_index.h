@@ -49,7 +49,7 @@ public:
     explicit file_index(const std::string& filename);
 
     /// @return the number of currently parsed lines. This could be less than the total number of lines in the file.
-    unsigned size() const
+    line_number_t size() const
     {
 	return line_.size() - 1;
     }
@@ -59,6 +59,9 @@ public:
      * @throws std::runtime_error if the line does not exist.
      */
     line_t line(const line_number_t num);
+
+    /// @return percentage into the file, that line number num is.
+    unsigned perc(const line_number_t num);
 
     /**
      * @param os output stream to print progress information on, can be nullptr.
