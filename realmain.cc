@@ -629,9 +629,6 @@ namespace {
      */
     void apply_regex(ProgressFunctor *func)
     {
-	// \todo use func again
-	(void)func;
-
 	typedef std::vector<std::shared_ptr<ILineNumSetProvider>> v_t;
 	v_t v;
 	v.push_back(f_idx);
@@ -642,10 +639,13 @@ namespace {
 	}
 
 	// a lambda function to iterate the vector and intersect the sets
-	auto f = [](v_t::iterator begin, v_t::iterator end, lineNum_set_t& s)
+	auto f = [](v_t::iterator begin, v_t::iterator end, lineNum_set_t& s, ProgressFunctor *func)
 	    {
+		unsigned cnt = 0;
+		if (func) func->progress(++cnt, 0);
 		s = (*begin)->lineNum_set();
 		while(++begin != end) {
+		    if (func) func->progress(++cnt, 0);
 		    s = (*begin)->intersect(s);
 		}
 	    };
@@ -653,15 +653,18 @@ namespace {
 	lineNum_set_t s;
 	if (v.size() < 4) {
 	    // main thread works through v
-	    f(v.begin(), v.end(), s);
+	    f(v.begin(), v.end(), s, func);
 	} else {
 	    // use two threads to work on the vector
 	    const unsigned mid = v.size() / 2u;
 	    lineNum_set_t r;
-	    std::thread t1(f, v.begin(), v.begin() + mid, std::ref(s));
-	    std::thread t2(f, v.begin() + mid, v.end(), std::ref(r));
+	    std::thread t1(f, v.begin(), v.begin() + mid, std::ref(s), nullptr);
+	    std::thread t2(f, v.begin() + mid, v.end(), std::ref(r), nullptr);
+	    if (func) func->progress(0, 0);
 	    t1.join();
+	    if (func) func->progress(1, 0);
 	    t2.join();
+	    if (func) func->progress(2, 0);
 	    // if any set is empty, there's nothing to intersect
 	    if (s.empty() || r.empty()) {
 		s.clear();
@@ -680,8 +683,11 @@ namespace {
 		    }
 		}
 	    }
+	    if (func) func->progress(3, 0);
 	}
+	if (func) func->progress(4, 0);
 	display_info = s;
+	if (func) func->progress(5, 0);
     }
 
     History::ptr_t line_edit_history;
