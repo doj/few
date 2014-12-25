@@ -7,10 +7,6 @@ TODO
 
 - 'h' show help
 
-- support UTF8
- + currently developed on the "utf8" git branch
- + decide when to merge it to master
-
 - use color
 - create homepage on <http://llg.cubic.org>
 - program exit may be slow if C++ needs to clean up a lot of objects

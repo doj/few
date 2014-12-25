@@ -4,7 +4,10 @@
  */
 
 #pragma once
-#include <ncurses.h>
+
+/// define to enable curses with wide characters
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <ncursesw/curses.h>
 
 /**
  * helper class to manage curses attributes.

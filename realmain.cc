@@ -3,6 +3,7 @@
  * :indentSize=4:tabSize=8:
  */
 
+#include <wchar.h>
 #include <getopt.h>
 #include <sysexits.h>
 #include <iostream>
@@ -26,6 +27,7 @@
 #include "history.h"
 #include "foreach.h"
 #include "getRSS.h"
+#include "to_wide.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -55,7 +57,7 @@ namespace {
     /// current search regular expression string
     std::string search_str;
     /// compiled search regular expression
-    std::regex search_rgx;
+    std::wregex search_rgx;
     /// error string if search regular expression could not be compiled
     std::string search_err;
     /// the y position of the search window
@@ -186,6 +188,12 @@ namespace {
 	return x;
     }
 
+    void mvaddwch(unsigned y, unsigned x, wchar_t c)
+    {
+	wchar_t wc[2] = { c, 0 };
+        mvaddwstr(y, x, wc);
+    }
+
     void refresh_lines_window()
     {
 	assert(tab_width > 0);
@@ -242,34 +250,36 @@ namespace {
 		    }
 		}
 
+		auto wline = to_wide(std::string(line.beg_, line.end_));
+
 		// map of pointers into the line and a corresponding curses attribute for the character
-		std::map<const char*, unsigned> character_attr;
+		std::map<std::wstring::iterator, unsigned> character_attr;
 
 		// apply search?
 		if (search_err.empty()) {
 		    // apply search regex to line
-		    for(auto it = std::cregex_iterator(line.beg_, line.end_, search_rgx); it != std::cregex_iterator(); ++it ) {
-			const char *b = line.beg_ + it->position();
-			const char *e = b + it->length();
+		    for(auto it = std::wsregex_iterator(wline.begin(), wline.end(), search_rgx); it != std::wsregex_iterator(); ++it ) {
+			std::wstring::iterator b = wline.begin() + it->position();
+			std::wstring::iterator e = b + it->length();
 			assert(b <= e);
 			// set character attribute for all matched characters
-			for(const char *it = b; it != e; ++it) {
-			    character_attr[it] |= A_REVERSE;
+			for(std::wstring::iterator i = b; i != e; ++i) {
+			    character_attr[i] |= A_REVERSE;
 			}
 		    }
 		}
 
 		// print the current line
-		const char *beg = line.beg_;
-		while(beg < line.end_ && y < w_lines_height) {
+		auto it = wline.begin();
+		while(it != wline.end() && y < w_lines_height) {
 		    unsigned x = 0;
 		    // block to print left info column
 		    {
 			curses_attr a(A_REVERSE);
 			// are we at the start of the line?
-			if (beg == line.beg_) {
+			if (it == wline.begin()) {
 			    // print line number
-			    x += print_line_prefix(y, line.num_, line.end_ - beg, line_num_width);
+			    x += print_line_prefix(y, line.num_, wline.size(), line_num_width);
 			} else {
 			    // print empty space
 			    for(; x < line_num_width; ++x) {
@@ -278,8 +288,8 @@ namespace {
 			}
 		    }
 		    // print line in chunks of screen width
-		    for(; beg < line.end_ && x < screen_width; ++beg) {
-			char c = *beg;
+		    for(; it != wline.end() && x < screen_width; ++it) {
+			auto c = *it;
 			// handle tab character
 			if (c == '\t') {
 			    do {
@@ -287,11 +297,13 @@ namespace {
 			    } while (x % tab_width);
 			} else {
 			    // replace non printable characters with a space
-			    if (! isprint(c)) {
-				c = ' ';
+			    if (iswprint(c)) {
+				curses_attr a(character_attr[it]);
+				mvaddwch(y, x, c);
+			    } else {
+				mvaddwch(y, x, L'\uFFFD');
 			    }
-			    curses_attr a(character_attr[beg]);
-			    mvaddch(y, x++, c);
+			    ++x;
 			}
 		    }
 		    fill(y, x);
@@ -303,7 +315,7 @@ namespace {
 		}
 
 		// did we display the full line?
-		if (beg == line.end_) {
+		if (it == wline.end()) {
 		    // do we have another line to display?
 		    if (display_info.next()) {
 			continue; // there is a next line to display
@@ -1021,7 +1033,7 @@ namespace {
      * @param[out] regex compiled regular expression if function returns empty string.
      * @return empty string upon success; error string otherwise.
      */
-    std::string compile_regex(std::string str, std::regex& regex)
+    std::string compile_regex(std::string str, std::wregex& regex)
     {
 	if (str.empty()) {
 	    return str;
@@ -1035,7 +1047,7 @@ namespace {
 	convert(flags, fl, positiveMatch);
 	std::string err;
 	try {
-	    std::regex r(rgx, fl);
+	    std::wregex r(to_wide(rgx), fl);
 	    regex = r;
 	} catch (std::regex_error& e) {
 	    err << e.code();

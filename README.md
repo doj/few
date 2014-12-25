@@ -154,6 +154,18 @@ to the regular expression. The following back references or available:
 See <http://www.cplusplus.com/reference/regex/regex_replace/> for
 details on how the C++ regex library is matching and replaceing.
 
+### Regular Expressions and wide characters
+
+The fewer program is able to display wide characters and files encoded
+in UTF-8. However because it is designed to work with large files, it
+will not attempt to match the regular expressions on the wide
+character representations of the file processed. The (display) filter
+regular expression is matched on the raw byte sequence of the
+file. This is usually not a problem if you match ASCII characters.
+
+The search regular expression however is matched against the wide
+character representation of the displayed lines.
+
 AUTHOR
 ------
 few is written by Dirk Jagdmann <doj@cubic.org>. You can write him

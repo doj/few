@@ -23,7 +23,7 @@ OBJS := $(SRCS:.cc=.o)
 ##############################################################################
 # Linker Flags
 
-LIBS = -lncurses -lpthread
+LIBS = -lncursesw -lpthread
 
 ##############################################################################
 # build and debug the few program
@@ -35,7 +35,7 @@ few:	$(OBJS) main.o
 
 debug:	few
 ifeq ($(DEBUG),1)
-	gdb --args ./few realmain.cc
+	gdb --args ./few UTF-8-demo.txt
 else
 	$(MAKE) clean
 	$(MAKE) $@ DEBUG=1
@@ -99,4 +99,4 @@ redhat-setup:
 	yum install -y gcc gcc-c++ gdb ncurses-devel rubygem-ronn
 
 debian-setup:
-	apt-get install -y ncurses-doc ruby-ronn
+	apt-get install -y ncurses-doc ruby-ronn libncursesw5-dev
