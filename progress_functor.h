@@ -24,11 +24,8 @@ class OStreamProgressFunctor : public ProgressFunctor
     const std::string desc_;
 public:
     OStreamProgressFunctor(std::ostream& os, std::string desc) : os_(os), desc_(desc) {}
-    ~OStreamProgressFunctor() { os_ << std::endl; }
-    virtual void progress(unsigned num, unsigned perc)
-    {
-	os_ << "\r" << desc_ << num << ' ' << perc << '%' << std::flush;
-    }
+    ~OStreamProgressFunctor();
+    virtual void progress(unsigned num, unsigned perc);
 };
 
 class CursesProgressFunctor : public ProgressFunctor

@@ -25,13 +25,14 @@
 #include "curses_attr.h"
 #include "history.h"
 #include "foreach.h"
+#include "getRSS.h"
+
+/// verbosity level
+unsigned verbose = 0;
 
 namespace {
     /// file name of line edit history
     const char* line_edit_history_rc = ".few.history";
-
-    /// verbosity level
-    unsigned verbose = 0;
 
     /// minimum screen height
     const unsigned min_screen_height = 1 // lines
@@ -629,6 +630,7 @@ namespace {
      */
     void apply_regex(ProgressFunctor *func)
     {
+	// set up a vector of ILineNumSetProvider
 	typedef std::vector<std::shared_ptr<ILineNumSetProvider>> v_t;
 	v_t v;
 	v.push_back(f_idx);
@@ -1210,6 +1212,9 @@ int realmain_impl(int argc, char * const argv[])
 
     while(true) {
 	info = stdinfo;
+	if (verbose) {
+	    info += " use " + std::to_string(getCurrentRSS()/1024/1024) + " MB";
+	}
 
 	key = getch();
 	if (key == 'q' || key == 'Q') {
@@ -1310,6 +1315,11 @@ int realmain_impl(int argc, char * const argv[])
 
     // print command line
     close_curses();
+
+    if (verbose) {
+	std::clog << "peak memory use: " << getPeakRSS()/1024/1024 << " MB." << std::endl;
+    }
+
     std::cout << "few";
 
     for(auto c : filter_vec) {
