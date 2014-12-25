@@ -865,7 +865,8 @@ namespace {
 	return s;
     }
 
-    void add_regex(const unsigned regex_num, std::string rgx, regex_vec_t& vec, const bool isFilterRgx, ProgressFunctor *func)
+    /// @return true if rgx was found in the cache; false if a new regex_index was created.
+    bool add_regex(const unsigned regex_num, std::string rgx, regex_vec_t& vec, const bool isFilterRgx, ProgressFunctor *func)
     {
 	assert(regex_num < 9);
 	assert(! rgx.empty());
@@ -885,7 +886,7 @@ namespace {
 		assert(it->first == it->second->rgx_);
 		vec[regex_num] = it->second;
 		info = "found regex in cache";
-		return;
+		return true;
 	    }
 	}
 
@@ -893,15 +894,18 @@ namespace {
 	auto c = std::make_shared<regex_container_t>();
 	c->rgx_ = rgx;
 
-	const std::string flags = get_regex_flags(rgx);
-	rgx = get_regex_str(rgx);
-
 	try {
 	    if (isFilterRgx) {
 		// Lines Filter
-		c->r_idx_ = std::make_shared<regex_index>(f_idx, rgx, flags, func);
+		auto ri = std::make_shared<regex_index>(rgx);
+		f_idx->parse_all(ri, func);
+		c->r_idx_ = ri;
 	    } else {
+		// \todo somehow make this a helper function or an object that contains all the c->df_* objects
+
 		// Display Filter
+		const std::string flags = get_regex_flags(rgx);
+		rgx = get_regex_str(rgx);
 
 		// parse flags
 		bool positive_match = true;
@@ -934,6 +938,8 @@ namespace {
 	if (isFilterRgx) {
 	    filter_cache[c->rgx_] = c;
 	}
+
+	return false;
     }
 
     void edit_regex(unsigned& y, const unsigned regex_num, regex_vec_t& vec, const bool isFilterRgx)
@@ -1171,12 +1177,26 @@ int realmain_impl(int argc, char * const argv[])
 
     f_idx = std::make_shared<file_index>(filename);
     {
+	file_index::regex_index_vec_t v;
+	for(auto rgx_ : command_line_filter_regex) {
+	    auto rgx = normalize_regex(rgx_);
+	    auto ri = std::make_shared<regex_index>(rgx);
+	    v.push_back(ri);
+
+	    auto c = std::make_shared<regex_container_t>();
+	    c->rgx_ = rgx;
+	    c->r_idx_ = ri;
+	    filter_cache[rgx] = c;
+	}
 	OStreamProgressFunctor func(std::clog, "parsing line: ");
-	f_idx->parse_all(&func);
+	f_idx->parse_all(v, &func);
     }
     for(unsigned u = 0; u != command_line_filter_regex.size(); ++u) {
 	OStreamProgressFunctor func(std::clog, "apply regex: " + command_line_filter_regex[u] + " : ");
-	add_regex(u, command_line_filter_regex[u], filter_vec, true, &func);
+	const bool b = add_regex(u, command_line_filter_regex[u], filter_vec, true, &func);
+	if (!b) {
+	    std::cerr << "did not find cached regex '" << command_line_filter_regex[u] << "'" << std::endl;
+	}
     }
     for(unsigned u = 0; u != command_line_df_regex.size(); ++u) {
 	OStreamProgressFunctor func(std::clog, "apply regex: " + command_line_df_regex[u] + " : ");
@@ -1362,6 +1382,9 @@ int realmain(int argc, char * const argv[])
     catch (const error& e) {
 	exit_msg = e.what();
 	exit_status = e.exit_status();
+    }
+    catch (std::regex_error& e) {
+	exit_msg << e.code();
     }
     catch (const std::exception& e) {
 	exit_msg = e.what();

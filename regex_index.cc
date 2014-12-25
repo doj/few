@@ -3,6 +3,7 @@
  * :indentSize=4:tabSize=8:
  */
 #include "regex_index.h"
+#include "normalize_regex.h"
 #include <iostream>
 
 void convert(const std::string& flags, std::regex_constants::syntax_option_type& fl, bool& positiveMatch)
@@ -24,30 +25,28 @@ void convert(const std::string& flags, std::regex_constants::syntax_option_type&
     fl = flg;
 }
 
-regex_index::regex_index(std::shared_ptr<file_index> f_idx, const std::string& rgx, const std::string& flags, ProgressFunctor *func)
+regex_index::regex_index(std::string rgx) :
+    positive_match_(true)
 {
-    bool positive_match = true;
+    rgx = normalize_regex(rgx);
+    const std::string flags = get_regex_flags(rgx);
+    rgx = get_regex_str(rgx);
     std::regex_constants::syntax_option_type fl;
-    convert(flags, fl, positive_match);
+    convert(flags, fl, positive_match_);
+    rgx_.assign(rgx, fl);
+}
 
-    const uint64_t total_lines = f_idx->size();
-    uint64_t cnt = 0;
-
-    std::regex r(rgx, fl);
-    for(auto line : *f_idx) {
-	//std::clog << line.num_ << ":" << line.to_string();
-	bool res = std::regex_search(line.beg_, line.end_, r);
-	if (( positive_match &&  res) ||
-	    (!positive_match && !res)) {
-	    lineNum_set_.insert(line.num_);
-	    //std::clog << " !match!";
-	}
-	//std::clog << std::endl;
-
-	if (func && ((++cnt) % 10000) == 0) {
-	    func->progress(cnt, cnt * 100 / total_lines);
-	}
+void
+regex_index::match(const line_t& line)
+{
+    //std::clog << line.num_ << ":" << line.to_string();
+    const bool res = std::regex_search(line.beg_, line.end_, rgx_);
+    if (( positive_match_ &&  res) ||
+	(!positive_match_ && !res)) {
+	lineNum_set_.insert(line.num_);
+	//std::clog << " !match!";
     }
+    //std::clog << std::endl;
 }
 
 lineNum_set_t

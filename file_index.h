@@ -4,11 +4,10 @@
  */
 #pragma once
 #include "memorymap.h"
-#include "line.h"
-#include "types.h"
+#include "progress_functor.h"
+#include "regex_index.h"
 #include <vector>
 #include <cassert>
-#include "progress_functor.h"
 
 class file_index : public ILineNumSetProvider
 {
@@ -40,6 +39,9 @@ class file_index : public ILineNumSetProvider
     void push_line(const c_t* beg, const c_t* end, const c_t* next, const line_number_t num);
 
 public:
+
+    typedef std::vector<std::shared_ptr<regex_index>> regex_index_vec_t;
+
     /**
      * construct and initialize the file_index with the contents of filename.
      * @param filename file name to initialize lines from.
@@ -58,6 +60,7 @@ public:
      */
     line_t line(const line_number_t num);
 
+#if 0
     class iterator
     {
 	file_index* f_idx_;
@@ -137,11 +140,16 @@ public:
     {
 	return iterator(false);
     }
+#endif
 
     /**
      * @param os output stream to print progress information on, can be nullptr.
      */
-    void parse_all(ProgressFunctor *func = nullptr);
+    void parse_all(regex_index_vec_t& regex_index_vec, ProgressFunctor *func = nullptr);
+
+    void parse_all(std::shared_ptr<regex_index> ri, ProgressFunctor *func = nullptr);
+
+    void parse_all();
 
     /// @return the line number set of all lines in the file.
     virtual const lineNum_set_t& lineNum_set();

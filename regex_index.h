@@ -3,7 +3,7 @@
  * :indentSize=4:tabSize=8:
  */
 #pragma once
-#include "file_index.h"
+#include "line.h"
 #include <memory>
 #include <regex>
 
@@ -19,19 +19,20 @@ void convert(const std::string& flags, std::regex_constants::syntax_option_type&
 
 class regex_index : public ILineNumSetProvider
 {
-protected:
     lineNum_set_t lineNum_set_;
+    std::regex rgx_;
+    bool positive_match_;
 
 public:
     /**
-     * filter f_idx with the regular expression rgx.
-     * The string flags can contain the following characters to modify the regular expression matching:
-     * - i case insensitive.
-     * - ! negative regex, will match all lines *not* matching rgx.
-     *
+     * create regular expression index object.
+     * @param rgx a (normalized) regular expression string.
      * @throws std::runtime_error if regular expression could not be parsed.
      */
-    regex_index(std::shared_ptr<file_index> f_idx, const std::string& rgx, const std::string& flags, ProgressFunctor *func = nullptr);
+    explicit regex_index(std::string rgx);
+
+    /// match line against the provisioned regular expression. If it matches add the line (number) to the set.
+    void match(const line_t& line);
 
     unsigned size() const { return lineNum_set_.size(); }
 

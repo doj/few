@@ -100,31 +100,47 @@ line_t file_index::line(const line_number_t num)
 const lineNum_set_t&
 file_index::lineNum_set()
 {
+#if 0
     if (! has_parsed_all_) {
 	parse_all();
     }
+#endif
     assert(has_parsed_all_);
     return lineNum_set_;
 }
 
 void
-file_index::parse_all(ProgressFunctor *func)
+file_index::parse_all(regex_index_vec_t& regex_index_vec, ProgressFunctor *func)
 {
-    if (has_parsed_all_) {
-	return;
-    }
-    uint64_t cnt = 0;
-#if 1
-    for(auto l : *this) {
-	(void)l;
-#else
-    iterator it = begin();
-    while(it != end()) {
-	++it;
-#endif
-	if (func && (((++cnt) % 10000) == 0)) {
-	    const uint64_t pos = line_[cnt].end_ - line_[1].beg_;
-	    func->progress(cnt, pos * 100 / file_.size());
+    for(line_number_t num = 1; true; ++num) {
+	if (num > size()) {
+	    if (! parse_line(num)) {
+		break;
+	    }
+	}
+
+	const line_t& line = line_[num];
+	for(auto ri : regex_index_vec) {
+	    ri->match(line);
+	}
+
+	if (func && (num % 10000) == 0) {
+	    const uint64_t pos = line.end_ - line_[1].beg_;
+	    func->progress(num, pos * 100llu / file_.size());
 	}
     }
+}
+
+void
+file_index::parse_all(std::shared_ptr<regex_index> ri, ProgressFunctor *func)
+{
+    regex_index_vec_t v = { ri };
+    parse_all(v, func);
+}
+
+void
+file_index::parse_all()
+{
+    regex_index_vec_t v;
+    parse_all(v);
 }

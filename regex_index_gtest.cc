@@ -4,77 +4,86 @@
  */
 
 #include "gtest/gtest.h"
-#include "regex_index.h"
+#include "file_index.h"
 
 TEST(regex_index, does_filter_non_empty_lines)
 {
-    auto f_idx = std::make_shared<file_index>("test.txt");
-    regex_index r_idx(f_idx, "\\w", "");
-    ASSERT_GE(r_idx.size(), 3u);
+    auto fi = std::make_shared<file_index>("test.txt");
+    auto ri = std::make_shared<regex_index>("\\w");
+    fi->parse_all(ri);
+    ASSERT_GE(ri->size(), 3u);
 }
 
 TEST(regex_index, i_flag)
 {
-    auto f_idx = std::make_shared<file_index>("test.txt");
-    regex_index r_idx(f_idx, "this is line #10.", "i");
-    ASSERT_EQ(1u, r_idx.size());
+    auto fi = std::make_shared<file_index>("test.txt");
+    auto ri = std::make_shared<regex_index>("/this is line #10./i");
+    fi->parse_all(ri);
+    ASSERT_EQ(1u, ri->size());
 }
 
 TEST(regex_index, not_flag)
 {
-    auto f_idx = std::make_shared<file_index>("test.txt");
-    regex_index r_idx(f_idx, "#", "!");
-    ASSERT_GE(r_idx.size(), 3u);
+    auto fi = std::make_shared<file_index>("test.txt");
+    auto ri = std::make_shared<regex_index>("/#/!");
+    fi->parse_all(ri);
+    ASSERT_GE(ri->size(), 3u);
 }
 
 TEST(regex_index, intersect_works)
 {
-    auto f_idx = std::make_shared<file_index>("test.txt");
+    auto fi = std::make_shared<file_index>("test.txt");
 
-    regex_index a(f_idx, "#", "!");
+    auto a = std::make_shared<regex_index>("/#/!");
+    fi->parse_all(a);
 
-    regex_index b(f_idx, "contains", "");
-    auto s = b.intersect(a.lineNum_set());
+    auto b = std::make_shared<regex_index>("contains");
+    fi->parse_all(b);
+
+    auto s = b->intersect(a->lineNum_set());
     ASSERT_EQ(1u, s.size());
 
-    regex_index c(f_idx, "this does not match anything", "");
-    ASSERT_EQ(0u, c.size());
-    s = c.intersect(a.lineNum_set());
+    auto c = std::make_shared<regex_index>("this does not match anything");
+    fi->parse_all(c);
+    ASSERT_EQ(0u, c->size());
+    s = c->intersect(a->lineNum_set());
     ASSERT_EQ(0u, s.size());
 }
 
 TEST(regex_index, intersect_works_on_test2_txt)
 {
-    auto file = std::make_shared<file_index>("test2.txt");
-    file->parse_all();
-    ASSERT_EQ(6u, file->size());
+    auto fi = std::make_shared<file_index>("test2.txt");
+    fi->parse_all();
+    ASSERT_EQ(6u, fi->size());
 
-    regex_index word_characters(file, "\\w", "");
-    ASSERT_EQ(6u, word_characters.size());
+    auto word_characters = std::make_shared<regex_index>("\\w");
+    fi->parse_all(word_characters);
+    ASSERT_EQ(6u, word_characters->size());
 
-    regex_index b(file, "b+", "");
-    ASSERT_EQ(1u, b.size());
+    auto b = std::make_shared<regex_index>("b+");
+    fi->parse_all(b);
+    ASSERT_EQ(1u, b->size());
 
-    auto s = file->lineNum_set();
+    auto s = fi->lineNum_set();
     ASSERT_EQ(6u, s.size());
-    s = word_characters.intersect(s);
+    s = word_characters->intersect(s);
     ASSERT_EQ(6u, s.size());
-    s = b.intersect(s);
+    s = b->intersect(s);
     ASSERT_EQ(1u, s.size());
 
-    s = file->lineNum_set();
+    s = fi->lineNum_set();
     ASSERT_EQ(6u, s.size());
-    s = b.intersect(s);
+    s = b->intersect(s);
     ASSERT_EQ(1u, s.size());
-    s = word_characters.intersect(s);
+    s = word_characters->intersect(s);
     ASSERT_EQ(1u, s.size());
 
-    regex_index z(file, "z", "");
-    ASSERT_EQ(0u, z.size());
-    s = file->lineNum_set();
+    auto z = std::make_shared<regex_index>("z");
+    ASSERT_EQ(0u, z->size());
+    s = fi->lineNum_set();
     ASSERT_EQ(6u, s.size());
-    s = z.intersect(s);
+    s = z->intersect(s);
     ASSERT_EQ(0u, s.size());
-    s = b.intersect(s);
+    s = b->intersect(s);
     ASSERT_EQ(0u, s.size());
 }
