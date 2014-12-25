@@ -51,14 +51,17 @@ regex_index::regex_index(std::shared_ptr<file_index> f_idx, const std::string& r
 }
 
 lineNum_set_t
-intersect(const lineNum_set_t& l, const lineNum_set_t& r)
+intersect(const lineNum_set_t& L, const lineNum_set_t& R)
 {
+    // make l the smaller set
+    const bool L_smaller_R = L.size() < R.size();
+    const lineNum_set_t &l = L_smaller_R ? L : R;
+    const lineNum_set_t &r = L_smaller_R ? R : L;
+
     lineNum_set_t s;
-    if (! l.empty()) {
-	for(auto i : r) {
-	    if (l.count(i)) {
-		s.insert(i);
-	    }
+    for(auto i : l) {
+	if (r.count(i)) {
+	    s.insert(i);
 	}
     }
     return s;
