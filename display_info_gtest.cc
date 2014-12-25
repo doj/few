@@ -63,6 +63,21 @@ TEST(DisplayInfo, down_does_not_go_too_low)
     ASSERT_EQ(100u, i.current());
 }
 
+TEST(DisplayInfo, down_does_not_go_too_low2)
+{
+    // set info object to 100 lines
+    DisplayInfo i; i = s();
+
+    // now set it to zero lines
+    lineNum_set_t zero;
+    i = zero;
+
+    ASSERT_FALSE(i.start());
+    ASSERT_EQ(0u, i.current());
+    i.down();
+    ASSERT_EQ(0u, i.current());
+}
+
 TEST(DisplayInfo, up_does_not_go_through_the_ceiling)
 {
     DisplayInfo i; i = s();

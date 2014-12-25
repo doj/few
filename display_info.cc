@@ -5,6 +5,7 @@
 
 #include "display_info.h"
 #include <algorithm>
+#include <cassert>
 
 void
 DisplayInfo::go_to_approx(const line_number_t line_num)
@@ -34,6 +35,7 @@ DisplayInfo::operator= (const lineNum_set_t& s)
     }
 
     displayedLineNum.resize(s.size());
+    assert(displayedLineNum.size() == s.size());
     std::copy(s.begin(), s.end(), displayedLineNum.begin());
     go_to_approx(old_line_num);
     return *this;
@@ -49,6 +51,9 @@ DisplayInfo::start()
 line_number_t
 DisplayInfo::current() const
 {
+    if (bottomLineIt == displayedLineNum.end()) {
+	return 0;
+    }
     return *bottomLineIt;
 }
 
@@ -78,7 +83,10 @@ DisplayInfo::isLastLineDisplayed() const
 void
 DisplayInfo::down()
 {
-    displayedLineNum_t::iterator it = topLineIt;
+    auto it = topLineIt;
+    if (it == displayedLineNum.end()) {
+	return;
+    }
     if (++it != displayedLineNum.end()) {
 	topLineIt = it;
     }

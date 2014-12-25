@@ -33,7 +33,7 @@ public:
     /**
      * get the current line number.
      * This function can only be called after start() has been called.
-     * @return the current line number.
+     * @return the current line number; 0 if the current line number is not valid.
      */
     line_number_t current() const;
 
