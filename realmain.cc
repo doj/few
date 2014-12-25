@@ -1218,8 +1218,11 @@ int realmain_impl(int argc, char * const argv[])
 	assert(!b);
     }
     {
-	OStreamProgressFunctor func(std::clog, "intersect regular expressions: ");
-	intersect_regex(&func);
+	std::shared_ptr<OStreamProgressFunctor> func;
+	if (command_line_filter_regex.size() > 0 && verbose) {
+	    func = std::make_shared<OStreamProgressFunctor>(std::clog, "intersect regular expressions: ");
+	}
+	intersect_regex(func.get());
     }
 
     const std::string stdinfo = filename + " (" + std::to_string(f_idx->size()) + " lines)";
