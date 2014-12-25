@@ -382,12 +382,14 @@ namespace {
 		if (c->r_idx_) {
 		    curses_attr a(A_BOLD);
 		    s = " (";
-		    const unsigned num = c->r_idx_->size();
+		    const uint64_t num = c->r_idx_->size();
 		    s += std::to_string(num);
-		    s += ") match";
+		    s += " match";
 		    if (num != 1) {
 			s += "es";
 		    }
+		    s += ", " + std::to_string(num * 100llu / f_idx->size()) + "%)";
+
 		    X += print_string(y, X, s);
 		}
 	    }
@@ -628,7 +630,7 @@ namespace {
      * provision the display_info object.
      * use the lines from f_idx and filter with the regular expression vector filter_vec.
      */
-    void apply_regex(ProgressFunctor *func)
+    void intersect_regex(ProgressFunctor *func)
     {
 	// set up a vector of ILineNumSetProvider
 	typedef std::vector<std::shared_ptr<ILineNumSetProvider>> v_t;
@@ -954,6 +956,7 @@ namespace {
 	    rgx = normalize_regex(rgx);
 	}
 
+	bool should_intersect = true;
 	if (rgx.empty()) {
 	    vec[regex_num] = std::make_shared<regex_container_t>(); // overwrite with new/empty container object
 	    // pop regular expression container from vector if they're empty
@@ -962,14 +965,15 @@ namespace {
 	    }
 	} else if (rgx == c->rgx_) {
 	    // nothing changed, do nothing
+	    should_intersect = false;
 	} else {
-	    CursesProgressFunctor func(screen_height / 2, screen_width / 2 - 10, A_REVERSE|A_BOLD, " add regex: ");
+	    CursesProgressFunctor func(screen_height / 2, screen_width / 2 - 10, A_REVERSE|A_BOLD, " matching line ");
 	    add_regex(regex_num, rgx, vec, isFilterRgx, &func);
 	}
 
-	{
-	    CursesProgressFunctor func(screen_height / 2, screen_width / 2 - 10, A_REVERSE|A_BOLD, " apply regex: ");
-	    apply_regex(&func);
+	if (isFilterRgx && should_intersect) {
+	    CursesProgressFunctor func(screen_height / 2, screen_width / 2 - 10, A_REVERSE|A_BOLD, " intersect regex: ");
+	    intersect_regex(&func);
 	}
 	create_windows();
     }
@@ -1202,8 +1206,8 @@ int realmain_impl(int argc, char * const argv[])
 	assert(!b);
     }
     {
-	OStreamProgressFunctor func(std::clog, "apply regular expressions: ");
-	apply_regex(&func);
+	OStreamProgressFunctor func(std::clog, "intersect regular expressions: ");
+	intersect_regex(&func);
     }
 
     const std::string stdinfo = filename + " (" + std::to_string(f_idx->size()) + " lines)";
