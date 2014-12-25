@@ -7,7 +7,6 @@ TODO
 
 - 'h' show help
 
-- upon the initial parse of the file, have all preconfigured regex filters work on them
 - when adding a regex, let it run in a background thread and apply once done
 - when starting, only parse the first screen height lines from the file and display them
  + then parse the remaining lines in a background thread

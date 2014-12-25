@@ -892,6 +892,7 @@ namespace {
 
 	// create new regex container object
 	auto c = std::make_shared<regex_container_t>();
+	vec[regex_num] = c;
 	c->rgx_ = rgx;
 
 	try {
@@ -900,9 +901,8 @@ namespace {
 		auto ri = std::make_shared<regex_index>(rgx);
 		f_idx->parse_all(ri, func);
 		c->r_idx_ = ri;
+		filter_cache[c->rgx_] = c;
 	    } else {
-		// \todo somehow make this a helper function or an object that contains all the c->df_* objects
-
 		// Display Filter
 		const std::string flags = get_regex_flags(rgx);
 		rgx = get_regex_str(rgx);
@@ -934,11 +934,7 @@ namespace {
 	    c->err_ = "caught unknown exception";
 	}
 
-	vec[regex_num] = c;
-	if (isFilterRgx) {
-	    filter_cache[c->rgx_] = c;
-	}
-
+	info = "created new regex";
 	return false;
     }
 
@@ -1180,6 +1176,10 @@ int realmain_impl(int argc, char * const argv[])
 	file_index::regex_index_vec_t v;
 	for(auto rgx_ : command_line_filter_regex) {
 	    auto rgx = normalize_regex(rgx_);
+	    if (filter_cache.count(rgx) > 0) {
+		std::clog << "--regex '" << rgx << "' seen more than once." << std::endl;
+		continue;
+	    }
 	    auto ri = std::make_shared<regex_index>(rgx);
 	    v.push_back(ri);
 
@@ -1192,15 +1192,14 @@ int realmain_impl(int argc, char * const argv[])
 	f_idx->parse_all(v, &func);
     }
     for(unsigned u = 0; u != command_line_filter_regex.size(); ++u) {
-	OStreamProgressFunctor func(std::clog, "apply regex: " + command_line_filter_regex[u] + " : ");
-	const bool b = add_regex(u, command_line_filter_regex[u], filter_vec, true, &func);
+	const bool b = add_regex(u, command_line_filter_regex[u], filter_vec, true, nullptr);
 	if (!b) {
 	    std::cerr << "did not find cached regex '" << command_line_filter_regex[u] << "'" << std::endl;
 	}
     }
     for(unsigned u = 0; u != command_line_df_regex.size(); ++u) {
-	OStreamProgressFunctor func(std::clog, "apply regex: " + command_line_df_regex[u] + " : ");
-	add_regex(u, command_line_df_regex[u], df_vec, false, &func);
+	const bool b = add_regex(u, command_line_df_regex[u], df_vec, false, nullptr);
+	assert(!b);
     }
     {
 	OStreamProgressFunctor func(std::clog, "apply regular expressions: ");
