@@ -36,6 +36,13 @@ namespace {
     /// file name of line edit history
     const char* line_edit_history_rc = ".few.history";
 
+    bool use_color = false;
+    unsigned gray_on_black = 0;
+    unsigned white_on_black = 0;
+    unsigned red_on_black = 0;
+    unsigned lightred_on_black = 0;
+    unsigned lightgray_on_black = 0;
+
     /// minimum screen height
     const unsigned min_screen_height = 1 // lines
 	+ 9 // filters
@@ -165,7 +172,7 @@ namespace {
     {
 	unsigned x = 0;
 
-	curses_attr a(A_REVERSE);
+	curses_attr a(A_REVERSE | white_on_black);
 
 	const unsigned line_len_w = digits(line_len) + 1;
 	const unsigned line_num_w = digits(line_num) + 1;
@@ -264,7 +271,7 @@ namespace {
 			assert(b <= e);
 			// set character attribute for all matched characters
 			for(std::wstring::iterator i = b; i != e; ++i) {
-			    character_attr[i] |= A_REVERSE;
+			    character_attr[i] |= use_color ? lightred_on_black : A_REVERSE;
 			}
 		    }
 		}
@@ -275,19 +282,20 @@ namespace {
 		    unsigned x = 0;
 		    // block to print left info column
 		    {
-			curses_attr a(A_REVERSE);
 			// are we at the start of the line?
 			if (it == wline.begin()) {
 			    // print line number
 			    x += print_line_prefix(y, line.num_, wline.size(), line_num_width);
 			} else {
 			    // print empty space
+			    curses_attr a(A_REVERSE | white_on_black);
 			    for(; x < line_num_width; ++x) {
 				mvaddch(y, x, ' ');
 			    }
 			}
 		    }
 		    // print line in chunks of screen width
+		    curses_attr a(gray_on_black);
 		    for(; it != wline.end() && x < screen_width; ++it) {
 			auto c = *it;
 			// handle tab character
@@ -335,7 +343,7 @@ namespace {
 	    if (info.size() > screen_width) {
 		info.resize(screen_width);
 	    }
-	    curses_attr a(A_BOLD);
+	    curses_attr a(use_color ? red_on_black : A_REVERSE);
 	    mvprintw(w_lines_height - 1, screen_width - info.size(), "%s", info.c_str());
 	}
     }
@@ -369,22 +377,27 @@ namespace {
 
     void refresh_regex_window(unsigned y, const std::string& title_param, const regex_vec_t& vec)
     {
-	curses_attr a(A_REVERSE);
 	unsigned cnt = 0;
 	for(auto c : vec) {
+	    ++cnt;
 	    std::string s = c->rgx_;
 	    std::string title = title_param;
+	    unsigned attr = A_REVERSE;
 
-	    if (! c->err_.empty()) {
+	    if (c->err_.empty()) {
+		attr |= (cnt&1) ? gray_on_black : lightgray_on_black;
+	    } else {
+		attr |= red_on_black;
 		s += " : ";
 		s += c->err_;
 		title = "error";
 	    }
+	    curses_attr a(attr);
 
 	    unsigned X = 0;
 	    {
 		curses_attr a(A_BOLD);
-		mvprintw(y, X, "%s %u ", title.c_str(), ++cnt);
+		mvprintw(y, X, "%s %u ", title.c_str(), cnt);
 		X += 8;
 	    }
 
@@ -487,7 +500,7 @@ namespace {
 	refresh_windows();
     }
 
-    void initialize_curses()
+    bool initialize_curses()
     {
 	initscr();
 	cbreak();
@@ -495,9 +508,65 @@ namespace {
 	nonl();
 	intrflush(stdscr, false);
 	keypad(stdscr, true);
-	//start_color();
+	if ((use_color = has_colors()) == false) {
+	    endwin();
+	    std::cerr << "Your terminal does not support color." << std::endl;
+	    return false;
+	}
+	start_color();
+	if (COLOR_PAIRS < 10) {
+	    endwin();
+	    std::cerr << "Your terminal does not support enough color pairs: " << COLOR_PAIRS << std::endl;
+	    return false;
+	}
+
+	/* available colors in curses:
+	   COLOR_BLACK
+	   COLOR_RED
+	   COLOR_GREEN
+	   COLOR_YELLOW
+	   COLOR_BLUE
+	   COLOR_MAGENTA
+	   COLOR_CYAN
+	   COLOR_WHITE
+	 */
+	if (can_change_color()) {
+	    init_color(COLOR_WHITE, 1000, 1000, 1000);
+	    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+	    white_on_black = COLOR_PAIR(1);
+
+	    init_color(COLOR_YELLOW, 900, 900, 900);
+	    init_pair(2, COLOR_YELLOW, COLOR_BLACK);
+	    lightgray_on_black = COLOR_PAIR(2);
+
+	    init_color(COLOR_CYAN, 800, 800, 800);
+	    init_pair(3, COLOR_CYAN, COLOR_BLACK);
+	    gray_on_black = COLOR_PAIR(3);
+
+	    init_color(COLOR_RED, 1000, 0, 0);
+	    init_pair(4, COLOR_RED, COLOR_BLACK);
+	    red_on_black = COLOR_PAIR(4);
+
+	    init_color(COLOR_MAGENTA, 1000, 300, 300);
+	    init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
+	    lightred_on_black = COLOR_PAIR(5);
+
+	    // available: COLOR_BLACK COLOR_GREEN COLOR_BLUE
+	} else {
+	    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+	    lightgray_on_black = COLOR_PAIR(1);
+	    white_on_black = gray_on_black | A_BOLD;
+
+	    init_pair(2, COLOR_YELLOW, COLOR_BLACK);
+	    gray_on_black = COLOR_PAIR(2);
+
+	    init_pair(3, COLOR_RED, COLOR_BLACK);
+	    red_on_black = COLOR_PAIR(3);
+	    lightred_on_black = red_on_black | A_BOLD;
+	}
 
 	create_windows();
+	return true;
     }
 
     void close_curses()
@@ -1246,7 +1315,9 @@ int realmain_impl(int argc, char * const argv[])
     }
 
     atexit(close_curses);
-    initialize_curses();
+    if (! initialize_curses()) {
+	return EX_UNAVAILABLE;
+    }
 
     while(true) {
 	if (verbose) {

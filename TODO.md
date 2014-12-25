@@ -7,9 +7,6 @@ TODO
 
 - 'h' show help
 
-- color
- + developed on the "color" branch
-
 - create homepage on <http://llg.cubic.org>
 - program exit may be slow if C++ needs to clean up a lot of objects
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash
