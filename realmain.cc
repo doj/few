@@ -1342,9 +1342,11 @@ int realmain_impl(int argc, char * const argv[])
 
     display_info.start();
 
-    std::cout << " --tabwidth " << tab_width
-	      << " --goto " << display_info.current()
-	      << " '" << filename << "'" << std::endl;
+    std::cout << " --tabwidth " << tab_width;
+    if (display_info.current() > 0) {
+	std::cout << " --goto " << display_info.current();
+    }
+    std::cout << " '" << filename << "'" << std::endl;
 
     return EXIT_SUCCESS;
 }

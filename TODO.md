@@ -1,8 +1,6 @@
 TODO
 ----
 
-- when filtering with 0 result regex, pressing cursor down shows the file
-
 - search
  + 'n' goto next search result
  + 'N' goto prev search result
