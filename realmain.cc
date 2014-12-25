@@ -627,25 +627,24 @@ namespace {
      */
     void apply_regex(ProgressFunctor *func)
     {
-	const unsigned total_steps = filter_vec.size() + 3;
-	unsigned cnt = 0;
-	++cnt; func->progress(1, cnt * 100 / total_steps);
+	// \todo use func again
+	(void)func;
 
-	// get lines from file
-	auto s = f_idx->lineNum_set();
-	++cnt; func->progress(2, cnt * 100 / total_steps);
-
-	// intersect lines from file with regular expression matches
+	std::vector<std::shared_ptr<ILineNumSetProvider>> v;
+	v.push_back(f_idx);
 	for(auto c : filter_vec) {
 	    if (c->r_idx_) {
-		s = c->r_idx_->intersect(s);
-		++cnt; func->progress(3, cnt * 100 / total_steps);
+		v.push_back(c->r_idx_);
 	    }
 	}
-	func->progress(4, cnt * 100 / total_steps);
+
+	auto it = v.begin();
+	auto s = it->lineNum_set();
+	for(++it; it != v.end(); ++it) {
+	    s = it->intersect(s);
+	}
 
 	display_info = s;
-	func->progress(5, 100);
     }
 
     History::ptr_t line_edit_history;
