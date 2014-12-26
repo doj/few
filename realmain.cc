@@ -28,7 +28,6 @@
 #include "foreach.h"
 #include "getRSS.h"
 #include "to_wide.h"
-#include "info.h"
 #include "event.h"
 
 /// verbosity level
@@ -37,6 +36,9 @@ unsigned verbose = 0;
 namespace {
     /// file name of line edit history
     const char* line_edit_history_rc = ".few.history";
+
+    /// the info string which is shown in the lower right corner
+    std::string info;
 
     /// minimum screen height
     const unsigned min_screen_height = 1 // lines
@@ -195,15 +197,14 @@ namespace {
 
     void refresh_info()
     {
-	std::string i = info();
-	if (i.empty()) {
+	if (info.empty()) {
 	    return;
 	}
-	if (i.size() > screen_width) {
-	    i.resize(screen_width);
+	if (info.size() > screen_width) {
+	    info.resize(screen_width);
 	}
 	curses_attr a(A_BOLD);
-	mvprintw(w_lines_height - 1, screen_width - i.size(), "%s", i.c_str());
+	mvprintw(w_lines_height - 1, screen_width - info.size(), "%s", info.c_str());
     }
 
     void refresh_lines_window()
@@ -529,7 +530,7 @@ namespace {
     void key_up()
     {
 	if (display_info.isFirstLineDisplayed()) {
-	    info("moved to top");
+	    info = "moved to top";
 	} else {
 	    display_info.up();
 	}
@@ -540,7 +541,7 @@ namespace {
     void key_down()
     {
 	if (display_info.isLastLineDisplayed()) {
-	    info("moved to bottom");
+	    info = "moved to bottom";
 	} else {
 	    display_info.down();
 	}
@@ -551,7 +552,7 @@ namespace {
     void key_npage()
     {
 	if (display_info.isLastLineDisplayed()) {
-	    info("moved to bottom");
+	    info = "moved to bottom";
 	} else {
 	    display_info.page_down();
 	}
@@ -562,9 +563,9 @@ namespace {
     void key_ppage()
     {
 	if (! display_info.start()) {
-	    info("nothing to display");
+	    info = "nothing to display";
 	} else if (display_info.isFirstLineDisplayed()) {
-	    info("moved to top");
+	    info = "moved to top";
 	} else {
 	    // scroll up until the old top line is the current bottom line
 	    const line_number_t oldTopLineNum = display_info.current();
@@ -585,7 +586,7 @@ namespace {
     void key_g()
     {
 	if (display_info.isFirstLineDisplayed()) {
-	    info("moved to top");
+	    info = "moved to top";
 	} else {
 	    display_info.top();
 	}
@@ -597,9 +598,9 @@ namespace {
     void key_G()
     {
 	if (! display_info.start()) {
-	    info ("nothing to display");
+	    info = "nothing to display";
 	} else if (display_info.isLastLineDisplayed()) {
-	    info("moved to bottom");
+	    info = "moved to bottom";
 	} else {
 	    const line_number_t lastLineNum = display_info.lastLineNum();
 	    display_info.go_to(lastLineNum);
@@ -930,7 +931,7 @@ namespace {
 		// check that cache key really matches the value rgx_
 		assert(it->first == it->second->rgx_);
 		vec[regex_num] = it->second;
-		info("found regex in cache");
+		info = "found regex in cache";
 		return foundInCache;
 	    }
 	}
@@ -946,7 +947,7 @@ namespace {
 		auto ri = std::make_shared<regex_index>(rgx);
 		std::thread t(parse_regex, f_idx, ri, regex_num);
 		t.detach();
-		info("matching...");
+		info = "matching...";
 		return startedBackgroundMatch;
 	    } else {
 		// Display Filter
@@ -972,7 +973,7 @@ namespace {
 		    c->df_rgx_ = std::make_shared<std::regex>(rgx, fl);
 		}
 
-		info("created new display filter");
+		info = "created new display filter";
 		return createdDisplayFilter;
 	    }
 	} catch (std::regex_error& e) {
@@ -1034,11 +1035,11 @@ namespace {
 	}
 	int64_t l_n = atoll(line_num.c_str());
 	if (l_n < 1) {
-	    info("invalid line number: " + line_num);
+	    info = "invalid line number: " + line_num;
 	} else if (l_n > static_cast<int64_t>(std::numeric_limits<line_number_t>::max())) {
-	    info("line number too big: " + line_num);
+	    info = "line number too big: " + line_num;
 	} else if (! display_info.go_to(l_n)) {
-	    info("line number " + line_num + " not currently displayed");
+	    info = "line number " + line_num + " not currently displayed";
 	}
 	refresh_windows();
     }
@@ -1053,7 +1054,7 @@ namespace {
 	}
 	int64_t p = atoll(perc.c_str());
 	if (p < 0) {
-	    info("invalid percentage: " + perc);
+	    info = "invalid percentage: " + perc;
 	} else {
 	    display_info.go_to_perc(p);
 	}
@@ -1119,19 +1120,21 @@ namespace {
 
 	while(eventPending()) {
 	    event e = eventGet();
-	    if (! e.info_.empty()) {
-		info(e.info_);
-	    }
 	    if (e.ri_) {
 		assert(e.ri_idx_ < 9);
 		assert(e.ri_idx_ < filter_vec.size());
+
 		// get the regex_container_t
 		auto c = filter_vec[e.ri_idx_];
 		c->ri_ = e.ri_;
 		filter_cache[c->rgx_] = c;
+
 		do_intersect = true;
 		do_refresh_windows = true;
-		info("");
+		info.erase();
+	    }
+	    if (! e.info_.empty()) {
+		info = e.info_;
 	    }
 	}
 
@@ -1292,7 +1295,7 @@ int realmain_impl(int argc, char * const argv[])
     }
 
     const std::string stdinfo = filename + " (" + std::to_string(f_idx->size()) + " lines)";
-    info(stdinfo);
+    info = stdinfo;
 
     get_screen_size();
     if (screen_width == 0) {
@@ -1323,12 +1326,12 @@ int realmain_impl(int argc, char * const argv[])
 	} while(key == ERR);
 
 	if (verbose) {
-	    info(stdinfo + " "
-		 + std::to_string(f_idx->perc(display_info.topLineNum())) + "%"
-		 + " use " + std::to_string(getCurrentRSS()/1024/1024) + " MB"
-		 );
+	    info= stdinfo + " "
+		+ std::to_string(f_idx->perc(display_info.topLineNum())) + "%"
+		+ " use " + std::to_string(getCurrentRSS()/1024/1024) + " MB"
+		;
 	} else {
-	    info(stdinfo);
+	    info = stdinfo;
 	}
 
 	// process key presses
