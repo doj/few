@@ -23,5 +23,3 @@ TODO
 - support more than 4GB lines?
  + manage all line numbers as 64bit unsigned
 - split realmain.cc into components
-
-- regex_index could use a sorted vector of line numers and not a std::set

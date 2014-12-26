@@ -17,9 +17,9 @@
  */
 void convert(const std::string& flags, std::regex_constants::syntax_option_type& fl, bool& positiveMatch);
 
-class regex_index : public ILineNumSetProvider
+class regex_index
 {
-    lineNum_set_t lineNum_set_;
+    lineNum_vector_t lineNum_vector_;
     std::regex rgx_;
     bool positive_match_;
 
@@ -34,7 +34,7 @@ public:
     /// match line against the provisioned regular expression. If it matches add the line (number) to the set.
     void match(const line_t& line);
 
-    unsigned size() const { return lineNum_set_.size(); }
+    unsigned size() const { return lineNum_vector_.size(); }
 
-    virtual const lineNum_set_t& lineNum_set();
+    const lineNum_vector_t& lineNum_vector() { return lineNum_vector_; }
 };

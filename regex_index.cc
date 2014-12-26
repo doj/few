@@ -43,14 +43,8 @@ regex_index::match(const line_t& line)
     const bool res = std::regex_search(line.beg_, line.end_, rgx_);
     if (( positive_match_ &&  res) ||
 	(!positive_match_ && !res)) {
-	lineNum_set_.insert(line.num_);
+	lineNum_vector_.push_back(line.num_);
 	//std::clog << " !match!";
     }
     //std::clog << std::endl;
-}
-
-const lineNum_set_t&
-regex_index::lineNum_set()
-{
-    return lineNum_set_;
 }

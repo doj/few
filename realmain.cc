@@ -651,13 +651,13 @@ namespace {
      */
     void intersect_regex(ProgressFunctor *func)
     {
-	// set up a vector of ILineNumSetProvider
+	// set up a vector regex_index lineNum_vector iterator pairs
 	std::shared_ptr<regex_index> ri;
-	lineNum_set_intersect_vector_t v;
+	lineNum_vector_intersect_vector_t v;
 	for(auto c : filter_vec) {
 	    if (c->ri_) {
 		ri = c->ri_;
-		const auto& s = ri->lineNum_set();
+		const auto& s = ri->lineNum_vector();
 		v.push_back(std::make_pair(s.begin(), s.end()));
 	    }
 	}
@@ -666,15 +666,12 @@ namespace {
 
 	// if there are no regex_index objects found, show the complete file
 	if (v.empty()) {
+	    // file_index::lineNum_vector() return a temporary object which we can move
 	    s = std::move(f_idx->lineNum_vector());
-
-	    // if there is only a single regex_index object, use that one
 	} else if (v.size() == 1) {
-	    // convert line num set to line num vector
-	    const auto& lns = ri->lineNum_set();
-	    s.reserve(lns.size());
-	    std::copy(lns.begin(), lns.end(), std::back_insert_iterator<lineNum_vector_t>(s));
-
+	    // if there is only a single regex_index object, use that one
+	    // regex_index::lineNum_vector() returns a const reference which we must copy
+	    s = ri->lineNum_vector();
 	} else {
 	    multiple_set_intersect(v.begin(), v.end(), std::back_insert_iterator<lineNum_vector_t>(s));
 	}

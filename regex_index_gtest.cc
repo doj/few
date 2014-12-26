@@ -6,6 +6,7 @@
 #include "gtest/gtest.h"
 #include "file_index.h"
 #include "intersect.h"
+#include <iterator>
 
 TEST(regex_index, does_filter_non_empty_lines)
 {
@@ -41,18 +42,18 @@ TEST(regex_index, intersect_works)
     auto b = std::make_shared<regex_index>("contains");
     fi->parse_all(b);
 
-    lineNum_set_intersect_vector_t v = { std::make_pair(a->lineNum_set().begin(), a->lineNum_set().end()),
-					 std::make_pair(b->lineNum_set().begin(), b->lineNum_set().end()) };
-    lineNum_set_t s;
-    ASSERT_EQ(1u, multiple_set_intersect(v.begin(), v.end(), std::inserter(s, s.begin())));
+    lineNum_vector_intersect_vector_t v = { std::make_pair(a->lineNum_vector().begin(), a->lineNum_vector().end()),
+					    std::make_pair(b->lineNum_vector().begin(), b->lineNum_vector().end()) };
+    lineNum_vector_t s;
+    ASSERT_EQ(1u, multiple_set_intersect(v.begin(), v.end(), std::back_insert_iterator<lineNum_vector_t>(s)));
     ASSERT_EQ(1u, s.size());
 
     auto c = std::make_shared<regex_index>("this does not match anything");
     fi->parse_all(c);
     ASSERT_EQ(0u, c->size());
 
-    v[1] = std::make_pair(c->lineNum_set().begin(), c->lineNum_set().end());
+    v[1] = std::make_pair(c->lineNum_vector().begin(), c->lineNum_vector().end());
     s.clear();
-    ASSERT_EQ(0u, multiple_set_intersect(v.begin(), v.end(), std::inserter(s, s.begin())));
+    ASSERT_EQ(0u, multiple_set_intersect(v.begin(), v.end(), std::back_insert_iterator<lineNum_vector_t>(s)));
     ASSERT_EQ(0u, s.size());
 }
