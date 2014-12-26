@@ -2,7 +2,6 @@ TODO
 ----
 
 - create homepage on <http://llg.cubic.org>
-- test on FreeBSD
 - test on OsX
 - test on Windows
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash

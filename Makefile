@@ -9,13 +9,13 @@ INCLUDE_FLAGS += -I.
 CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_FLAGS) -std=c++11 -MMD
 
 ifeq ($(DEBUG),1)
-CXXFLAGS += -g #-O2
+CXXFLAGS += -g
 else
 CXXFLAGS += -O3
 endif
 
 ifeq ($(shell uname),FreeBSD)
-CXX = c++
+CXX = c++ # FreeBSD's clang++ typically
 else
 WARNING_FLAGS += -Werror
 endif
