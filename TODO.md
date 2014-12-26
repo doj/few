@@ -22,3 +22,4 @@ TODO
  + then parse the remaining lines in a background thread
 - support more than 4GB lines?
  + manage all line numbers as 64bit unsigned
+- split realmain.cc into components

@@ -663,10 +663,16 @@ namespace {
 	auto f = [](v_t::iterator begin, v_t::iterator end, lineNum_set_t& s, ProgressFunctor *func)
 	    {
 		unsigned cnt = 0;
-		if (func) func->progress(++cnt, 0);
+		if (func) {
+		    ++cnt;
+		    func->progress(cnt, cnt*20);
+		}
 		s = (*begin)->lineNum_set();
 		while(++begin != end) {
-		    if (func) func->progress(++cnt, 0);
+		    if (func) {
+			++cnt;
+			func->progress(cnt, cnt*20);
+		    }
 		    s = (*begin)->intersect(s);
 		}
 	    };
@@ -683,9 +689,9 @@ namespace {
 	    std::thread t2(f, v.begin() + mid, v.end(), std::ref(r), nullptr);
 	    if (func) func->progress(0, 0);
 	    t1.join();
-	    if (func) func->progress(1, 0);
+	    if (func) func->progress(1, 1*20);
 	    t2.join();
-	    if (func) func->progress(2, 0);
+	    if (func) func->progress(2, 2*20);
 	    // if any set is empty, there's nothing to intersect
 	    if (s.empty() || r.empty()) {
 		s.clear();
@@ -704,11 +710,11 @@ namespace {
 		    }
 		}
 	    }
-	    if (func) func->progress(3, 0);
+	    if (func) func->progress(3, 3*20);
 	}
-	if (func) func->progress(4, 0);
+	if (func) func->progress(4, 4*20);
 	display_info = s;
-	if (func) func->progress(5, 0);
+	if (func) func->progress(5, 5*20);
     }
 
     void intersect_regex_curses()
