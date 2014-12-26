@@ -4,6 +4,7 @@
  */
 #include "file_index.h"
 #include "error.h"
+#include "event.h"
 #include <cassert>
 #include <sysexits.h>
 
@@ -151,4 +152,18 @@ file_index::perc(const line_number_t num)
     const line_number_t s = size();
     if (num > s) { return 100u; }
     return static_cast<uint64_t>(num) * 100llu / s;
+}
+
+void
+file_index::parse_all_in_background(std::shared_ptr<regex_index> ri) const
+{
+    if (! has_parsed_all_) {
+	return;
+    }
+    for(unsigned i = 1; i < line_.size(); ++i) {
+	ri->match(line_[i]);
+	if ((i % 10000) == 0) {
+	    eventAdd(event("matching line " + std::to_string(i)));
+	}
+    }
 }

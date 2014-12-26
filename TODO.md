@@ -18,7 +18,6 @@ TODO
 - cache file index
 - cache regex filter index
 - check if other implementations of std::set<line_number_t> have better memory use
-- when adding a regex, let it run in a background thread and apply once done
 - when starting, only parse the first screen height lines from the file and display them
  + then parse the remaining lines in a background thread
 - support more than 4GB lines?

@@ -29,6 +29,7 @@
 #include "getRSS.h"
 #include "to_wide.h"
 #include "info.h"
+#include "event.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -89,7 +90,7 @@ namespace {
 	/// an error string if rgx_ is invalid
 	std::string err_;
 	/// object used for lines filter
-	std::shared_ptr<regex_index> r_idx_;
+	std::shared_ptr<regex_index> ri_;
 
 	///@{
 
@@ -393,10 +394,10 @@ namespace {
 	    if (! s.empty()) {
 		X += print_string(y, X, s);
 
-		if (c->r_idx_) {
+		if (c->ri_) {
 		    curses_attr a(A_BOLD);
 		    s = " (";
-		    const uint64_t num = c->r_idx_->size();
+		    const uint64_t num = c->ri_->size();
 		    s += std::to_string(num);
 		    s += " match";
 		    if (num != 1) {
@@ -652,8 +653,8 @@ namespace {
 	v_t v;
 	v.push_back(f_idx);
 	for(auto c : filter_vec) {
-	    if (c->r_idx_) {
-		v.push_back(c->r_idx_);
+	    if (c->ri_) {
+		v.push_back(c->ri_);
 	    }
 	}
 
@@ -707,6 +708,12 @@ namespace {
 	if (func) func->progress(4, 0);
 	display_info = s;
 	if (func) func->progress(5, 0);
+    }
+
+    void intersect_regex_curses()
+    {
+	CursesProgressFunctor func(screen_height / 2, screen_width / 2 - 10, A_REVERSE|A_BOLD, " intersect regex: ");
+	intersect_regex(&func);
     }
 
     History::ptr_t line_edit_history;
@@ -885,8 +892,26 @@ namespace {
 	return s;
     }
 
-    /// @return true if rgx was found in the cache; false if a new regex_index was created.
-    bool add_regex(const unsigned regex_num, std::string rgx, regex_vec_t& vec, const bool isFilterRgx, ProgressFunctor *func)
+    /**
+     * parse all lines in fi and match with ri.
+     * when done, add an event.
+     * This function will be executed in a background thread.
+     */
+    void parse_regex(std::shared_ptr<file_index> fi, std::shared_ptr<regex_index> ri, const unsigned idx)
+    {
+	fi->parse_all_in_background(ri);
+	eventAdd(event(ri, idx));
+    }
+
+    /// return values of the add_regex() function
+    enum add_regex_status {
+	foundInCache,
+	startedBackgroundMatch,
+	createdDisplayFilter,
+	regexError,
+    };
+
+    add_regex_status add_regex(const unsigned regex_num, std::string rgx, regex_vec_t& vec, const bool isFilterRgx, ProgressFunctor *func)
     {
 	assert(regex_num < 9);
 	assert(! rgx.empty());
@@ -906,7 +931,7 @@ namespace {
 		assert(it->first == it->second->rgx_);
 		vec[regex_num] = it->second;
 		info("found regex in cache");
-		return true;
+		return foundInCache;
 	    }
 	}
 
@@ -919,9 +944,10 @@ namespace {
 	    if (isFilterRgx) {
 		// Lines Filter
 		auto ri = std::make_shared<regex_index>(rgx);
-		f_idx->parse_all(ri, func);
-		c->r_idx_ = ri;
-		filter_cache[c->rgx_] = c;
+		std::thread t(parse_regex, f_idx, ri, regex_num);
+		t.detach();
+		info("matching...");
+		return startedBackgroundMatch;
 	    } else {
 		// Display Filter
 		const std::string flags = get_regex_flags(rgx);
@@ -945,6 +971,9 @@ namespace {
 		    rgx.erase(pos);
 		    c->df_rgx_ = std::make_shared<std::regex>(rgx, fl);
 		}
+
+		info("created new display filter");
+		return createdDisplayFilter;
 	    }
 	} catch (std::regex_error& e) {
 	    c->err_ << e.code();
@@ -954,8 +983,7 @@ namespace {
 	    c->err_ = "caught unknown exception";
 	}
 
-	info("created new regex");
-	return false;
+	return regexError;
     }
 
     void edit_regex(unsigned& y, const unsigned regex_num, regex_vec_t& vec, const bool isFilterRgx)
@@ -986,12 +1014,12 @@ namespace {
 	    should_intersect = false;
 	} else {
 	    CursesProgressFunctor func(screen_height / 2, screen_width / 2 - 10, A_REVERSE|A_BOLD, " matching line ");
-	    add_regex(regex_num, rgx, vec, isFilterRgx, &func);
+	    const add_regex_status s = add_regex(regex_num, rgx, vec, isFilterRgx, &func);
+	    should_intersect = (s == foundInCache);
 	}
 
 	if (isFilterRgx && should_intersect) {
-	    CursesProgressFunctor func(screen_height / 2, screen_width / 2 - 10, A_REVERSE|A_BOLD, " intersect regex: ");
-	    intersect_regex(&func);
+	    intersect_regex_curses();
 	}
 	create_windows();
     }
@@ -1082,6 +1110,37 @@ namespace {
 	    compile_search_regex( line_edit(search_y, 8, search_str, screen_width - 8) );
 	}
 	create_windows();
+    }
+
+    void process_event_queue()
+    {
+	bool do_refresh_windows = false;
+	bool do_intersect = false;
+
+	while(eventPending()) {
+	    event e = eventGet();
+	    if (! e.info_.empty()) {
+		info(e.info_);
+	    }
+	    if (e.ri_) {
+		assert(e.ri_idx_ < 9);
+		assert(e.ri_idx_ < filter_vec.size());
+		// get the regex_container_t
+		auto c = filter_vec[e.ri_idx_];
+		c->ri_ = e.ri_;
+		filter_cache[c->rgx_] = c;
+		do_intersect = true;
+		do_refresh_windows = true;
+		info("");
+	    }
+	}
+
+	if (do_intersect) {
+	    intersect_regex_curses();
+	}
+	if (do_refresh_windows) {
+	    refresh_windows();
+	}
     }
 
 }
@@ -1207,21 +1266,22 @@ int realmain_impl(int argc, char * const argv[])
 
 	    auto c = std::make_shared<regex_container_t>();
 	    c->rgx_ = rgx;
-	    c->r_idx_ = ri;
+	    c->ri_ = ri;
 	    filter_cache[rgx] = c;
 	}
 	OStreamProgressFunctor func(std::clog, "parsing line: ");
 	f_idx->parse_all(v, &func);
     }
     for(unsigned u = 0; u != command_line_filter_regex.size(); ++u) {
-	const bool b = add_regex(u, command_line_filter_regex[u], filter_vec, true, nullptr);
-	if (!b) {
+	const add_regex_status s = add_regex(u, command_line_filter_regex[u], filter_vec, true, nullptr);
+	if (s != foundInCache) {
 	    std::cerr << "did not find cached regex '" << command_line_filter_regex[u] << "'" << std::endl;
+	    return EX_SOFTWARE;
 	}
     }
     for(unsigned u = 0; u != command_line_df_regex.size(); ++u) {
-	const bool b = add_regex(u, command_line_df_regex[u], df_vec, false, nullptr);
-	assert(!b);
+	const add_regex_status s = add_regex(u, command_line_df_regex[u], df_vec, false, nullptr);
+	assert(s == createdDisplayFilter);
     }
     {
 	std::shared_ptr<OStreamProgressFunctor> func;
@@ -1259,6 +1319,7 @@ int realmain_impl(int argc, char * const argv[])
 	do {
 	    refresh_info();
 	    key = getch();
+	    process_event_queue();
 	} while(key == ERR);
 
 	if (verbose) {

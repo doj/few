@@ -72,6 +72,12 @@ public:
 
     void parse_all();
 
+    /**
+     * allow a background thread to parse the entire file and match with a regex_index object.
+     * This function is only valid if parse_all() has been called before and the entire file is indexed.
+     */
+    void parse_all_in_background(std::shared_ptr<regex_index> ri) const;
+
     /// @return the line number set of all lines in the file.
     virtual const lineNum_set_t& lineNum_set();
 };
