@@ -32,6 +32,7 @@
 #include "event.h"
 #include "intersect.h"
 #include "search.h"
+#include "temporary_file.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -39,6 +40,9 @@ unsigned verbose = 0;
 namespace {
     /// file name of line edit history
     const char* line_edit_history_rc = ".few.history";
+
+    /// the filename of the currently executed process (argv[0]).
+    std::string argv0;
 
     /// the info string which is shown in the lower right corner
     std::string info;
@@ -680,6 +684,77 @@ namespace {
     }
 
     /**
+     * run a command in a child process.
+     * wait for the command to finish.
+     *
+     * If an error occurs from running the command line or if the exit
+     * status of cmd is not 0, the info string will show an error
+     * message.
+     *
+     * @param cmd shell command line to run.
+     * @return true upon success.
+     */
+    bool run_command(const std::string& cmd)
+    {
+	int s = system(cmd.c_str());
+	if (s < 0) {
+	    info = "could not run: " + cmd;
+	} else {
+	    if (WIFEXITED(s)) {
+		s = WEXITSTATUS(s);
+		if (s == 0) {
+		    return true;
+		} else {
+		    info = "command exit status: " + std::to_string(s);
+		}
+	    } else if (WIFSIGNALED(s)) {
+#ifdef WCOREDUMP
+		if (WCOREDUMP(s)) {
+		    info = "command produced a core dump";
+		} else
+#endif
+		    {
+			// \todo signame
+			info = "command exited with signal: " + WTERMSIG(s);
+		    }
+	    } else {
+		info = "unknown error when running: " + cmd;
+	    }
+	}
+	return false;
+    }
+
+    /**
+     * run a program in a child process.
+     * The program can be interactive, as the curses library is closed before running the program.
+     * @return true if cmd had an exit status of 0.
+     */
+    bool run_program(const std::string& cmd)
+    {
+	close_curses();
+	const bool b = run_command(cmd);
+	initialize_curses();
+	return b;
+    }
+
+    void key_h()
+    {
+	// try to render a text version of the manpage
+	try {
+	    TemporaryFile tmp;
+	    if (! run_command("MANWIDTH=" + std::to_string(screen_width - 10) + " man few > " + tmp.filename())) {
+		return;
+	    }
+	    run_program(argv0 + " " + tmp.filename());
+	} catch (std::exception& e) {
+	    info = "could not show help: ";
+	    info += e.what();
+	} catch (...) {
+	    info = "could not show help: unknown exception";
+	}
+    }
+
+    /**
      * provision the display_info object.
      * use the lines from f_idx and filter with the regular expression vector filter_vec.
      */
@@ -1162,6 +1237,7 @@ int realmain_impl(int argc, char * const argv[])
 	help();
 	return EX_USAGE;
     }
+    argv0 = argv[0];
 
     enum {
 	opt_tabwidth = 500,
@@ -1403,6 +1479,10 @@ int realmain_impl(int argc, char * const argv[])
 
 	case 'R':
 	    refresh_windows();
+	    break;
+
+	case 'h':
+	    key_h();
 	    break;
 
 	case 'P':

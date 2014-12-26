@@ -72,7 +72,7 @@ The actions resulting from a key press are modelled after the less(1) program.
 * **R**:
   repaint the screen
 * **h**:
-  show help text
+  show help text. This will show the few man page in the few editor. To return to your file, press **q**.
 * **/**:
   enter a search regular expression
 * **n**:

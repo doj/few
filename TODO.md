@@ -1,8 +1,6 @@
 TODO
 ----
 
-- 'h' show help
-
 - create homepage on <http://llg.cubic.org>
 - test on FreeBSD
 - test on OsX
@@ -16,6 +14,7 @@ TODO
 - support more than 4GB lines?
  + manage all line numbers as 64bit unsigned
 - split realmain.cc into components
+- maybe search in background? However while searching in background the user can modify the display_info object which will invalidate the iterators that the background search would use.
 
 - color
  + developed on the "color" branch
