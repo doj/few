@@ -9,7 +9,7 @@
 #include <vector>
 #include <cassert>
 
-class file_index : public ILineNumSetProvider
+class file_index
 {
     /// the character type we are using. Maybe we use wide characters one day.
     typedef char c_t;
@@ -17,7 +17,7 @@ class file_index : public ILineNumSetProvider
     doj::memorymap_ptr<c_t> file_;
 
     /**
-     *all lines, indexed by their line number.
+     * all lines, indexed by their line number.
      * The first line in the file has line number 1.
      * The entry with index 0 is invalid and should not be used.
      */
@@ -25,9 +25,6 @@ class file_index : public ILineNumSetProvider
 
     /// true if the entire file has been parsed.
     bool has_parsed_all_;
-
-    /// this set contains the line number of all currently parsed lines.
-    lineNum_set_t lineNum_set_;
 
     /**
      * parse line number num from the file.
@@ -78,6 +75,6 @@ public:
      */
     void parse_all_in_background(std::shared_ptr<regex_index> ri) const;
 
-    /// @return the line number set of all lines in the file.
-    virtual const lineNum_set_t& lineNum_set();
+    /// @return the line number vector of all lines in the file.
+    lineNum_vector_t lineNum_vector();
 };

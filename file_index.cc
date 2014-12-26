@@ -85,7 +85,6 @@ file_index::push_line(const c_t* beg, const c_t* end, const c_t* next, const lin
 	break;
     }
     line_.push_back(line_t(beg, end, next, num));
-    lineNum_set_.insert(num);
 }
 
 line_t file_index::line(const line_number_t num)
@@ -95,19 +94,20 @@ line_t file_index::line(const line_number_t num)
 	    throw std::runtime_error("file_index::line(" + std::to_string(num) + "): number too large, file only contains " + std::to_string(size()));
 	}
     }
-    return line_[num];
+    line_t l = line_[num];
+    assert(l.num_ == num);
+    return l;
 }
 
-const lineNum_set_t&
-file_index::lineNum_set()
+lineNum_vector_t
+file_index::lineNum_vector()
 {
-#if 0
-    if (! has_parsed_all_) {
-	parse_all();
+    const line_number_t s = size();
+    lineNum_vector_t v(s);
+    for(line_number_t i = 0; i < s; ++i) {
+	v[i] = i + 1;
     }
-#endif
-    assert(has_parsed_all_);
-    return lineNum_set_;
+    return v;
 }
 
 void

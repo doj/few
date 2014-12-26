@@ -7,11 +7,11 @@
 #include "display_info.h"
 
 namespace {
-    lineNum_set_t s()
+    lineNum_vector_t s()
     {
-	lineNum_set_t a;
+	lineNum_vector_t a;
 	for(unsigned i = 1; i <= 100; ++i) {
-	    a.insert(i);
+	    a.push_back(i);
 	}
 	return a;
     }
@@ -19,19 +19,19 @@ namespace {
 
 TEST(DisplayInfo, size)
 {
-    DisplayInfo i; i = s();
+    DisplayInfo i; i.assign(s());
     ASSERT_EQ(100u, i.size());
 }
 
 TEST(DisplayInfo, lastLineNum)
 {
-    DisplayInfo i; i = s();
+    DisplayInfo i; i.assign(s());
     ASSERT_EQ(100u, i.lastLineNum());
 }
 
 TEST(DisplayInfo, go_to)
 {
-    DisplayInfo i; i = s();
+    DisplayInfo i; i.assign(s());
     ASSERT_TRUE(i.go_to(1));
     ASSERT_TRUE(i.go_to(50));
     ASSERT_TRUE(i.go_to(100));
@@ -41,7 +41,7 @@ TEST(DisplayInfo, go_to)
 
 TEST(DisplayInfo, down)
 {
-    DisplayInfo i; i = s();
+    DisplayInfo i; i.assign(s());
 
     i.down();
     i.down();
@@ -53,7 +53,7 @@ TEST(DisplayInfo, down)
 
 TEST(DisplayInfo, down_does_not_go_too_low)
 {
-    DisplayInfo i; i = s();
+    DisplayInfo i; i.assign(s());
 
     for(unsigned u = 0; u < 1000; ++u) {
 	i.down();
@@ -66,11 +66,11 @@ TEST(DisplayInfo, down_does_not_go_too_low)
 TEST(DisplayInfo, down_does_not_go_too_low2)
 {
     // set info object to 100 lines
-    DisplayInfo i; i = s();
+    DisplayInfo i; i.assign(s());
 
     // now set it to zero lines
-    lineNum_set_t zero;
-    i = zero;
+    lineNum_vector_t zero;
+    i.assign(std::move(zero));;
 
     ASSERT_FALSE(i.start());
     ASSERT_EQ(0u, i.current());
@@ -80,7 +80,7 @@ TEST(DisplayInfo, down_does_not_go_too_low2)
 
 TEST(DisplayInfo, up_does_not_go_through_the_ceiling)
 {
-    DisplayInfo i; i = s();
+    DisplayInfo i; i.assign(s());
 
     i.start();
     ASSERT_EQ(1u, i.current());
@@ -107,7 +107,7 @@ TEST(DisplayInfo, up_does_not_go_through_the_ceiling)
 
 TEST(DisplayInfo, stays_near_current_line_if_new_set_is_assigned)
 {
-    DisplayInfo i; i = s();
+    DisplayInfo i; i.assign(s());
 
     i.start();
     i.down();
@@ -115,7 +115,7 @@ TEST(DisplayInfo, stays_near_current_line_if_new_set_is_assigned)
     i.start();
     ASSERT_EQ(3u, i.current());
 
-    i = s();
+    i.assign(s());
     i.start();
     ASSERT_EQ(3u, i.current());
     i.down();
@@ -126,19 +126,19 @@ TEST(DisplayInfo, stays_near_current_line_if_new_set_is_assigned)
     ASSERT_EQ(7u, i.current());
 
     // a set with only every 5th line
-    lineNum_set_t a;
+    lineNum_vector_t a;
     for(unsigned i = 1; i <= 100; i += 5) {
-	a.insert(i);
+	a.push_back(i);
     }
-    i = a;
+    i.assign(std::move(a));
     i.start();
     ASSERT_EQ(1u + 5u, i.current());
 
     // a small set, move upward
     a.clear();
-    a.insert(2);
-    a.insert(4);
-    i = a;
+    a.push_back(2);
+    a.push_back(4);
+    i.assign(std::move(a));
     i.start();
     ASSERT_EQ(4u, i.current());
 }
@@ -147,6 +147,6 @@ TEST(DisplayInfo, topLineNum)
 {
     DisplayInfo i;
     ASSERT_EQ(0u, i.topLineNum());
-    i = s();
+    i.assign(s());
     ASSERT_EQ(1u, i.topLineNum());
 }

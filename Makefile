@@ -11,7 +11,7 @@ CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_FLAGS) -std=c++11 -MMD
 ifeq ($(DEBUG),1)
 CXXFLAGS += -g #-O2
 else
-CXXFLAGS += -O2
+CXXFLAGS += -O3
 endif
 
 ##############################################################################

@@ -10,7 +10,7 @@
 
 class DisplayInfo
 {
-    typedef std::vector<line_number_t> displayedLineNum_t;
+    typedef lineNum_vector_t displayedLineNum_t;
 
     displayedLineNum_t displayedLineNum;
     displayedLineNum_t::iterator topLineIt;
@@ -18,7 +18,7 @@ class DisplayInfo
 
 public:
 
-    DisplayInfo& operator= (const lineNum_set_t& s);
+    void assign(lineNum_vector_t&& v);
 
     /// @return the number of lines managed by this object.
     unsigned size() const { return displayedLineNum.size(); }

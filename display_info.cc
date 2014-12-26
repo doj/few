@@ -26,19 +26,17 @@ DisplayInfo::go_to_approx(const line_number_t line_num)
     }
 }
 
-DisplayInfo&
-DisplayInfo::operator= (const lineNum_set_t& s)
+void
+DisplayInfo::assign(lineNum_vector_t&& v)
 {
     unsigned old_line_num = 0;
     if (topLineIt != displayedLineNum.end()) {
 	old_line_num = *topLineIt;
     }
 
-    displayedLineNum.resize(s.size());
-    assert(displayedLineNum.size() == s.size());
-    std::copy(s.begin(), s.end(), displayedLineNum.begin());
+    displayedLineNum = std::move(v);
+
     go_to_approx(old_line_num);
-    return *this;
 }
 
 bool

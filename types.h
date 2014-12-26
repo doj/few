@@ -9,6 +9,7 @@
 
 typedef uint32_t line_number_t;
 typedef std::set<line_number_t> lineNum_set_t;
+typedef std::vector<line_number_t> lineNum_vector_t;
 typedef std::vector<std::pair<lineNum_set_t::iterator, lineNum_set_t::iterator>> lineNum_set_intersect_vector_t;
 
 /**

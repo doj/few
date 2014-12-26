@@ -18,6 +18,7 @@
 #include <map>
 #include <fstream>
 #include <thread>
+#include <iterator>
 #include "file_index.h"
 #include "regex_index.h"
 #include "error.h"
@@ -661,22 +662,24 @@ namespace {
 	    }
 	}
 
+	lineNum_vector_t s;
+
 	// if there are no regex_index objects found, show the complete file
 	if (v.empty()) {
-	    display_info = f_idx->lineNum_set();
-	    return;
+	    s = std::move(f_idx->lineNum_vector());
+
+	    // if there is only a single regex_index object, use that one
+	} else if (v.size() == 1) {
+	    // convert line num set to line num vector
+	    const auto& lns = ri->lineNum_set();
+	    s.reserve(lns.size());
+	    std::copy(lns.begin(), lns.end(), std::back_insert_iterator<lineNum_vector_t>(s));
+
+	} else {
+	    multiple_set_intersect(v.begin(), v.end(), std::back_insert_iterator<lineNum_vector_t>(s));
 	}
 
-	// if there is only a single regex_index object, use that one
-	if (v.size() == 1) {
-	    display_info = ri->lineNum_set();
-	    return;
-	}
-
-	// intersect multiple sets
-	lineNum_set_t s;
-	multiple_set_intersect(v.begin(), v.end(), std::inserter(s, s.begin()));
-	display_info = s;
+	display_info.assign(std::move(s));
     }
 
     void intersect_regex_curses()
