@@ -46,10 +46,18 @@ TEST_F(to_wide_fix, resync_on_overlong_utf8)
     ASSERT_EQ(expected, to_wide(invalid));
 }
 
-
 TEST_F(to_wide_fix, resync_on_invalid_utf8)
 {
     std::string invalid = "Dirk\u20ACJagdmann" "\xF4" "Writes\u00A2Fewer";
     std::wstring expected = L"Dirk\u20ACJagdmann\uFFFDWrites\u00A2Fewer";
     ASSERT_EQ(expected, to_wide(invalid));
+}
+
+TEST_F(to_wide_fix, to_utf8)
+{
+    std::wstring s = L"Dirk";
+    std::string expected = "Dirk";
+    ASSERT_EQ(expected, to_utf8(s));
+
+    // \todo test with some wide characters
 }

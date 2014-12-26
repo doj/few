@@ -19,6 +19,11 @@
 #include <fstream>
 #include <thread>
 #include <iterator>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <sys/wait.h>
+
 #include "file_index.h"
 #include "regex_index.h"
 #include "error.h"
@@ -73,6 +78,11 @@ namespace {
     std::string search_err;
     /// the y position of the search window
     unsigned search_y;
+
+    /// regular expression to match links
+    std::wregex link_rgx(L"(ht|f)tps?://[a-zA-Z0-9/~&=%_.-]+", std::regex::ECMAScript | std::regex::optimize | std::regex::icase);
+    typedef std::pair<unsigned,unsigned> coordinate_t;
+    std::map<coordinate_t, std::wstring> link;
 
     /// the file that is displayed
     file_index::ptr_t f_idx;
@@ -217,6 +227,7 @@ namespace {
     void refresh_lines_window()
     {
 	assert(tab_width > 0);
+	link.clear();
 
 	middle_line_number = 0;
 	unsigned y = 0;
@@ -289,6 +300,20 @@ namespace {
 		    }
 		}
 
+		// look for links
+		std::map<std::wstring::iterator, std::wstring> iterator2link;
+		for(auto it = std::wsregex_iterator(wline.begin(), wline.end(), link_rgx); it != std::wsregex_iterator(); ++it) {
+		    std::wstring::iterator b = wline.begin() + it->position();
+		    std::wstring::iterator e = b + it->length();
+		    assert(b <= e);
+		    std::wstring l(b,e);
+		    // set character attribute for all matched characters
+		    for(std::wstring::iterator i = b; i != e; ++i) {
+			character_attr[i] |= A_UNDERLINE;
+			iterator2link[i] = l;
+		    }
+		}
+
 		// print the current line
 		auto it = wline.begin();
 		while(it != wline.end() && y < w_lines_height) {
@@ -309,6 +334,12 @@ namespace {
 		    }
 		    // print line in chunks of screen width
 		    for(; it != wline.end() && x < screen_width; ++it) {
+			// check for link
+			auto i = iterator2link.find(it);
+			if (i != iterator2link.end()) {
+			    link.insert(std::make_pair(std::make_pair(x,y), i->second));
+			}
+
 			auto c = *it;
 			// handle tab character
 			if (c == '\t') {
@@ -318,7 +349,8 @@ namespace {
 			} else {
 			    // replace non printable characters with a space
 			    if (iswprint(c)) {
-				curses_attr a(character_attr[it]);
+				const unsigned attr = character_attr[it];
+				curses_attr a(attr);
 				mvaddwch(y, x, c);
 			    } else {
 				mvaddwch(y, x, L'\uFFFD');
@@ -508,6 +540,7 @@ namespace {
 	keypad(stdscr, true);
 	halfdelay(3);
 	//start_color();
+	mousemask(BUTTON1_CLICKED, nullptr);
 
 	create_windows();
     }
@@ -751,6 +784,82 @@ namespace {
 	    info += e.what();
 	} catch (...) {
 	    info = "could not show help: unknown exception";
+	}
+    }
+
+    /**
+     * run a command in the background, detached from the current process.
+     * @param cmd shell command line to execute in background.
+     * @return true upon success.
+     */
+    bool run_command_background(const std::string& cmd)
+    {
+	bool b = false;
+	close_curses();
+
+	pid_t pid = fork();
+	if (pid < 0) {
+	    info = std::string("could not fork: ") + strerror(errno);
+	} else if (pid == 0) {
+	    // child
+
+	    // make standard file descriptors use /dev/null
+	    int dev_null = open("/dev/null", O_RDWR);
+	    if (dev_null < 0) {
+		exit(EX_OSERR);
+	    }
+	    dup2(dev_null, 0);
+	    dup2(dev_null, 1);
+	    dup2(dev_null, 2);
+
+	    int s = system(cmd.c_str());
+	    if (WIFEXITED(s)) {
+		exit(WEXITSTATUS(s));
+	    }
+	    exit(EXIT_FAILURE);
+	} else {
+	    info = "created child PID " + std::to_string(pid);
+	    b = true;
+	}
+
+	initialize_curses();
+	return b;
+    }
+
+    void click_link(const std::string& link)
+    {
+	const char *cc = getenv("BROWSER");
+	if (! cc) {
+	    info = "BROWSER environment variable not set";
+	    return;
+	}
+	const std::string browser = cc;
+	if (browser.empty()) {
+	    info = "BROWSER environment variable is empty";
+	    return;
+	}
+	if (! run_command_background(browser + "'" + link + "'")) {
+	    info = "could not launch web browser in background";
+	    return;
+	}
+	info = "launched " + link + " in browser";
+	refresh_lines_window();
+	refresh();
+    }
+
+    void key_mouse()
+    {
+	MEVENT e;
+	if (getmouse(&e) != OK) {
+	    return;
+	}
+	if (e.bstate & BUTTON1_CLICKED) {
+	    auto it = link.find(std::make_pair(static_cast<unsigned>(e.x), static_cast<unsigned>(e.y)));
+	    if (it != link.end()) {
+		const std::string l = to_utf8(it->second);
+		info = "click " + l;
+		click_link(l);
+	    }
 	}
     }
 
@@ -1223,6 +1332,32 @@ namespace {
 	}
     }
 
+    // check for terminated child process
+    void check_for_zombies()
+    {
+	int status = 0;
+	pid_t pid = waitpid(-1, &status, WNOHANG);
+	if (pid <= 0) {
+	    return;
+	}
+	info = "child PID " + std::to_string(pid);
+	if (WIFEXITED(status)) {
+	    info += " exit " + std::to_string(WEXITSTATUS(status));
+	} else if (WIFSIGNALED(status)) {
+#ifdef WCOREDUMP
+	    if (WCOREDUMP(status)) {
+		info += " produced core dump";
+	    } else
+#endif
+		{
+		    // \todo signal name
+		    info += " signal " + std::to_string(WTERMSIG(status));
+		}
+	} else {
+	    info += " unknown exit";
+	}
+    }
+
 }
 
 void help();
@@ -1413,6 +1548,8 @@ int realmain_impl(int argc, char * const argv[])
 	    info = stdinfo;
 	}
 
+	check_for_zombies();
+
 	// process key presses
 	if (key == 'q' || key == 'Q') {
 	    break;
@@ -1515,6 +1652,10 @@ int realmain_impl(int argc, char * const argv[])
 	case KEY_F(8):
 	case KEY_F(9):
 	    edit_regex(df_y, key - KEY_F(1), df_vec, false);
+	    break;
+
+	case KEY_MOUSE:
+	    key_mouse();
 	    break;
 	}
     }

@@ -15,6 +15,7 @@ TODO
  + manage all line numbers as 64bit unsigned
 - split realmain.cc into components
 - maybe search in background? However while searching in background the user can modify the display_info object which will invalidate the iterators that the background search would use.
+- detect emails
 
 - color
  + developed on the "color" branch

@@ -5,3 +5,4 @@
 #pragma once
 #include <string>
 std::wstring to_wide(const std::string& s);
+std::string to_utf8(const std::wstring& s);

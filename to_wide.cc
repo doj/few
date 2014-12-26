@@ -39,3 +39,15 @@ std::wstring to_wide(const std::string& s)
     }
     return out;
 }
+
+std::string to_utf8(const std::wstring& s)
+{
+    const size_t len = wcstombs(nullptr, s.c_str(), 0);
+    if (len == (size_t)-1) {
+	return "";
+    }
+    std::string utf8(len, ' ');
+    const size_t l = wcstombs(const_cast<char*>(utf8.data()), s.c_str(), utf8.size()+1);
+    assert(l == len);
+    return utf8;
+}

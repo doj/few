@@ -166,6 +166,14 @@ file. This is usually not a problem if you match ASCII characters.
 The search regular expression however is matched against the wide
 character representation of the displayed lines.
 
+Links and URLs
+--------------
+
+few will attempt to detect URLs and links. If it detect a link, URL or
+email address few will underline the match. You can click the
+underlined text to have the link opened in a web browser or email
+client. On Unix you need to set the BROWSER environment variable.
+
 AUTHOR
 ------
 few is written by Dirk Jagdmann <doj@cubic.org>. You can write him
