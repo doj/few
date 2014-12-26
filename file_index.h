@@ -37,6 +37,8 @@ class file_index
 
 public:
 
+    typedef std::shared_ptr<file_index> ptr_t;
+
     typedef std::vector<std::shared_ptr<regex_index>> regex_index_vec_t;
 
     /**

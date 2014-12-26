@@ -31,6 +31,7 @@
 #include "to_wide.h"
 #include "event.h"
 #include "intersect.h"
+#include "search.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -70,10 +71,10 @@ namespace {
     unsigned search_y;
 
     /// the file that is displayed
-    std::shared_ptr<file_index> f_idx;
+    file_index::ptr_t f_idx;
 
     /// object to manage displayed lines
-    DisplayInfo display_info;
+    DisplayInfo::ptr_t display_info;
 
     /// height of the lines window
     unsigned w_lines_height;
@@ -215,9 +216,9 @@ namespace {
 
 	middle_line_number = 0;
 	unsigned y = 0;
-	if (display_info.start()) {
+	if (display_info->start()) {
 	    while(y < w_lines_height) {
-		const line_number_t current_line_num = display_info.current();
+		const line_number_t current_line_num = display_info->current();
 		if (y < w_lines_height/2) {
 		    middle_line_number = current_line_num;
 		}
@@ -258,7 +259,7 @@ namespace {
 		    }
 
 		    // do we have another line to display?
-		    if (display_info.next()) {
+		    if (display_info->next()) {
 			continue; // there is a next line to display
 		    } else {
 			break; // last line displayed
@@ -332,7 +333,7 @@ namespace {
 		// did we display the full line?
 		if (it == wline.end()) {
 		    // do we have another line to display?
-		    if (display_info.next()) {
+		    if (display_info->next()) {
 			continue; // there is a next line to display
 		    } else {
 			break; // last line displayed
@@ -531,10 +532,10 @@ namespace {
 
     void key_up()
     {
-	if (display_info.isFirstLineDisplayed()) {
+	if (display_info->isFirstLineDisplayed()) {
 	    info = "moved to top";
 	} else {
-	    display_info.up();
+	    display_info->up();
 	}
 	refresh_lines_window();
 	refresh();
@@ -542,10 +543,10 @@ namespace {
 
     void key_down()
     {
-	if (display_info.isLastLineDisplayed()) {
+	if (display_info->isLastLineDisplayed()) {
 	    info = "moved to bottom";
 	} else {
-	    display_info.down();
+	    display_info->down();
 	}
 	refresh_lines_window();
 	refresh();
@@ -553,10 +554,10 @@ namespace {
 
     void key_npage()
     {
-	if (display_info.isLastLineDisplayed()) {
+	if (display_info->isLastLineDisplayed()) {
 	    info = "moved to bottom";
 	} else {
-	    display_info.page_down();
+	    display_info->page_down();
 	}
 	refresh_lines_window();
 	refresh();
@@ -564,17 +565,17 @@ namespace {
 
     void key_ppage()
     {
-	if (! display_info.start()) {
+	if (! display_info->start()) {
 	    info = "nothing to display";
-	} else if (display_info.isFirstLineDisplayed()) {
+	} else if (display_info->isFirstLineDisplayed()) {
 	    info = "moved to top";
 	} else {
 	    // scroll up until the old top line is the current bottom line
-	    const line_number_t oldTopLineNum = display_info.current();
-	    while (!display_info.isFirstLineDisplayed()) {
-		display_info.up();
+	    const line_number_t oldTopLineNum = display_info->current();
+	    while (!display_info->isFirstLineDisplayed()) {
+		display_info->up();
 		refresh_lines_window();
-		if (display_info.bottomLineNum() <= oldTopLineNum) {
+		if (display_info->bottomLineNum() <= oldTopLineNum) {
 		    break;
 		}
 	    }
@@ -587,10 +588,10 @@ namespace {
     // position display on top line
     void key_g()
     {
-	if (display_info.isFirstLineDisplayed()) {
+	if (display_info->isFirstLineDisplayed()) {
 	    info = "moved to top";
 	} else {
-	    display_info.top();
+	    display_info->top();
 	}
 	refresh_lines_window();
 	refresh();
@@ -599,23 +600,23 @@ namespace {
     // position display on bottom line
     void key_G()
     {
-	if (! display_info.start()) {
+	if (! display_info->start()) {
 	    info = "nothing to display";
-	} else if (display_info.isLastLineDisplayed()) {
+	} else if (display_info->isLastLineDisplayed()) {
 	    info = "moved to bottom";
 	} else {
-	    const line_number_t lastLineNum = display_info.lastLineNum();
-	    display_info.go_to(lastLineNum);
+	    const line_number_t lastLineNum = display_info->lastLineNum();
+	    display_info->go_to(lastLineNum);
 	    // scroll up until we don't print the last line any more
-	    while (!display_info.isFirstLineDisplayed()) {
-		display_info.up();
+	    while (!display_info->isFirstLineDisplayed()) {
+		display_info->up();
 		refresh_lines_window();
-		if (display_info.bottomLineNum() != lastLineNum) {
+		if (display_info->bottomLineNum() != lastLineNum) {
 		    break;
 		}
 	    }
 	    // now scroll down again one line, so we see the last line
-	    display_info.down();
+	    display_info->down();
 	}
 	refresh_lines_window();
 	refresh();
@@ -626,7 +627,7 @@ namespace {
 	if (middle_line_number == 0) {
 	    return;
 	}
-	display_info.go_to(middle_line_number);
+	display_info->go_to(middle_line_number);
 	refresh_lines_window();
 	refresh();
     }
@@ -638,10 +639,43 @@ namespace {
 	}
 	// scroll up until the old middle line number is the bottom line
 	const line_number_t old_mln = middle_line_number;
-	while (!display_info.isFirstLineDisplayed() && display_info.bottomLineNum() > old_mln) {
-	    display_info.up();
+	while (!display_info->isFirstLineDisplayed() && display_info->bottomLineNum() > old_mln) {
+	    display_info->up();
 	    refresh_lines_window();
 	}
+	refresh();
+    }
+
+    // \todo maybe background search?
+    void key_n()
+    {
+	info = "searching...";
+	refresh_lines_window();
+	refresh_info();
+	refresh();
+	if (! search_next(search_rgx, display_info, f_idx)) {
+	    info = "did not find any next search match";
+	} else {
+	    info = "next match found";
+	}
+	refresh_lines_window();
+	refresh_info();
+	refresh();
+    }
+
+    void key_N()
+    {
+	info = "searching...";
+	refresh_lines_window();
+	refresh_info();
+	refresh();
+	if (! search_prev(search_rgx, display_info, f_idx)) {
+	    info = "did not find any next search match";
+	} else {
+	    info = "prev match found";
+	}
+	refresh_lines_window();
+	refresh_info();
 	refresh();
     }
 
@@ -676,7 +710,7 @@ namespace {
 	    multiple_set_intersect(v.begin(), v.end(), std::back_insert_iterator<lineNum_vector_t>(s));
 	}
 
-	display_info.assign(std::move(s));
+	display_info->assign(std::move(s));
     }
 
     void intersect_regex_curses()
@@ -1006,7 +1040,7 @@ namespace {
 	    info = "invalid line number: " + line_num;
 	} else if (l_n > static_cast<int64_t>(std::numeric_limits<line_number_t>::max())) {
 	    info = "line number too big: " + line_num;
-	} else if (! display_info.go_to(l_n)) {
+	} else if (! display_info->go_to(l_n)) {
 	    info = "line number " + line_num + " not currently displayed";
 	}
 	refresh_windows();
@@ -1024,7 +1058,7 @@ namespace {
 	if (p < 0) {
 	    info = "invalid percentage: " + perc;
 	} else {
-	    display_info.go_to_perc(p);
+	    display_info->go_to_perc(p);
 	}
 	refresh_windows();
     }
@@ -1222,6 +1256,7 @@ int realmain_impl(int argc, char * const argv[])
     const std::string filename = argv[optind];
 
     setlocale(LC_ALL, "");
+    display_info = std::make_shared<DisplayInfo>();
 
     f_idx = std::make_shared<file_index>(filename);
     {
@@ -1279,7 +1314,7 @@ int realmain_impl(int argc, char * const argv[])
     line_edit_history = std::make_shared<History>(std::string(getenv("HOME")) + "/" + line_edit_history_rc);
 
     if (topLine > 0) {
-	display_info.go_to_approx(topLine);
+	display_info->go_to_approx(topLine);
     }
 
     atexit(close_curses);
@@ -1295,7 +1330,7 @@ int realmain_impl(int argc, char * const argv[])
 
 	if (verbose) {
 	    info= stdinfo + " "
-		+ std::to_string(f_idx->perc(display_info.topLineNum())) + "%"
+		+ std::to_string(f_idx->perc(display_info->topLineNum())) + "%"
 		+ " use " + std::to_string(getCurrentRSS()/1024/1024) + " MB"
 		;
 	} else {
@@ -1324,7 +1359,15 @@ int realmain_impl(int argc, char * const argv[])
 	    if (search_str.empty()) {
 		key_down();
 	    } else {
+		key_n();
+	    }
+	    break;
 
+	case 'N':
+	    if (search_str.empty()) {
+		info = "no search regex";
+	    } else {
+		key_N();
 	    }
 	    break;
 
@@ -1423,11 +1466,11 @@ int realmain_impl(int argc, char * const argv[])
 	std::cout << " --search '" << search_str << "'";
     }
 
-    display_info.start();
+    display_info->start();
 
     std::cout << " --tabwidth " << tab_width;
-    if (display_info.current() > 0) {
-	std::cout << " --goto " << display_info.current();
+    if (display_info->current() > 0) {
+	std::cout << " --goto " << display_info->current();
     }
     std::cout << " '" << filename << "'" << std::endl;
 

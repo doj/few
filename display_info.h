@@ -7,6 +7,7 @@
 #include "types.h"
 #include <vector>
 #include <string>
+#include <memory>
 
 class DisplayInfo
 {
@@ -17,6 +18,8 @@ class DisplayInfo
     displayedLineNum_t::iterator bottomLineIt;
 
 public:
+
+    typedef std::shared_ptr<DisplayInfo> ptr_t;
 
     void assign(lineNum_vector_t&& v);
 
@@ -43,6 +46,13 @@ public:
      * @return true if there is a next line; false if the current line is the last line and nothing was advanced.
      */
     bool next();
+
+    /**
+     * advance to the previous line.
+     * This function can only be called after start() has been called.
+     * @return true if there is a previous line; false if the current line is the first line and nothing was advanced.
+     */
+    bool prev();
 
     /**
      * This function can only be called after start() has been called.

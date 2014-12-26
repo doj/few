@@ -66,6 +66,16 @@ DisplayInfo::next()
 }
 
 bool
+DisplayInfo::prev()
+{
+    if (bottomLineIt == displayedLineNum.begin()) {
+	return false;
+    }
+    --bottomLineIt;
+    return true;
+}
+
+bool
 DisplayInfo::isFirstLineDisplayed() const
 {
     return topLineIt == displayedLineNum.begin();

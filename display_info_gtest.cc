@@ -150,3 +150,17 @@ TEST(DisplayInfo, topLineNum)
     i.assign(s());
     ASSERT_EQ(1u, i.topLineNum());
 }
+
+TEST(DisplayInfo, prev)
+{
+    DisplayInfo i;
+    i.assign(s());
+    i.start();
+    ASSERT_FALSE(i.prev());
+
+    ASSERT_TRUE(i.next());
+    ASSERT_EQ(2u, i.current());
+    ASSERT_TRUE(i.prev());
+    ASSERT_EQ(1u, i.current());
+    ASSERT_FALSE(i.prev());
+}

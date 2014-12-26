@@ -156,7 +156,7 @@ details on how the C++ regex library is matching and replaceing.
 
 ### Regular Expressions and wide characters
 
-The fewer program is able to display wide characters and files encoded
+The few program is able to display wide characters and files encoded
 in UTF-8. However because it is designed to work with large files, it
 will not attempt to match the regular expressions on the wide
 character representations of the file processed. The (display) filter
@@ -173,7 +173,7 @@ an email and ask questions about this program.
 
 RESOURCES
 ---------
-the source code is hosted on Github: <https://github.com/doj/fewer>
+the source code is hosted on Github: <https://github.com/doj/few>
 
 SEE ALSO
 --------
