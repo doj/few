@@ -24,5 +24,4 @@ TODO
  + manage all line numbers as 64bit unsigned
 - split realmain.cc into components
 
-- intersect all regex_index line number sets at once
 - regex_index could use a sorted vector of line numers and not a std::set

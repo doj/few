@@ -29,6 +29,7 @@
 #include "getRSS.h"
 #include "to_wide.h"
 #include "event.h"
+#include "intersect.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -650,11 +651,13 @@ namespace {
     void intersect_regex(ProgressFunctor *func)
     {
 	// set up a vector of ILineNumSetProvider
-	typedef std::vector<std::shared_ptr<ILineNumSetProvider>> v_t;
-	v_t v;
+	std::shared_ptr<regex_index> ri;
+	std::vector<std::pair<lineNum_set_t::iterator, lineNum_set_t::iterator>> v;
 	for(auto c : filter_vec) {
 	    if (c->ri_) {
-		v.push_back(c->ri_);
+		ri = c->ri_;
+		const auto& s = ri->lineNum_set();
+		v.push_back(std::make_pair(s.begin(), s.end()));
 	    }
 	}
 
@@ -666,66 +669,14 @@ namespace {
 
 	// if there is only a single regex_index object, use that one
 	if (v.size() == 1) {
-	    display_info = v[0]->lineNum_set();
+	    display_info = ri->lineNum_set();
 	    return;
 	}
 
-	// a lambda function to iterate the vector and intersect the sets
-	auto f = [](v_t::iterator begin, v_t::iterator end, lineNum_set_t& s, ProgressFunctor *func)
-	    {
-		unsigned cnt = 0;
-		if (func) {
-		    ++cnt;
-		    func->progress(cnt, cnt*20);
-		}
-		s = (*begin)->lineNum_set();
-		while(++begin != end) {
-		    if (func) {
-			++cnt;
-			func->progress(cnt, cnt*20);
-		    }
-		    s = (*begin)->intersect(s);
-		}
-	    };
-
+	// intersect multiple sets
 	lineNum_set_t s;
-	if (v.size() < 4) {
-	    // main thread works through v
-	    f(v.begin(), v.end(), s, func);
-	} else {
-	    // use two threads to work on the vector
-	    const unsigned mid = v.size() / 2u;
-	    lineNum_set_t r;
-	    std::thread t1(f, v.begin(), v.begin() + mid, std::ref(s), nullptr);
-	    std::thread t2(f, v.begin() + mid, v.end(), std::ref(r), nullptr);
-	    if (func) func->progress(0, 0);
-	    t1.join();
-	    if (func) func->progress(1, 1*20);
-	    t2.join();
-	    if (func) func->progress(2, 2*20);
-	    // if any set is empty, there's nothing to intersect
-	    if (s.empty() || r.empty()) {
-		s.clear();
-	    } else {
-		// ensure that s has less elements than r
-		if (s.size() > r.size()) {
-		    s.swap(r);
-		}
-		// loop over s and remove all elements not present in r
-		foreach_e(s, it) {
-		    if (r.count(*it) == 0) {
-			s.erase(it);
-		    }
-		    if (s.empty()) {
-			break;
-		    }
-		}
-	    }
-	    if (func) func->progress(3, 3*20);
-	}
-	if (func) func->progress(4, 4*20);
+	multiple_set_intersect(v.begin(), v.end(), std::inserter(s, s.begin()));
 	display_info = s;
-	if (func) func->progress(5, 5*20);
     }
 
     void intersect_regex_curses()

@@ -72,11 +72,11 @@ test:	$(TEST_OBJS)
 run_test:	test
 	./$<
 
-debug_test:	test
 ifeq ($(DEBUG),1)
+debug_test:	test
 	gdb $<
 else
-	$(MAKE) clean
+debug_test:	clean
 	$(MAKE) $@ DEBUG=1
 endif
 
@@ -105,7 +105,7 @@ dist:	few.1 few.html
 
 clean:
 	rm -f test few few.md few.tar.gz
-	find . -name '*~' -or -name '*.o' -or -name '*.d' -delete
+	-find . -name '*~' -or -name '*.o' -or -name '*.d' | xargs rm
 
 distclean:	clean
 	rm -f few.1 few.html few-$(TODAY).tar.gz
