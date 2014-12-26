@@ -5,6 +5,7 @@
 
 #include "gtest/gtest.h"
 #include "file_index.h"
+#include "intersect.h"
 
 TEST(regex_index, does_filter_non_empty_lines)
 {
@@ -40,50 +41,18 @@ TEST(regex_index, intersect_works)
     auto b = std::make_shared<regex_index>("contains");
     fi->parse_all(b);
 
-    auto s = b->intersect(a->lineNum_set());
+    lineNum_set_intersect_vector_t v = { std::make_pair(a->lineNum_set().begin(), a->lineNum_set().end()),
+					 std::make_pair(b->lineNum_set().begin(), b->lineNum_set().end()) };
+    lineNum_set_t s;
+    ASSERT_EQ(1u, multiple_set_intersect(v.begin(), v.end(), std::inserter(s, s.begin())));
     ASSERT_EQ(1u, s.size());
 
     auto c = std::make_shared<regex_index>("this does not match anything");
     fi->parse_all(c);
     ASSERT_EQ(0u, c->size());
-    s = c->intersect(a->lineNum_set());
-    ASSERT_EQ(0u, s.size());
-}
 
-TEST(regex_index, intersect_works_on_test2_txt)
-{
-    auto fi = std::make_shared<file_index>("test2.txt");
-    fi->parse_all();
-    ASSERT_EQ(6u, fi->size());
-
-    auto word_characters = std::make_shared<regex_index>("\\w");
-    fi->parse_all(word_characters);
-    ASSERT_EQ(6u, word_characters->size());
-
-    auto b = std::make_shared<regex_index>("b+");
-    fi->parse_all(b);
-    ASSERT_EQ(1u, b->size());
-
-    auto s = fi->lineNum_set();
-    ASSERT_EQ(6u, s.size());
-    s = word_characters->intersect(s);
-    ASSERT_EQ(6u, s.size());
-    s = b->intersect(s);
-    ASSERT_EQ(1u, s.size());
-
-    s = fi->lineNum_set();
-    ASSERT_EQ(6u, s.size());
-    s = b->intersect(s);
-    ASSERT_EQ(1u, s.size());
-    s = word_characters->intersect(s);
-    ASSERT_EQ(1u, s.size());
-
-    auto z = std::make_shared<regex_index>("z");
-    ASSERT_EQ(0u, z->size());
-    s = fi->lineNum_set();
-    ASSERT_EQ(6u, s.size());
-    s = z->intersect(s);
-    ASSERT_EQ(0u, s.size());
-    s = b->intersect(s);
+    v[1] = std::make_pair(c->lineNum_set().begin(), c->lineNum_set().end());
+    s.clear();
+    ASSERT_EQ(0u, multiple_set_intersect(v.begin(), v.end(), std::inserter(s, s.begin())));
     ASSERT_EQ(0u, s.size());
 }

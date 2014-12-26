@@ -652,7 +652,7 @@ namespace {
     {
 	// set up a vector of ILineNumSetProvider
 	std::shared_ptr<regex_index> ri;
-	std::vector<std::pair<lineNum_set_t::iterator, lineNum_set_t::iterator>> v;
+	lineNum_set_intersect_vector_t v;
 	for(auto c : filter_vec) {
 	    if (c->ri_) {
 		ri = c->ri_;

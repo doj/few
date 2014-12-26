@@ -49,29 +49,6 @@ regex_index::match(const line_t& line)
     //std::clog << std::endl;
 }
 
-lineNum_set_t
-intersect(const lineNum_set_t& L, const lineNum_set_t& R)
-{
-    // make l the smaller set
-    const bool L_smaller_R = L.size() < R.size();
-    const lineNum_set_t &l = L_smaller_R ? L : R;
-    const lineNum_set_t &r = L_smaller_R ? R : L;
-
-    lineNum_set_t s;
-    for(auto i : l) {
-	if (r.count(i)) {
-	    s.insert(i);
-	}
-    }
-    return s;
-}
-
-lineNum_set_t
-ILineNumSetProvider::intersect(const lineNum_set_t& s)
-{
-    return ::intersect(lineNum_set(), s);
-}
-
 const lineNum_set_t&
 regex_index::lineNum_set()
 {
