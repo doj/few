@@ -652,11 +652,22 @@ namespace {
 	// set up a vector of ILineNumSetProvider
 	typedef std::vector<std::shared_ptr<ILineNumSetProvider>> v_t;
 	v_t v;
-	v.push_back(f_idx);
 	for(auto c : filter_vec) {
 	    if (c->ri_) {
 		v.push_back(c->ri_);
 	    }
+	}
+
+	// if there are no regex_index objects found, show the complete file
+	if (v.empty()) {
+	    display_info = f_idx->lineNum_set();
+	    return;
+	}
+
+	// if there is only a single regex_index object, use that one
+	if (v.size() == 1) {
+	    display_info = v[0]->lineNum_set();
+	    return;
 	}
 
 	// a lambda function to iterate the vector and intersect the sets
