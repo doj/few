@@ -5,9 +5,13 @@
 
 #pragma once
 
-/// define to enable curses with wide characters
 #define _XOPEN_SOURCE_EXTENDED 1
+#if defined(__FreeBSD__)
+#include <ncurses.h>
+#else
+/// define to enable curses with wide characters
 #include <ncursesw/curses.h>
+#endif
 
 /**
  * helper class to manage curses attributes.

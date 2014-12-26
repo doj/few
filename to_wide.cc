@@ -5,6 +5,8 @@
 #include "to_wide.h"
 #include <cassert>
 #include <cstring>
+#include <cstdlib>
+#include <errno.h>
 
 std::wstring to_wide(const std::string& s)
 {

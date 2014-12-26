@@ -7,6 +7,11 @@
 #include <algorithm>
 #include <cassert>
 
+DisplayInfo::DisplayInfo() :
+    topLineIt(displayedLineNum.end()),
+    bottomLineIt(displayedLineNum.end())
+{ }
+
 void
 DisplayInfo::go_to_approx(const line_number_t line_num)
 {
@@ -35,7 +40,7 @@ DisplayInfo::assign(lineNum_vector_t&& v)
     }
 
     displayedLineNum = std::move(v);
-
+    topLineIt = bottomLineIt = displayedLineNum.begin();
     go_to_approx(old_line_num);
 }
 

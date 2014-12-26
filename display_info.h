@@ -21,6 +21,8 @@ public:
 
     typedef std::shared_ptr<DisplayInfo> ptr_t;
 
+    DisplayInfo();
+
     void assign(lineNum_vector_t&& v);
 
     /// @return the number of lines managed by this object.

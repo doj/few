@@ -1,9 +1,9 @@
-# Makefile for the few program
+# GNU Makefile for the few program
 
 ##############################################################################
 # Compiler Flags
 
-WARNING_FLAGS += -Wall -Werror
+WARNING_FLAGS += -Wall
 INCLUDE_FLAGS += -I.
 
 CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_FLAGS) -std=c++11 -MMD
@@ -14,10 +14,16 @@ else
 CXXFLAGS += -O3
 endif
 
+ifeq ($(shell uname),FreeBSD)
+CXX = c++
+else
+WARNING_FLAGS += -Werror
+endif
+
 ##############################################################################
 # source code
 
-SRCS := $(shell find -name '*.cc' -and -not -name '*_gtest.cc')
+SRCS := $(shell find . -name '*.cc' -and -not -name '*_gtest.cc')
 OBJS := $(SRCS:.cc=.o)
 
 ##############################################################################

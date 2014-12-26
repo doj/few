@@ -791,7 +791,7 @@ namespace {
 #endif
 		    {
 			// \todo signame
-			info = "command exited with signal: " + WTERMSIG(s);
+			info = "command exited with signal: " + std::to_string(WTERMSIG(s));
 		    }
 	    } else {
 		info = "unknown error when running: " + cmd;
