@@ -26,6 +26,11 @@ OBJS := $(SRCS:.cc=.o)
 LIBS = -lncursesw -lpthread
 
 ##############################################################################
+# installation
+
+PREFIX ?= /usr/local
+
+##############################################################################
 # build and debug the few program
 
 all:	run_test few
@@ -49,6 +54,7 @@ few.md:	README.md TODO.md
 few.1:	few.md
 	$(RONN) --roff $<
 	mv -f few $@
+	chmod 644 $@
 
 few.html:	few.md
 	$(RONN) --html $<
@@ -79,15 +85,30 @@ endif
 ##############################################################################
 # misc targets
 
-dist:	all few.1 few.html
+install:	all
+	install -D -m 755 few $(DESTDIR)/$(PREFIX)/bin/few
+# because generation of few.1 will overwrite the few executable, we can not list few.1 as a dependency for install:
+# call another make process to generate and install the man page
+	$(MAKE) install_man
+
+install_man:	few.1
+	install -D -m 644 few.1 $(DESTDIR)/$(PREFIX)/man/man1/few.1
+
+TODAY=$(shell date '+%Y%m%d')
+dist:	few.1 few.html
 	$(MAKE) clean
-	echo 'TODO: create .tar.gz of source code'
+	rm -f /tmp/few-$(TODAY) few-$(TODAY).tar.gz .emacs.desktop
+	ln -s "$(PWD)" /tmp/few-$(TODAY)
+	cd /tmp ; tar c --exclude-vcs --exclude-backups --dereference few-$(TODAY) | gzip -9 > /tmp/few-$(TODAY).tar.gz
+	rm /tmp/few-$(TODAY)
+	mv /tmp/few-$(TODAY).tar.gz "$(PWD)/"
 
 clean:
-	rm -f *~ test few $(TEST_DEPS) $(TEST_OBJS) *.o *.d few.md
+	rm -f test few few.md few.tar.gz
+	find . -name '*~' -or -name '*.o' -or -name '*.d' -delete
 
 distclean:	clean
-	rm -f few.1 few.html
+	rm -f few.1 few.html few-$(TODAY).tar.gz
 
 show-log:
 	git log --oneline --abbrev-commit --all --graph
