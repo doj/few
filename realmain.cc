@@ -775,7 +775,7 @@ namespace {
 	// try to render a text version of the manpage
 	try {
 	    TemporaryFile tmp;
-	    if (! run_command("MANWIDTH=" + std::to_string(screen_width - 10) + " man few > " + tmp.filename())) {
+	    if (! run_command("MANWIDTH=" + std::to_string(screen_width - 10) + " man few > " + tmp.filename() + " 2> /dev/null")) {
 		return;
 	    }
 	    run_program(argv0 + " " + tmp.filename());
