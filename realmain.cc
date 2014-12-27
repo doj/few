@@ -792,7 +792,7 @@ namespace {
      * @param cmd shell command line to execute in background.
      * @return true upon success.
      */
-    bool run_command_background(const std::string& cmd)
+    bool run_command_background(std::string cmd)
     {
 	bool b = false;
 	close_curses();
@@ -802,21 +802,13 @@ namespace {
 	    info = std::string("could not fork: ") + strerror(errno);
 	} else if (pid == 0) {
 	    // child
-
-	    // make standard file descriptors use /dev/null
-	    int dev_null = open("/dev/null", O_RDWR);
-	    if (dev_null < 0) {
-		exit(EX_OSERR);
-	    }
-	    dup2(dev_null, 0);
-	    dup2(dev_null, 1);
-	    dup2(dev_null, 2);
-
+	    cmd += " > /dev/null 2>&1";
 	    int s = system(cmd.c_str());
+	    // _exit() will not run the atexit() handlers.
 	    if (WIFEXITED(s)) {
-		exit(WEXITSTATUS(s));
+		_exit(WEXITSTATUS(s));
 	    }
-	    exit(EXIT_FAILURE);
+	    _exit(EXIT_FAILURE);
 	} else {
 	    info = "created child PID " + std::to_string(pid);
 	    b = true;
@@ -828,21 +820,21 @@ namespace {
 
     void click_link(const std::string& link)
     {
+	std::string browser = "firefox";
 	const char *cc = getenv("BROWSER");
-	if (! cc) {
-	    info = "BROWSER environment variable not set";
-	    return;
+	if (cc) {
+	    browser = cc;
+	    if (browser.empty()) {
+		info = "BROWSER environment variable is empty";
+		return;
+	    }
 	}
-	const std::string browser = cc;
-	if (browser.empty()) {
-	    info = "BROWSER environment variable is empty";
-	    return;
-	}
-	if (! run_command_background(browser + "'" + link + "'")) {
+	assert(! browser.empty());
+	if (! run_command_background(browser + " '" + link + "'")) {
 	    info = "could not launch web browser in background";
 	    return;
 	}
-	info = "launched " + link + " in browser";
+	info = "opened " + link + " in browser";
 	refresh_lines_window();
 	refresh();
     }

@@ -169,10 +169,17 @@ character representation of the displayed lines.
 Links and URLs
 --------------
 
-few will attempt to detect URLs and links. If it detect a link, URL or
-email address few will underline the match. You can click the
+few will attempt to detect URLs and links. If it detects a link, URL
+or email address few will underline the match. You can click the
 underlined text to have the link opened in a web browser or email
-client. On Unix you need to set the BROWSER environment variable.
+client. On Unix you need to set the BROWSER environment variable if
+you don't like the default web browser firefox.
+
+ENVIRONMENT VARIABLES
+---------------------
+
+* **BROWSER**:
+  name of web browser to launch. If not set defaults to firefox.
 
 AUTHOR
 ------
