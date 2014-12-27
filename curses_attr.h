@@ -15,8 +15,17 @@
  */
 class curses_attr
 {
-    const unsigned a_;
+    attr_t attrs_;
+    short pair_;
 public:
-    explicit curses_attr(unsigned a) : a_(a) { attron(a_); }
-    ~curses_attr() { attroff(a_); }
+    explicit curses_attr(unsigned a)
+    {
+	attr_get(&attrs_, &pair_, nullptr);
+	attron(a);
+    }
+    ~curses_attr()
+    {
+	attrset(attrs_);
+	color_set(pair_, nullptr);
+    }
 };

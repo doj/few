@@ -52,6 +52,18 @@ namespace {
     /// the info string which is shown in the lower right corner
     std::string info;
 
+    /// if true, use color
+    bool use_color = false;
+    ///@{
+    ///@name color attributes
+    unsigned gray_on_black = 0;
+    unsigned white_on_black = 0;
+    unsigned red_on_black = 0;
+    unsigned lightred_on_black = 0;
+    unsigned lightgray_on_black = 0;
+    unsigned green_on_black = 0;
+    ///@}
+
     /// minimum screen height
     const unsigned min_screen_height = 1 // lines
 	+ 9 // filters
@@ -183,7 +195,7 @@ namespace {
     {
 	unsigned x = 0;
 
-	curses_attr a(A_REVERSE);
+	curses_attr a(A_REVERSE | white_on_black);
 
 	const unsigned line_len_w = digits(line_len) + 1;
 	const unsigned line_num_w = digits(line_num) + 1;
@@ -220,7 +232,7 @@ namespace {
 	if (info.size() > screen_width) {
 	    info.resize(screen_width);
 	}
-	curses_attr a(A_BOLD);
+	curses_attr a(use_color ? red_on_black : A_BOLD);
 	mvprintw(w_lines_height - 1, screen_width - info.size(), "%s", info.c_str());
     }
 
@@ -295,7 +307,7 @@ namespace {
 			assert(b <= e);
 			// set character attribute for all matched characters
 			for(std::wstring::iterator i = b; i != e; ++i) {
-			    character_attr[i] |= A_REVERSE;
+			    character_attr[i] |= (use_color ? (green_on_black | A_BOLD) : A_REVERSE);
 			}
 		    }
 		}
@@ -320,19 +332,20 @@ namespace {
 		    unsigned x = 0;
 		    // block to print left info column
 		    {
-			curses_attr a(A_REVERSE);
 			// are we at the start of the line?
 			if (it == wline.begin()) {
 			    // print line number
 			    x += print_line_prefix(y, line.num_, wline.size(), line_num_width);
 			} else {
 			    // print empty space
+			    curses_attr a(A_REVERSE | white_on_black);
 			    for(; x < line_num_width; ++x) {
 				mvaddch(y, x, ' ');
 			    }
 			}
 		    }
 		    // print line in chunks of screen width
+		    curses_attr a(gray_on_black);
 		    for(; it != wline.end() && x < screen_width; ++it) {
 			// check for link
 			auto i = iterator2link.find(it);
@@ -412,22 +425,27 @@ namespace {
 
     void refresh_regex_window(unsigned y, const std::string& title_param, const regex_vec_t& vec)
     {
-	curses_attr a(A_REVERSE);
 	unsigned cnt = 0;
 	for(auto c : vec) {
+	    ++cnt;
 	    std::string s = c->rgx_;
 	    std::string title = title_param;
+	    unsigned attr = A_REVERSE;
 
-	    if (! c->err_.empty()) {
+	    if (c->err_.empty()) {
+		attr |= (cnt&1) ? gray_on_black : lightgray_on_black;
+	    } else {
+		attr |= red_on_black;
 		s += " : ";
 		s += c->err_;
 		title = "error";
 	    }
+	    curses_attr a(attr);
 
 	    unsigned X = 0;
 	    {
 		curses_attr a(A_BOLD);
-		mvprintw(y, X, "%s %u ", title.c_str(), ++cnt);
+		mvprintw(y, X, "%s %u ", title.c_str(), cnt);
 		X += 8;
 	    }
 
@@ -435,7 +453,7 @@ namespace {
 		X += print_string(y, X, s);
 
 		if (c->ri_) {
-		    curses_attr a(A_DIM);
+		    curses_attr a(use_color ? 0 : A_BOLD);
 		    s = " (";
 		    const uint64_t num = c->ri_->size();
 		    s += std::to_string(num);
@@ -530,7 +548,7 @@ namespace {
 	refresh_windows();
     }
 
-    void initialize_curses()
+    bool initialize_curses()
     {
 	initscr();
 	cbreak();
@@ -539,11 +557,35 @@ namespace {
 	intrflush(stdscr, false);
 	keypad(stdscr, true);
 	halfdelay(3);
-	//start_color();
 	mousemask(BUTTON1_CLICKED, nullptr);
 	curs_set(0); // disable cursor
 
+	if (use_color) {
+	    use_color = has_colors();
+	}
+	if (use_color) {
+	    start_color();
+	    if (COLOR_PAIRS < 3) {
+		endwin();
+		std::cerr << "Your terminal does not support enough color pairs: " << COLOR_PAIRS << std::endl;
+		return false;
+	    }
+
+	    init_pair(1, COLOR_WHITE, COLOR_BLACK);
+	    lightgray_on_black = COLOR_PAIR(1);
+	    white_on_black = COLOR_PAIR(1) | A_BOLD | A_STANDOUT;
+	    gray_on_black = COLOR_PAIR(1) | A_DIM;
+
+	    init_pair(2, COLOR_RED, COLOR_BLACK);
+	    red_on_black = COLOR_PAIR(2);
+	    lightred_on_black = COLOR_PAIR(2) | A_BOLD | A_STANDOUT;
+
+	    init_pair(3, COLOR_GREEN, COLOR_BLACK);
+	    green_on_black = COLOR_PAIR(3);
+	}
+
 	create_windows();
+	return true;
     }
 
     void close_curses()
@@ -1392,6 +1434,7 @@ int realmain_impl(int argc, char * const argv[])
 	opt_search,
 	opt_goto,
 	opt_help,
+	opt_color,
     };
     const struct option longopts[] = {
 	{ "tabwidth", required_argument, nullptr, opt_tabwidth },
@@ -1400,6 +1443,7 @@ int realmain_impl(int argc, char * const argv[])
 	{ "search", required_argument, nullptr, opt_search },
 	{ "goto", required_argument, nullptr, opt_goto },
 	{ "help", no_argument, nullptr, opt_help },
+	{ "color", no_argument, nullptr, opt_color },
 	{ nullptr, 0, nullptr, 0 }
     };
 
@@ -1416,6 +1460,10 @@ int realmain_impl(int argc, char * const argv[])
 
 	case 'v':
 	    ++verbose;
+	    break;
+
+	case opt_color:
+	    use_color = true;
 	    break;
 
 	case opt_regex:
@@ -1540,7 +1588,9 @@ int realmain_impl(int argc, char * const argv[])
     }
 
     atexit(close_curses);
-    initialize_curses();
+    if (! initialize_curses()) {
+	return EX_UNAVAILABLE;
+    }
 
     while(true) {
 	// loop until a key was pressed
@@ -1703,6 +1753,12 @@ int realmain_impl(int argc, char * const argv[])
     std::cout << " --tabwidth " << tab_width;
     if (display_info->current() > 0) {
 	std::cout << " --goto " << display_info->current();
+    }
+    for(unsigned u = 0; u < verbose; ++u) {
+	std::cout << " -v";
+    }
+    if (use_color) {
+	std::cout << " --color";
     }
     std::cout << " '" << filename << "'" << std::endl;
 
