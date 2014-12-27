@@ -435,7 +435,7 @@ namespace {
 		X += print_string(y, X, s);
 
 		if (c->ri_) {
-		    curses_attr a(A_BOLD);
+		    curses_attr a(A_DIM);
 		    s = " (";
 		    const uint64_t num = c->ri_->size();
 		    s += std::to_string(num);
@@ -541,6 +541,7 @@ namespace {
 	halfdelay(3);
 	//start_color();
 	mousemask(BUTTON1_CLICKED, nullptr);
+	curs_set(0); // disable cursor
 
 	create_windows();
     }
@@ -895,6 +896,21 @@ namespace {
 	intersect_regex(&func);
     }
 
+    class CursesCursorHelper
+    {
+	const int prev_;
+    public:
+	CursesCursorHelper(int state) :
+	    prev_(curs_set(state))
+	{}
+	~CursesCursorHelper()
+	{
+	    if (prev_ != ERR) {
+		curs_set(prev_);
+	    }
+	}
+    };
+
     History::ptr_t line_edit_history;
 
     /**
@@ -926,6 +942,9 @@ namespace {
 
 	// the cursor position
 	unsigned X = s.size();
+
+	// set curses cursor to very visible
+	CursesCursorHelper cch(2);
 
 	while(true) {
 	    for(unsigned i = 0; i < max_width; ++i) {
