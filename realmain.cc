@@ -42,7 +42,8 @@ namespace {
     unsigned red_on_black = 0;
     unsigned lightred_on_black = 0;
     unsigned lightgray_on_black = 0;
-
+    unsigned green_on_black = 0;
+    
     /// minimum screen height
     const unsigned min_screen_height = 1 // lines
 	+ 9 // filters
@@ -271,7 +272,7 @@ namespace {
 			assert(b <= e);
 			// set character attribute for all matched characters
 			for(std::wstring::iterator i = b; i != e; ++i) {
-			    character_attr[i] |= use_color ? lightred_on_black : A_REVERSE;
+			    character_attr[i] |= (use_color ? (green_on_black | A_BOLD) : A_REVERSE);
 			}
 		    }
 		}
@@ -405,7 +406,7 @@ namespace {
 		X += print_string(y, X, s);
 
 		if (c->r_idx_) {
-		    curses_attr a(A_BOLD);
+		    curses_attr a(use_color ? 0 : A_BOLD);
 		    s = " (";
 		    const uint64_t num = c->r_idx_->size();
 		    s += std::to_string(num);
@@ -530,41 +531,18 @@ namespace {
 	   COLOR_CYAN
 	   COLOR_WHITE
 	 */
-	if (can_change_color()) {
-	    init_color(COLOR_WHITE, 1000, 1000, 1000);
-	    init_pair(1, COLOR_WHITE, COLOR_BLACK);
-	    white_on_black = COLOR_PAIR(1);
+	init_pair(1, COLOR_WHITE, COLOR_BLACK);
+	lightgray_on_black = COLOR_PAIR(1);
+	white_on_black = COLOR_PAIR(1) | A_BOLD | A_STANDOUT;
+	gray_on_black = COLOR_PAIR(1) | A_DIM;
 
-	    init_color(COLOR_YELLOW, 900, 900, 900);
-	    init_pair(2, COLOR_YELLOW, COLOR_BLACK);
-	    lightgray_on_black = COLOR_PAIR(2);
+	init_pair(2, COLOR_RED, COLOR_BLACK);
+	red_on_black = COLOR_PAIR(2);
+	lightred_on_black = COLOR_PAIR(2) | A_BOLD | A_STANDOUT;
 
-	    init_color(COLOR_CYAN, 800, 800, 800);
-	    init_pair(3, COLOR_CYAN, COLOR_BLACK);
-	    gray_on_black = COLOR_PAIR(3);
-
-	    init_color(COLOR_RED, 1000, 0, 0);
-	    init_pair(4, COLOR_RED, COLOR_BLACK);
-	    red_on_black = COLOR_PAIR(4);
-
-	    init_color(COLOR_MAGENTA, 1000, 300, 300);
-	    init_pair(5, COLOR_MAGENTA, COLOR_BLACK);
-	    lightred_on_black = COLOR_PAIR(5);
-
-	    // available: COLOR_BLACK COLOR_GREEN COLOR_BLUE
-	} else {
-	    init_pair(1, COLOR_WHITE, COLOR_BLACK);
-	    lightgray_on_black = COLOR_PAIR(1);
-	    white_on_black = gray_on_black | A_BOLD;
-
-	    init_pair(2, COLOR_YELLOW, COLOR_BLACK);
-	    gray_on_black = COLOR_PAIR(2);
-
-	    init_pair(3, COLOR_RED, COLOR_BLACK);
-	    red_on_black = COLOR_PAIR(3);
-	    lightred_on_black = red_on_black | A_BOLD;
-	}
-
+	init_pair(3, COLOR_GREEN, COLOR_BLACK);
+	green_on_black = COLOR_PAIR(3);
+	
 	create_windows();
 	return true;
     }
