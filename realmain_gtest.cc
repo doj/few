@@ -26,7 +26,6 @@ TEST_F(realmainTest, recognizes_invalid_parameters)
 	NULL
     };
     ASSERT_EQ(EX_USAGE, realmain(0,const_cast<char * const *>(argv)));
-    ASSERT_EQ(EX_USAGE, realmain(1,const_cast<char * const *>(argv)));
 }
 
 TEST_F(realmainTest, recognizes_non_existing_file)
