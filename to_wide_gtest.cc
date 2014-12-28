@@ -9,11 +9,17 @@ class to_wide_fix : public ::testing::Test {
 protected:
     virtual void SetUp()
     {
-	setlocale(LC_ALL, "en_US.UTF-8");
+#if defined(_WIN32)
+	const char *loc = setlocale(LC_ALL, "en-US");
+#else
+	const char *loc = setlocale(LC_ALL, "en_US.UTF-8");
+#endif
+	ASSERT_TRUE(loc);
     }
     virtual void TearDown()
     {
-	setlocale(LC_ALL, "C");
+	const char *loc = setlocale(LC_ALL, "C");
+	ASSERT_TRUE(loc);
     }
 };
 
