@@ -5,6 +5,9 @@ TODO
  + fix to_wide() with invalid characters
  + add some more to_wide() tests
 
+- check if we really need SIGWINCH?
+- check if we can simply use COLS and LINES?
+
 - create homepage on <http://llg.cubic.org>
 - test on OsX
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash

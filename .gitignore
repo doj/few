@@ -32,3 +32,5 @@ test
 *.vcxproj.filters
 Debug
 Debug_gtests
+Release
+Release_gtests

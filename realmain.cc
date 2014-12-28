@@ -1740,6 +1740,14 @@ int realmain_impl(int argc, char * const argv[])
 	case KEY_MOUSE:
 	    key_mouse();
 	    break;
+
+	case KEY_RESIZE:
+	    resize_term(0, 0);
+	    create_windows();
+	    info = "screen was resized";
+	    //close_curses();
+	    //initialize_curses();
+	    break;
 	}
     }
 
