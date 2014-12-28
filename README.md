@@ -178,6 +178,20 @@ underlined text to have the link opened in a web browser or email
 client. On Unix you need to set the BROWSER environment variable if
 you don't like the default web browser firefox.
 
+DISPLAY
+-------
+
+When you start few you'll see an inverted column of number on the left
+side. You'll see the line number that is displayed right aligned. If
+there's enough room on the left side of that column you'll see the
+line size in characters, excluding any newline or carriage return
+characters left aligned. The main part of your screen is used to show
+the file contents. The bottom right corner of the main display is used
+to show information on the file or results from internal processing.
+If you've entered a filter, display or search regular expression they
+are shown in the bottom part of the screen in an inverted block. The
+lower right side
+
 ENVIRONMENT VARIABLES
 ---------------------
 
