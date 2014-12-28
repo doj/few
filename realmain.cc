@@ -7,7 +7,6 @@
 #include <getopt.h>
 #include <sysexits.h>
 #include <iostream>
-#include <signal.h>
 #include <cassert>
 #include <stdint.h>
 #include <stdlib.h>
@@ -77,9 +76,9 @@ namespace {
     const unsigned min_screen_width = 16;
 
     /// width of screen in characters
-    unsigned screen_width;
+#define screen_width static_cast<unsigned>(COLS)
     /// height of screen in characters
-    unsigned screen_height;
+#define screen_height static_cast<unsigned>(LINES)
 
     /// width of a tab character in characters
     unsigned tab_width = 8;
@@ -555,18 +554,6 @@ namespace {
 	refresh_windows();
     }
 
-    void get_screen_size()
-    {
-#if defined(_WIN32)
-	getmaxyx(stdscr, screen_height, screen_width);
-#elif defined(__unix__)
-	struct winsize w;
-	ioctl(0, TIOCGWINSZ, &w);
-	screen_width = w.ws_col;
-	screen_height = w.ws_row;
-#endif
-    }
-
     bool initialize_curses()
     {
 	initscr();
@@ -578,7 +565,6 @@ namespace {
 	halfdelay(3);
 	mousemask(BUTTON1_CLICKED, nullptr);
 	curs_set(0); // disable cursor
-	get_screen_size();
 
 	if (use_color) {
 	    use_color = has_colors() ? true : false;
@@ -612,16 +598,6 @@ namespace {
     {
 	endwin();
     }
-
-#if defined(__unix__)
-    void handle_winch(int sig)
-    {
-	signal(SIGWINCH, SIG_IGN);
-	close_curses();
-	initialize_curses();
-	signal(SIGWINCH, handle_winch);
-    }
-#endif
 
     void key_up()
     {
@@ -1590,10 +1566,6 @@ int realmain_impl(int argc, char * const argv[])
     const std::string stdinfo = filename + " (" + std::to_string(f_idx->size()) + " lines)";
     info = stdinfo;
 
-#if defined(__unix__)
-    signal(SIGWINCH, handle_winch);
-#endif
-
     line_edit_history = std::make_shared<History>(line_edit_history_rc);
 
     if (topLine > 0) {
@@ -1742,11 +1714,8 @@ int realmain_impl(int argc, char * const argv[])
 	    break;
 
 	case KEY_RESIZE:
-	    resize_term(0, 0);
 	    create_windows();
-	    info = "screen was resized";
-	    //close_curses();
-	    //initialize_curses();
+	    info = "screen was resized " + std::to_string(screen_width) + "x" + std::to_string(screen_height);
 	    break;
 	}
     }

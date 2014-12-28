@@ -1,9 +1,6 @@
 TODO
 ----
 
-- check if we really need SIGWINCH?
-- check if we can simply use COLS and LINES?
-
 - create homepage on <http://llg.cubic.org>
 - test on OsX
 - test on Windows
