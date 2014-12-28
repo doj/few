@@ -39,6 +39,7 @@
 #include "intersect.h"
 #include "search.h"
 #include "temporary_file.h"
+#include "console.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -1514,17 +1515,54 @@ int realmain_impl(int argc, char * const argv[])
 	}
     }
 
-    if (optind >= argc) {
-	std::cerr << "no filename specified" << std::endl;
-	return EX_USAGE;
+    std::string command_line_filename = "-";
+    if (optind < argc) {
+	command_line_filename = argv[optind];
     }
 
-    const std::string filename = argv[optind];
+    // if we should read from STDIN, create a temporary file
+    std::string real_filename = command_line_filename;
+    std::shared_ptr<TemporaryFile> stdin_tmpfile;
+    if (command_line_filename == "-") {
+	stdin_tmpfile = std::make_shared<TemporaryFile>();
+	real_filename = stdin_tmpfile->filename();
+	FILE *f = fopen(real_filename.c_str(), "wb");
+	if (!f) {
+	    std::cerr << "could not open temporary file " << real_filename << " for writing: " << strerror(errno) << std::endl;
+	    return EX_CANTCREAT;
+	}
+	if (verbose) {
+	    std::clog << "read STDIN into " << real_filename << std::endl;
+	}
+	while(!feof(stdin)) {
+	    char buf[65536];
+	    int r = fread(buf, 1, sizeof(buf), stdin);
+	    if (r > 0) {
+		int w = fwrite(buf, 1, r, f);
+		if (w != r) {
+		    std::cerr << "could not write STDIN into temporary file: " << strerror(errno) << std::endl;
+		    return EX_IOERR;
+		}
+	    } else if (r == 0) {
+		break;
+	    } else {
+		std::cerr << "could not read from STDIN: " << strerror(errno) << std::endl;
+		return EX_IOERR;
+	    }
+	}
+	fclose(f);
+	clearerr(stdin);
+
+	if (! open_tty_as_stdin()) {
+	    std::cerr << "could not open console directly." << std::endl;
+	    return EX_IOERR;
+	}
+    }
 
     setlocale(LC_ALL, "");
     display_info = std::make_shared<DisplayInfo>();
 
-    f_idx = std::make_shared<file_index>(filename);
+    f_idx = std::make_shared<file_index>(real_filename);
     {
 	file_index::regex_index_vec_t v;
 	for(auto rgx_ : command_line_filter_regex) {
@@ -1563,7 +1601,7 @@ int realmain_impl(int argc, char * const argv[])
 	intersect_regex(func.get());
     }
 
-    const std::string stdinfo = filename + " (" + std::to_string(f_idx->size()) + " lines)";
+    const std::string stdinfo = command_line_filename + " (" + std::to_string(f_idx->size()) + " lines)";
     info = stdinfo;
 
     line_edit_history = std::make_shared<History>(line_edit_history_rc);
@@ -1759,7 +1797,7 @@ int realmain_impl(int argc, char * const argv[])
     if (use_color) {
 	std::cout << " --color";
     }
-    std::cout << " '" << filename << "'" << std::endl;
+    std::cout << " '" << command_line_filename << "'" << std::endl;
 
     return EXIT_SUCCESS;
 }

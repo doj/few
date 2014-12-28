@@ -18,3 +18,5 @@ TODO
 - maybe search in background? However while searching in background the user can modify the display_info object which will invalidate the iterators that the background search would use.
 - detect emails
 - parse default command line arguments from FEWOPTIONS environment variable
+- when reading STDIN, don't use temp file but store in memory
+ + parse the regular expressions upon reading from STDIN
