@@ -780,8 +780,7 @@ namespace {
 		} else
 #endif
 		    {
-			// \todo signame
-			info = "command exited with signal: " + std::to_string(WTERMSIG(s));
+			info = std::string("command exited with signal: ") + strsignal(WTERMSIG(s));
 		    }
 	    } else {
 		info = "unknown error when running: " + cmd;
@@ -1399,8 +1398,7 @@ namespace {
 	    } else
 #endif
 		{
-		    // \todo signal name
-		    info += " signal " + std::to_string(WTERMSIG(status));
+		    info += std::string(" signal ") + strsignal(WTERMSIG(status));
 		}
 	} else {
 	    info += " unknown exit";
