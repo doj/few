@@ -124,6 +124,10 @@
     <ClCompile Include="win\getopt1.c" />
     <ClCompile Include="win\temporary_file.cc" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+    <None Include="TODO.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

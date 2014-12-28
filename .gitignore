@@ -28,3 +28,7 @@ test
 *.suo
 *.user
 *.sdf
+*.opensdf
+*.vcxproj.filters
+Debug
+Debug_gtests

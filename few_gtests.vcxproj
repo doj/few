@@ -45,6 +45,7 @@
     <ClCompile Include="history.cc" />
     <ClCompile Include="history_gtest.cc" />
     <ClCompile Include="intersect_gtest.cc" />
+    <ClCompile Include="line_gtest.cc" />
     <ClCompile Include="memorymap.cc" />
     <ClCompile Include="normalize_regex.cc" />
     <ClCompile Include="normalize_regex_gtest.cc" />

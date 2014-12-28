@@ -8,8 +8,23 @@
 #include <cassert>
 #include "types.h"
 
+/**
+ * The line_t object manages pointer into a string.
+ */
 class line_t
 {
+    void strip()
+    {
+	while (beg_ < end_) {
+	    const char c = *(end_ - 1);
+	    if (c == '\n' || c == '\r') {
+		--end_;
+	    } else {
+		break;
+	    }
+	}
+    }
+
 public:
     /// first character of the line.
     const char *beg_;
@@ -19,6 +34,13 @@ public:
     const char *next_;
     /// line number.
     /*const*/ line_number_t num_;
+
+    line_t() :
+	beg_(nullptr),
+	end_(nullptr),
+	next_(nullptr),
+	num_(0)
+    {}
 
     line_t(const char *begin, const char *end, const char *next, const line_number_t num) :
 	beg_(begin),
@@ -31,6 +53,7 @@ public:
 	    assert(beg_ < next_);
 	    assert(end_ < next_);
 	}
+	strip();
     }
 
     std::string to_string() const
@@ -44,6 +67,7 @@ public:
     {
 	beg_ = s.data();
 	end_ = s.data() + s.size();
+	strip();
 	return *this;
     }
 };
