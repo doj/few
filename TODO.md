@@ -1,15 +1,14 @@
 TODO
 ----
 
-- test on Windows
- + fix to_wide() with invalid characters
- + add some more to_wide() tests
-
 - check if we really need SIGWINCH?
 - check if we can simply use COLS and LINES?
 
 - create homepage on <http://llg.cubic.org>
 - test on OsX
+- test on Windows
+ + fix to_wide() with invalid characters
+ + add some more to_wide() tests
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash
 - read tab width from vim/emacs comments
 - cache file index

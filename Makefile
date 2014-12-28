@@ -4,7 +4,7 @@
 # Compiler Flags
 
 WARNING_FLAGS += -Wall
-INCLUDE_FLAGS += -I.
+INCLUDE_FLAGS += -I. -Iunix
 
 CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_FLAGS) -std=c++11 -MMD
 

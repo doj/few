@@ -2874,7 +2874,13 @@ inline const char* StrNCpy(char* dest, const char* src, size_t n) {
 // defined there.
 
 #if !GTEST_OS_WINDOWS_MOBILE
-inline int ChDir(const char* dir) { return _chdir(dir); }
+inline int ChDir(const char* dir) {
+#if defined(_WIN32)
+  return _chdir(dir);
+#else
+  return chdir(dir);
+#endif
+}
 #endif
 inline FILE* FOpen(const char* path, const char* mode) {
   return fopen(path, mode);
@@ -2883,17 +2889,37 @@ inline FILE* FOpen(const char* path, const char* mode) {
 inline FILE *FReopen(const char* path, const char* mode, FILE* stream) {
   return freopen(path, mode, stream);
 }
-inline FILE* FDOpen(int fd, const char* mode) { return _fdopen(fd, mode); }
+inline FILE* FDOpen(int fd, const char* mode) {
+#if defined(_WIN32)
+  return _fdopen(fd, mode);
+#else
+  return fdopen(fd, mode);
+#endif
+}
 #endif
 inline int FClose(FILE* fp) { return fclose(fp); }
 #if !GTEST_OS_WINDOWS_MOBILE
 inline int Read(int fd, void* buf, unsigned int count) {
+#if defined(_WIN32)
   return static_cast<int>(_read(fd, buf, count));
+#else
+  return static_cast<int>(read(fd, buf, count));
+#endif
 }
 inline int Write(int fd, const void* buf, unsigned int count) {
+#if defined(_WIN32)
   return static_cast<int>(_write(fd, buf, count));
+#else
+  return static_cast<int>(write(fd, buf, count));
+#endif
 }
-inline int Close(int fd) { return _close(fd); }
+inline int Close(int fd) {
+#if defined(_WIN32)
+  return _close(fd);
+#else
+  return close(fd);
+#endif
+}
 inline const char* StrError(int errnum) { return strerror(errnum); }
 #endif
 inline const char* GetEnv(const char* name) {

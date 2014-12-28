@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 class History : public std::enable_shared_from_this<History>
 {
