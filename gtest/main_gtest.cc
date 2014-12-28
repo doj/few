@@ -29,7 +29,11 @@
 
 #include <stdio.h>
 
+#if defined(_WIN32)
+#include "gtest.h"
+#else
 #include "gtest/gtest.h"
+#endif
 
 GTEST_API_ int main(int argc, char **argv) {
   printf("Running main() from gtest_main.cc\n");

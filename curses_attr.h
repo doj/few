@@ -5,10 +5,16 @@
 
 #pragma once
 
+#if defined(_WIN32)
+#define PDC_WIDE 1
+#define NCURSES_MOUSE_VERSION 1
+#include "win/curses.h"
+
+#elif defined(__FreeBSD__)
 #define _XOPEN_SOURCE_EXTENDED 1
-#if defined(__FreeBSD__)
 #include <ncurses.h>
 #else
+#define _XOPEN_SOURCE_EXTENDED 1
 /// define to enable curses with wide characters
 #include <ncursesw/curses.h>
 #endif

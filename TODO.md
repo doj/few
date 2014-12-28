@@ -1,9 +1,13 @@
 TODO
 ----
 
+- test on Windows
+ + fix to_wide() with invalid characters
+ + add some more to_wide() tests
+ + strip \r from line_t
+
 - create homepage on <http://llg.cubic.org>
 - test on OsX
-- test on Windows
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash
 - read tab width from vim/emacs comments
 - cache file index

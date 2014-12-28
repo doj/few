@@ -36,7 +36,31 @@
 
 // This line ensures that gtest.h can be compiled on its own, even
 // when it's fused.
+#if defined(_WIN32)
+#include "gtest.h"
+#include <io.h>
+#include <fcntl.h>
+#include <sys\types.h>
+#include <sys\stat.h>
+#include <share.h>
+
+#define O_RDONLY _O_RDONLY
+#define O_APPEND _O_APPEND
+int dup(int fd) { return _dup(fd); }
+int creat(const char *fn, int m)
+{
+    int fd = -1;
+    errno_t e = _sopen_s(&fd, fn, _O_CREAT, _SH_DENYNO,	m);
+    if (e != 0) {
+	return -1;
+    }
+    return fd;
+}
+int dup2(int a, int b) { return _dup2(a, b); }
+int close(int fd) { return _close(fd); }
+#else
 #include "gtest/gtest.h"
+#endif
 
 // The following lines pull in the real gtest *.cc files.
 // Copyright 2005, Google Inc.

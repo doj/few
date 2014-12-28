@@ -5,7 +5,22 @@
 
 #include "gtest/gtest.h"
 #include "history.h"
+#if defined(_WIN32)
+#include <io.h>
+#include <stdio.h>
+namespace {
+    int unlink(const std::string& fn)
+    {
+	return _unlink(fn.c_str());
+    }
+    int unlink(const std::wstring& fn)
+    {
+	return _wunlink(fn.c_str());
+    }
+}
+#else
 #include <unistd.h>
+#endif
 
 TEST(History, can_cycle_through_history)
 {
@@ -59,10 +74,11 @@ TEST(History, can_save_and_load)
     ASSERT_EQ(drei, i->prev());
     ASSERT_EQ(zwei, i->prev());
     ASSERT_EQ(eins, i->prev());
+    auto fn = h->filename();
     h = nullptr;
     i = nullptr;
 
-    ASSERT_EQ(0, unlink(filename.c_str()));
+    ASSERT_EQ(0, unlink(fn.c_str()));
 }
 
 TEST(History, empty_history_only_returns_initial_iterator_value)

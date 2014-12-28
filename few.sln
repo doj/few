@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2013 for Windows Desktop
+VisualStudioVersion = 12.0.31101.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "few", "few.vcxproj", "{1C02E249-8DD0-4A26-9626-A7CA58441EF0}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "few_gtests", "few_gtests.vcxproj", "{1A77C514-CFF5-465F-A499-F561A8E146B6}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1C02E249-8DD0-4A26-9626-A7CA58441EF0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1C02E249-8DD0-4A26-9626-A7CA58441EF0}.Debug|Win32.Build.0 = Debug|Win32
+		{1C02E249-8DD0-4A26-9626-A7CA58441EF0}.Release|Win32.ActiveCfg = Release|Win32
+		{1C02E249-8DD0-4A26-9626-A7CA58441EF0}.Release|Win32.Build.0 = Release|Win32
+		{1A77C514-CFF5-465F-A499-F561A8E146B6}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1A77C514-CFF5-465F-A499-F561A8E146B6}.Debug|Win32.Build.0 = Debug|Win32
+		{1A77C514-CFF5-465F-A499-F561A8E146B6}.Release|Win32.ActiveCfg = Release|Win32
+		{1A77C514-CFF5-465F-A499-F561A8E146B6}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

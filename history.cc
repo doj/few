@@ -8,20 +8,21 @@
 #include <algorithm>
 #include <iterator>
 
-History::History(const std::string& filename) :
-    filename_(filename)
+#if defined(_WIN32)
+#include <Shlobj.h>
+#include "to_wide.h"
+#endif
+
+History::History(const std::string& filename)
 {
-    if (! filename_.empty()) {
-	std::ifstream is(filename_);
-	while(is) {
-	    std::string l;
-	    getline(is, l);
-	    add(l);
-	}
-    }
-    if (v_.size() > 1000u) {
-	v_.erase(v_.begin(), v_.begin() + (v_.size() - 1000u));
-    }
+#if defined(_WIN32)
+    wchar_t *dir;
+    HRESULT res = SHGetKnownFolderPath(FOLDERID_LocalAppData, KF_FLAG_DEFAULT_PATH | KF_FLAG_CREATE, nullptr, &dir);
+    filename_ = std::wstring(dir) + std::wstring(L"\\") + to_wide(filename);
+#else
+    filename_ = std::string(getenv("HOME")) + "/" + filename;
+#endif
+    loadhistory(filename_);
 }
 
 History::~History()
@@ -29,6 +30,19 @@ History::~History()
     if (! filename_.empty()) {
 	std::ofstream os(filename_);
 	std::copy(v_.begin(), v_.end(), std::ostream_iterator<std::string>(os, "\n"));
+    }
+}
+
+void
+History::load(std::istream& is)
+{
+    while (is) {
+	std::string l;
+	getline(is, l);
+	add(l);
+    }
+    if (v_.size() > 1000u) {
+	v_.erase(v_.begin(), v_.begin() + (v_.size() - 1000u));
     }
 }
 

@@ -42,7 +42,8 @@ file_index::parse_line(const line_number_t num_)
 	it = file_.begin();
     }
 
-    if (it == file_.end()) {
+    const c_t* const end = file_.end();
+    if (it == end) {
 	return false;
     }
     if (it == nullptr) {
@@ -58,7 +59,7 @@ file_index::parse_line(const line_number_t num_)
 	    beg = next;
 	}
 	++it;
-	if (it == file_.end()) {
+	if (it == end) {
 	    if (it != beg) {
 		push_line(beg, it, nullptr, ++num);
 	    }
@@ -127,7 +128,7 @@ file_index::parse_all(regex_index_vec_t& regex_index_vec, ProgressFunctor *func)
 
 	if (func && (num % 10000) == 0) {
 	    const uint64_t pos = line.end_ - line_[1].beg_;
-	    func->progress(num, pos * 100llu / file_.size());
+	    func->progress(num, static_cast<unsigned>(pos * 100llu / file_.size()));
 	}
     }
 }

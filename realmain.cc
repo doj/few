@@ -7,9 +7,7 @@
 #include <getopt.h>
 #include <sysexits.h>
 #include <iostream>
-#include <sys/ioctl.h>
 #include <signal.h>
-#include <unistd.h>
 #include <cassert>
 #include <stdint.h>
 #include <stdlib.h>
@@ -22,7 +20,11 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#if defined(__unix__)
 #include <sys/wait.h>
+#include <sys/ioctl.h>
+#include <unistd.h>
+#endif
 
 #include "file_index.h"
 #include "regex_index.h"
@@ -473,11 +475,13 @@ namespace {
 	}
     }
 
-    void print_centered(const std::string s)
+    void print_centered(const std::string s, int y_offset = 0)
     {
 	int x = screen_width / 2 - s.size() / 2;
 	if (x < 0) { x = 0; }
-	mvprintw(screen_height / 2, x, "%s", s.c_str());
+	int y = screen_height / 2 + y_offset;
+	if (y < 0) { y = 0; }
+	mvprintw(y, x, "%s", s.c_str());
     }
 
     void refresh_windows()
@@ -495,10 +499,13 @@ namespace {
 	} else if (screen_height < min_screen_height) {
 	    erase();
 	    print_centered("Minimum screen height is " + std::to_string(min_screen_height) + " lines.");
+	    print_centered("Current screen height is " + std::to_string(screen_height) + " lines.", 1);
 	} else if (screen_width < min_screen_width) {
 	    erase();
 	    print_centered("Min Width: " + std::to_string(min_screen_width));
-	} else {
+	    print_centered("Cur Width: " + std::to_string(screen_width), 1);
+	}
+	else {
 	    // this case should not happen
 	    assert(false);
 	}
@@ -548,6 +555,18 @@ namespace {
 	refresh_windows();
     }
 
+    void get_screen_size()
+    {
+#if defined(_WIN32)
+	getmaxyx(stdscr, screen_height, screen_width);
+#elif defined(__unix__)
+	struct winsize w;
+	ioctl(0, TIOCGWINSZ, &w);
+	screen_width = w.ws_col;
+	screen_height = w.ws_row;
+#endif
+    }
+
     bool initialize_curses()
     {
 	initscr();
@@ -559,9 +578,10 @@ namespace {
 	halfdelay(3);
 	mousemask(BUTTON1_CLICKED, nullptr);
 	curs_set(0); // disable cursor
+	get_screen_size();
 
 	if (use_color) {
-	    use_color = has_colors();
+	    use_color = has_colors() ? true : false;
 	}
 	if (use_color) {
 	    start_color();
@@ -593,22 +613,15 @@ namespace {
 	endwin();
     }
 
-    void get_screen_size()
-    {
-	struct winsize w;
-	ioctl(0, TIOCGWINSZ, &w);
-	screen_width = w.ws_col;
-	screen_height = w.ws_row;
-    }
-
+#if defined(__unix__)
     void handle_winch(int sig)
     {
 	signal(SIGWINCH, SIG_IGN);
 	close_curses();
-	get_screen_size();
 	initialize_curses();
 	signal(SIGWINCH, handle_winch);
     }
+#endif
 
     void key_up()
     {
@@ -759,6 +772,7 @@ namespace {
 	refresh();
     }
 
+#if defined(__unix__)
     /**
      * run a command in a child process.
      * wait for the command to finish.
@@ -813,23 +827,6 @@ namespace {
 	return b;
     }
 
-    void key_h()
-    {
-	// try to render a text version of the manpage
-	try {
-	    TemporaryFile tmp;
-	    if (! run_command("MANWIDTH=" + std::to_string(screen_width - 10) + " man few > " + tmp.filename() + " 2> /dev/null")) {
-		return;
-	    }
-	    run_program(argv0 + " " + tmp.filename());
-	} catch (std::exception& e) {
-	    info = "could not show help: ";
-	    info += e.what();
-	} catch (...) {
-	    info = "could not show help: unknown exception";
-	}
-    }
-
     /**
      * run a command in the background, detached from the current process.
      * @param cmd shell command line to execute in background.
@@ -860,9 +857,30 @@ namespace {
 	initialize_curses();
 	return b;
     }
+#endif
+
+    void key_h()
+    {
+#if defined(__unix__)
+	// try to render a text version of the manpage
+	try {
+	    TemporaryFile tmp;
+	    if (! run_command("MANWIDTH=" + std::to_string(screen_width - 10) + " man few > " + tmp.filename() + " 2> /dev/null")) {
+		return;
+	    }
+	    run_program(argv0 + " " + tmp.filename());
+	} catch (std::exception& e) {
+	    info = "could not show help: ";
+	    info += e.what();
+	} catch (...) {
+	    info = "could not show help: unknown exception";
+	}
+#endif
+    }
 
     void click_link(const std::string& link)
     {
+#if defined(__unix__)
 	std::string browser = "firefox";
 	const char *cc = getenv("BROWSER");
 	if (cc) {
@@ -877,6 +895,7 @@ namespace {
 	    info = "could not launch web browser in background";
 	    return;
 	}
+#endif
 	info = "opened " + link + " in browser";
 	refresh_lines_window();
 	refresh();
@@ -1007,7 +1026,7 @@ namespace {
 		line_edit_history->add(s);
 		return s;
 
-	    case '\e':
+	    case 27: // esc
 		return input;
 
 	    case KEY_BACKSPACE:
@@ -1277,7 +1296,7 @@ namespace {
 	    info = "invalid line number: " + line_num;
 	} else if (l_n > static_cast<int64_t>(std::numeric_limits<line_number_t>::max())) {
 	    info = "line number too big: " + line_num;
-	} else if (! display_info->go_to(l_n)) {
+	} else if (! display_info->go_to(static_cast<line_number_t>(l_n))) {
 	    info = "line number " + line_num + " not currently displayed";
 	}
 	refresh_windows();
@@ -1295,7 +1314,7 @@ namespace {
 	if (p < 0) {
 	    info = "invalid percentage: " + perc;
 	} else {
-	    display_info->go_to_perc(p);
+	    display_info->go_to_perc(static_cast<unsigned>(p));
 	}
 	refresh_windows();
     }
@@ -1385,6 +1404,7 @@ namespace {
 	}
     }
 
+#if defined(__unix__)
     // check for terminated child process
     void check_for_zombies()
     {
@@ -1410,7 +1430,7 @@ namespace {
 	    info += " unknown exit";
 	}
     }
-
+#endif
 }
 
 void help();
@@ -1570,18 +1590,11 @@ int realmain_impl(int argc, char * const argv[])
     const std::string stdinfo = filename + " (" + std::to_string(f_idx->size()) + " lines)";
     info = stdinfo;
 
-    get_screen_size();
-    if (screen_width == 0) {
-	std::cerr << "screen width is 0. Are you executing this program in an interactive terminal?" << std::endl;
-	return EX_USAGE;
-    }
-    if (screen_height < min_screen_height) {
-	std::cerr << "screen height is " << screen_height << " lines. Minimum required screen height is " << min_screen_height << " lines." << std::endl;
-	return EX_USAGE;
-    }
+#if defined(__unix__)
     signal(SIGWINCH, handle_winch);
+#endif
 
-    line_edit_history = std::make_shared<History>(std::string(getenv("HOME")) + "/" + line_edit_history_rc);
+    line_edit_history = std::make_shared<History>(line_edit_history_rc);
 
     if (topLine > 0) {
 	display_info->go_to_approx(topLine);
@@ -1592,7 +1605,16 @@ int realmain_impl(int argc, char * const argv[])
 	return EX_UNAVAILABLE;
     }
 
-    while(true) {
+    if (screen_width == 0) {
+	std::cerr << "screen width is 0. Are you executing this program in an interactive terminal?" << std::endl;
+	return EX_USAGE;
+    }
+    if (screen_height < min_screen_height) {
+	std::cerr << "screen height is " << screen_height << " lines. Minimum required screen height is " << min_screen_height << " lines." << std::endl;
+	return EX_USAGE;
+    }
+
+    while (true) {
 	// loop until a key was pressed
 	do {
 	    refresh_info();
@@ -1608,9 +1630,9 @@ int realmain_impl(int argc, char * const argv[])
 	} else {
 	    info = stdinfo;
 	}
-
+#if defined(__unix__)
 	check_for_zombies();
-
+#endif
 	// process key presses
 	if (key == 'q' || key == 'Q') {
 	    break;

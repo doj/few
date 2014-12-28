@@ -5,6 +5,7 @@
 #include "progress_functor.h"
 #include "curses_attr.h"
 #include "getRSS.h"
+#include "types.h"
 
 extern unsigned verbose;
 
@@ -36,6 +37,7 @@ CursesProgressFunctor::progress(unsigned num, unsigned perc)
 }
 
 OStreamProgressFunctor::~OStreamProgressFunctor() { os_ << std::endl; }
+
 void
 OStreamProgressFunctor::progress(unsigned num, unsigned perc)
 {

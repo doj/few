@@ -47,6 +47,7 @@
 #pragma warning( disable : 4786 )
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include "to_wide.h"
 #endif
 
 #include <iostream>
@@ -193,7 +194,14 @@ namespace doj
 	struct mmap_info info;
 	info.filename=filename;
 
-	info.file=CreateFile(filename, GENERIC_READ, FILE_SHARE_READ, 0, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL|FILE_FLAG_SEQUENTIAL_SCAN, 0);
+	std::wstring fn = to_wide(filename);
+	info.file = CreateFile(fn.c_str(),
+	    readonly ? GENERIC_READ : (GENERIC_READ | GENERIC_WRITE),
+	    FILE_SHARE_READ,
+	    nullptr,
+	    OPEN_EXISTING,
+	    FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN,
+	    0);
 	if(info.file==INVALID_HANDLE_VALUE)
 	    {
 #ifdef DOJDEBUG
@@ -202,7 +210,17 @@ namespace doj
 		return 0;
 	    }
 
-	info.map=CreateFileMapping(info.file, NULL, PAGE_READONLY, 0, 0, filename);
+	LARGE_INTEGER li;
+	if (!GetFileSizeEx(info.file, &li)) {
+#ifdef DOJDEBUG
+	    cerr << " could not determine file size " << GetLastError() << endl;
+#endif
+	    CloseHandle(info.file);
+	    return 0;
+	}
+	info.filelen = li.QuadPart;
+
+	info.map = CreateFileMapping(info.file, NULL, readonly ? PAGE_READONLY : PAGE_READWRITE, 0, 0, fn.c_str());
 	if(info.map==INVALID_HANDLE_VALUE)
 	    {
 #ifdef DOJDEBUG
@@ -212,7 +230,7 @@ namespace doj
 		return 0;
 	    }
 
-	void *mem=MapViewOfFile(info.map, FILE_MAP_READ, 0, 0, 0);
+	void *mem = MapViewOfFile(info.map, readonly ? FILE_MAP_READ : FILE_MAP_ALL_ACCESS, 0, 0, 0);
 	if(!mem)
 	    {
 #ifdef DOJDEBUG

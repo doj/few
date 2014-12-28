@@ -7,11 +7,36 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <iostream>
 
 class History : public std::enable_shared_from_this<History>
 {
-    const std::string filename_;
+#if defined(_WIN32)
+private:
+    std::wstring filename_;
+public:
+    const std::wstring& filename() const { return filename_; }
+#else
+private:
+    std::string filename_;
+public:
+    const std::string& filename() const { return filename_; }
+#endif
+
+private:
     std::vector<std::string> v_;
+
+    void load(std::istream& is);
+
+    template <typename Str>
+    void loadhistory(const Str& filename)
+    {
+	if (filename.empty()) {
+	    return;
+	}
+	std::ifstream is(filename);
+	load(is);
+    }
 
 public:
     History() {}

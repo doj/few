@@ -23,3 +23,8 @@ test
 # editor files
 *~
 .emacs*
+
+# Visual Studio files
+*.suo
+*.user
+*.sdf
