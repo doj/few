@@ -41,6 +41,7 @@
 #include "temporary_file.h"
 #include "console.h"
 #include "errno.h"
+#include "click_link.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -855,29 +856,6 @@ namespace {
 #endif
     }
 
-    void click_link(const std::string& link)
-    {
-#if defined(__unix__)
-	std::string browser = "firefox";
-	const char *cc = getenv("BROWSER");
-	if (cc) {
-	    browser = cc;
-	    if (browser.empty()) {
-		info = "BROWSER environment variable is empty";
-		return;
-	    }
-	}
-	assert(! browser.empty());
-	if (! run_command_background(browser + " '" + link + "'")) {
-	    info = "could not launch web browser in background";
-	    return;
-	}
-#endif
-	info = "opened " + link + " in browser";
-	refresh_lines_window();
-	refresh();
-    }
-
     void key_mouse()
     {
 	MEVENT e;
@@ -888,8 +866,11 @@ namespace {
 	    auto it = link.find(std::make_pair(static_cast<unsigned>(e.x), static_cast<unsigned>(e.y)));
 	    if (it != link.end()) {
 		const std::string l = to_utf8(it->second);
-		info = "click " + l;
-		click_link(l);
+		if (click_link(l, info)) {
+		    info = "opened " + l + " in browser";
+		}
+		refresh_lines_window();
+		refresh();
 	    }
 	}
     }

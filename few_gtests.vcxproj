@@ -56,6 +56,7 @@
     <ClCompile Include="regex_index_gtest.cc" />
     <ClCompile Include="search.cc" />
     <ClCompile Include="to_wide_gtest.cc" />
+    <ClCompile Include="win\click_link.cpp" />
     <ClCompile Include="win\console.cpp" />
     <ClCompile Include="win\errno.cpp" />
     <ClCompile Include="win\getopt.c" />

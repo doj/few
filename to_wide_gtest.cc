@@ -14,12 +14,12 @@ protected:
 #else
 	const char *loc = setlocale(LC_ALL, "en_US.UTF-8");
 #endif
-	ASSERT_TRUE(loc);
+	ASSERT_TRUE(loc != 0);
     }
     virtual void TearDown()
     {
 	const char *loc = setlocale(LC_ALL, "C");
-	ASSERT_TRUE(loc);
+	ASSERT_TRUE(loc != 0);
     }
 };
 

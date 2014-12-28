@@ -84,6 +84,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="click_link.h" />
     <ClInclude Include="curses_attr.h" />
     <ClInclude Include="display_info.h" />
     <ClInclude Include="errno.h" />
@@ -120,6 +121,7 @@
     <ClCompile Include="realmain.cc" />
     <ClCompile Include="regex_index.cc" />
     <ClCompile Include="search.cc" />
+    <ClCompile Include="win\click_link.cpp" />
     <ClCompile Include="win\console.cpp" />
     <ClCompile Include="win\errno.cpp" />
     <ClCompile Include="win\getopt.c" />
