@@ -14,10 +14,12 @@ namespace {
     std::atomic_ullong cnt_;
 }
 
-TemporaryFile::TemporaryFile()
+TemporaryFile::TemporaryFile() :
+    f_(nullptr)
 {
+    assert(this);
     wchar_t dirname[MAX_PATH];
-    DWORD ret = GetTempPath(sizeof(dirname), dirname);
+    DWORD ret = GetTempPath(sizeof(dirname)/sizeof(wchar_t), dirname);
     if (ret == 0) {
 	throw std::runtime_error("could not get temp path");
     }
@@ -39,5 +41,30 @@ TemporaryFile::~TemporaryFile()
 const std::wstring&
 TemporaryFile::filename()
 {
+    close();
     return filename_;
+}
+
+FILE*
+TemporaryFile::file()
+{
+    if (f_) {
+	return f_;
+    }
+    errno_t e = _wfopen_s(&f_, filename_.c_str(), L"w+b");
+    if (e != 0) {
+	f_ = nullptr;
+    }
+    return f_;
+}
+
+bool
+TemporaryFile::close()
+{
+    if (!f_) {
+	return false;
+    }
+    const int ret = fclose(f_);
+    f_ = nullptr;
+    return ret == 0;
 }

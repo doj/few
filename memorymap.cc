@@ -220,8 +220,13 @@ namespace doj
 	}
 	info.filelen = li.QuadPart;
 
-	info.map = CreateFileMapping(info.file, NULL, readonly ? PAGE_READONLY : PAGE_READWRITE, 0, 0, fn.c_str());
-	if(info.map==INVALID_HANDLE_VALUE)
+	info.map = CreateFileMapping(info.file,
+	    NULL,
+	    readonly ? PAGE_READONLY : PAGE_READWRITE,
+	    0,
+	    0,
+	    nullptr);
+	if(info.map==INVALID_HANDLE_VALUE || info.map == 0)
 	    {
 #ifdef DOJDEBUG
 		cerr << " could not create map " << GetLastError() << endl;

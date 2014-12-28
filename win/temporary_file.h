@@ -4,6 +4,7 @@
  */
 #pragma once
 #include <string>
+#include <cstdio>
 
 /**
  * a class to manage a temporary file.
@@ -12,6 +13,7 @@
 class TemporaryFile
 {
     std::wstring filename_;
+    FILE *f_;
 
 public:
     /**
@@ -22,4 +24,14 @@ public:
     ~TemporaryFile();
     /// @return the file name of the temporary file.
     const std::wstring& filename();
+    /**
+     * open the temporary file with a standard stream for reading and writing.
+     * @return pointer to FILE object.
+     */
+    FILE* file();
+    /**
+     * close the standard stream if it was created before.
+     * @return true upon success; false upon error or if no standard stream was created previously.
+     */
+    bool close();
 };

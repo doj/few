@@ -57,8 +57,11 @@
     <ClCompile Include="search.cc" />
     <ClCompile Include="to_wide.cc" />
     <ClCompile Include="to_wide_gtest.cc" />
+    <ClCompile Include="win\console.cpp" />
+    <ClCompile Include="win\errno.cpp" />
     <ClCompile Include="win\getopt.c" />
     <ClCompile Include="win\getopt1.c" />
+    <ClCompile Include="win\temporary_file.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1A77C514-CFF5-465F-A499-F561A8E146B6}</ProjectGuid>

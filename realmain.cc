@@ -40,6 +40,7 @@
 #include "search.h"
 #include "temporary_file.h"
 #include "console.h"
+#include "errno.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -1523,10 +1524,10 @@ int realmain_impl(int argc, char * const argv[])
     std::shared_ptr<TemporaryFile> stdin_tmpfile;
     if (command_line_filename == "-") {
 	stdin_tmpfile = std::make_shared<TemporaryFile>();
-	real_filename = stdin_tmpfile->filename();
-	FILE *f = fopen(real_filename.c_str(), "wb");
+	real_filename = to_utf8(stdin_tmpfile->filename());
+	FILE *f = stdin_tmpfile->file();
 	if (!f) {
-	    std::cerr << "could not open temporary file " << real_filename << " for writing: " << strerror(errno) << std::endl;
+	    std::cerr << "could not open temporary file " << real_filename << " for writing: " << errno_str() << std::endl;
 	    return EX_CANTCREAT;
 	}
 	if (verbose) {
@@ -1538,17 +1539,17 @@ int realmain_impl(int argc, char * const argv[])
 	    if (r > 0) {
 		int w = fwrite(buf, 1, r, f);
 		if (w != r) {
-		    std::cerr << "could not write STDIN into temporary file: " << strerror(errno) << std::endl;
+		    std::cerr << "could not write STDIN into temporary file: " << errno_str() << std::endl;
 		    return EX_IOERR;
 		}
 	    } else if (r == 0) {
 		break;
 	    } else {
-		std::cerr << "could not read from STDIN: " << strerror(errno) << std::endl;
+		std::cerr << "could not read from STDIN: " << errno_str() << std::endl;
 		return EX_IOERR;
 	    }
 	}
-	fclose(f);
+	stdin_tmpfile->close();
 	clearerr(stdin);
 
 	if (! open_tty_as_stdin()) {

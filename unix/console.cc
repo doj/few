@@ -14,7 +14,7 @@
 
 bool open_tty_as_stdin()
 {
-    // now directly open the TTY device, since STDIN is no longer available for key input
+    // open the TTY device as STDIN
     int fd = open("/dev/tty", O_RDONLY);
     if (fd < 0) {
 	std::cerr << "could not open /dev/tty: " << strerror(errno) << std::endl;
