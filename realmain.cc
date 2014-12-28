@@ -1414,7 +1414,7 @@ void help();
 
 int realmain_impl(int argc, char * const argv[])
 {
-    if (argc < 2) {
+    if (argc < 1) {
 	help();
 	return EX_USAGE;
     }
