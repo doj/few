@@ -48,6 +48,8 @@ TEST_F(to_wide_fix, handles_utf8)
 }
 #endif
 
+// Windows has those codepages and all 256 characters are valid
+#if !defined(_WIN32)
 TEST_F(to_wide_fix, resync_on_overlong_utf8)
 {
     std::string invalid = "\u20AC" "\xF0\x82\x82\xAC" "\u00A2";
@@ -61,6 +63,7 @@ TEST_F(to_wide_fix, resync_on_invalid_utf8)
     std::wstring expected = L"Dirk\u20ACJagdmann\uFFFDWrites\u00A2Fewer";
     ASSERT_EQ(expected, to_wide(invalid));
 }
+#endif
 
 TEST_F(to_wide_fix, to_utf8)
 {

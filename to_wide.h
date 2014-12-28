@@ -5,4 +5,6 @@
 #pragma once
 #include <string>
 std::wstring to_wide(const std::string& s);
+inline std::wstring to_wide(const std::wstring& s) { return s; }
 std::string to_utf8(const std::wstring& s);
+inline std::string to_utf8(const std::string& s) { return s; }

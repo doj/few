@@ -120,12 +120,12 @@
     <ClCompile Include="realmain.cc" />
     <ClCompile Include="regex_index.cc" />
     <ClCompile Include="search.cc" />
-    <ClCompile Include="to_wide.cc" />
     <ClCompile Include="win\console.cpp" />
     <ClCompile Include="win\errno.cpp" />
     <ClCompile Include="win\getopt.c" />
     <ClCompile Include="win\getopt1.c" />
     <ClCompile Include="win\temporary_file.cpp" />
+    <ClCompile Include="win\to_wide.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />
