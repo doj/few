@@ -5,7 +5,7 @@
 
 #include "../console.h"
 #include "../types.h"
-#include "../errno.h"
+#include "../errno_str.h"
 #include <iostream>
 #include <sys/types.h>
 #include <sys/stat.h>
