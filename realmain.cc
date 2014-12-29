@@ -40,8 +40,9 @@
 #include "search.h"
 #include "temporary_file.h"
 #include "console.h"
-#include "errno.h"
+#include "errno_str.h"
 #include "click_link.h"
+#include "command.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -556,6 +557,7 @@ namespace {
 	calculate_window_sizes();
 	refresh_windows();
     }
+}
 
     bool initialize_curses()
     {
@@ -602,6 +604,7 @@ namespace {
 	endwin();
     }
 
+namespace {
     void key_up()
     {
 	if (display_info->isFirstLineDisplayed()) {
@@ -751,102 +754,16 @@ namespace {
 	refresh();
     }
 
-#if defined(__unix__)
-    /**
-     * run a command in a child process.
-     * wait for the command to finish.
-     *
-     * If an error occurs from running the command line or if the exit
-     * status of cmd is not 0, the info string will show an error
-     * message.
-     *
-     * @param cmd shell command line to run.
-     * @return true upon success.
-     */
-    bool run_command(const std::string& cmd)
-    {
-	int s = system(cmd.c_str());
-	if (s < 0) {
-	    info = "could not run: " + cmd;
-	} else {
-	    if (WIFEXITED(s)) {
-		s = WEXITSTATUS(s);
-		if (s == 0) {
-		    return true;
-		} else {
-		    info = "command exit status: " + std::to_string(s);
-		}
-	    } else if (WIFSIGNALED(s)) {
-#ifdef WCOREDUMP
-		if (WCOREDUMP(s)) {
-		    info = "command produced a core dump";
-		} else
-#endif
-		    {
-			info = std::string("command exited with signal: ") + strsignal(WTERMSIG(s));
-		    }
-	    } else {
-		info = "unknown error when running: " + cmd;
-	    }
-	}
-	return false;
-    }
-
-    /**
-     * run a program in a child process.
-     * The program can be interactive, as the curses library is closed before running the program.
-     * @return true if cmd had an exit status of 0.
-     */
-    bool run_program(const std::string& cmd)
-    {
-	close_curses();
-	const bool b = run_command(cmd);
-	initialize_curses();
-	return b;
-    }
-
-    /**
-     * run a command in the background, detached from the current process.
-     * @param cmd shell command line to execute in background.
-     * @return true upon success.
-     */
-    bool run_command_background(std::string cmd)
-    {
-	bool b = false;
-	close_curses();
-
-	pid_t pid = fork();
-	if (pid < 0) {
-	    info = std::string("could not fork: ") + strerror(errno);
-	} else if (pid == 0) {
-	    // child
-	    cmd += " > /dev/null 2>&1";
-	    int s = system(cmd.c_str());
-	    // _exit() will not run the atexit() handlers.
-	    if (WIFEXITED(s)) {
-		_exit(WEXITSTATUS(s));
-	    }
-	    _exit(EXIT_FAILURE);
-	} else {
-	    info = "created child PID " + std::to_string(pid);
-	    b = true;
-	}
-
-	initialize_curses();
-	return b;
-    }
-#endif
-
     void key_h()
     {
 #if defined(__unix__)
 	// try to render a text version of the manpage
 	try {
 	    TemporaryFile tmp;
-	    if (! run_command("MANWIDTH=" + std::to_string(screen_width - 10) + " man few > " + tmp.filename() + " 2> /dev/null")) {
+	    if (! run_command("MANWIDTH=" + std::to_string(screen_width - 10) + " man few > " + tmp.filename() + " 2> /dev/null", info)) {
 		return;
 	    }
-	    run_program(argv0 + " " + tmp.filename());
+	    run_program(argv0 + " " + tmp.filename(), info);
 	} catch (std::exception& e) {
 	    info = "could not show help: ";
 	    info += e.what();

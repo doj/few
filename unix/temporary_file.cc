@@ -66,7 +66,7 @@ TemporaryFile::can_create_file(const std::string& dir)
     if (fd < 0) {
 	return false;
     }
-    if (close(fd) < 0) {
+    if (::close(fd) < 0) {
 	return false;
     }
     filename_ = fn;
@@ -84,4 +84,25 @@ const std::string&
 TemporaryFile::filename()
 {
     return filename_;
+}
+
+FILE*
+TemporaryFile::file()
+{
+    if (f_) {
+	return f_;
+    }
+    f_ = fopen(filename_.c_str(), "w+b");
+    return f_;
+}
+
+bool
+TemporaryFile::close()
+{
+    if (!f_) {
+	return false;
+    }
+    const int ret = fclose(f_);
+    f_ = nullptr;
+    return ret == 0;
 }

@@ -3,7 +3,11 @@
 * :indentSize=4:tabSize=8:
 */
 #include "click_link.h"
-bool click_link(const std::string& link, std::string& error_msg)
+#include "command.h"
+#include <cassert>
+
+bool
+click_link(const std::string& link, std::string& error_msg)
 {
 	std::string browser = "firefox";
 	const char *cc = getenv("BROWSER");
@@ -15,8 +19,7 @@ bool click_link(const std::string& link, std::string& error_msg)
 	    }
 	}
 	assert(! browser.empty());
-	if (! run_command_background(browser + " '" + link + "'")) {
-	    error_msg = "could not launch web browser in background";
+	if (! run_command_background(browser + " '" + link + "'", error_msg)) {
 	    return false;
 	}
 	return true;
