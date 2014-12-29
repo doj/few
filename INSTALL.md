@@ -16,14 +16,12 @@ the software. With `make install` you can install the program and its
 man page into `/usr/local/`. If you prefer a different location look
 at the `PREFIX` variable in the Makefile.
 
-Build on a Debian (derived) Linux
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Build on a Debian (derived) Linux
 
 You can use `make debian-setup` to install the pre requisites to build
 the few program.
 
-Build on a Redhat (derived) Linux
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+### Build on a Redhat (derived) Linux
 
 You can use `make redhat-setup` to install the pre requisites to build
 the few program.
@@ -36,5 +34,5 @@ code directory. You can load the solution into Visual Studio and build
 the few program. On Windows few uses the
 [PDCurses](http://pdcurses.sourceforge.net/) library. The project
 currently uses the pre-build PDCurses library. If you want to use the
-build few.exe file, you'll have to copy the XXX.dll to a directory
+build few.exe file, you'll have to copy the pdcurses.dll to a directory
 included in your PATH.
