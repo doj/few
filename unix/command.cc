@@ -48,11 +48,9 @@ run_program(const std::string& cmd, std::string& error_msg)
     return b;
 }
 
-pid_t
+int
 run_command_background(std::string cmd, std::string& msg)
 {
-    //close_curses();
-
     const pid_t pid = fork();
     if (pid < 0) {
 	msg = std::string("could not fork: ") + strerror(errno);
@@ -70,6 +68,5 @@ run_command_background(std::string cmd, std::string& msg)
 	msg = "created child PID " + std::to_string(pid);
     }
 
-    //initialize_curses();
     return pid;
 }

@@ -32,6 +32,6 @@ bool run_program(const std::string& cmd, std::string& error_msg);
  * run a command in the background, detached from the current process.
  * @param[in] cmd shell command line to execute in background.
  * @param[out] msg will contain a message about success or failure to run cmd.
- * @return process ID of background program; -1 upon error.
+ * @return process ID of the background program; -1 upon error.
  */
-pid_t run_command_background(std::string cmd, std::string& msg);
+int run_command_background(std::string cmd, std::string& msg);
