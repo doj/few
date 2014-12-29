@@ -3,7 +3,7 @@
 * :indentSize=4:tabSize=8:
 */
 
-#include "../errno.h"
+#include "../errno_str.h"
 #include <errno.h>
 #include <cstring>
 

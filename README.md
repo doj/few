@@ -208,6 +208,7 @@ an email and ask questions about this program.
 
 RESOURCES
 ---------
+the few homepage is <http://llg.cubic.org/tools/few/>
 the source code is hosted on Github: <https://github.com/doj/few>
 
 SEE ALSO

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -87,7 +87,7 @@
     <ClInclude Include="click_link.h" />
     <ClInclude Include="curses_attr.h" />
     <ClInclude Include="display_info.h" />
-    <ClInclude Include="errno.h" />
+    <ClInclude Include="errno_str.h" />
     <ClInclude Include="error.h" />
     <ClInclude Include="event.h" />
     <ClInclude Include="file_index.h" />
@@ -123,7 +123,7 @@
     <ClCompile Include="search.cc" />
     <ClCompile Include="win\click_link.cpp" />
     <ClCompile Include="win\console.cpp" />
-    <ClCompile Include="win\errno.cpp" />
+    <ClCompile Include="win\errno_str.cpp" />
     <ClCompile Include="win\getopt.c" />
     <ClCompile Include="win\getopt1.c" />
     <ClCompile Include="win\temporary_file.cpp" />
