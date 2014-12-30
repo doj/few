@@ -5,9 +5,12 @@
 
 #include "command.h"
 #include "few_curses.h"
-#include <stdlib.h>
+#include "errno_str.h"
+#include <cstdlib>
 #include <cstring>
 #include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
 
 bool
 run_command(const std::string& cmd, std::string& error_msg)
@@ -53,7 +56,7 @@ run_command_background(std::string cmd, std::string& msg)
 {
     const pid_t pid = fork();
     if (pid < 0) {
-	msg = std::string("could not fork: ") + strerror(errno);
+	msg = "could not fork: " + errno_str();
 	return -1;
     } else if (pid == 0) {
 	// child

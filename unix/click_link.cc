@@ -5,6 +5,7 @@
 #include "click_link.h"
 #include "command.h"
 #include <cassert>
+#include <cstdlib>
 
 bool
 click_link(const std::string& link, std::string& error_msg)

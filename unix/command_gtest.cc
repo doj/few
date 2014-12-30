@@ -5,6 +5,8 @@
 
 #include "gtest/gtest.h"
 #include "command.h"
+#include <sys/types.h>
+#include <sys/wait.h>
 
 TEST(Command, can_detect_success)
 {
