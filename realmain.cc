@@ -44,6 +44,8 @@
 #include "click_link.h"
 #include "command.h"
 #include "maximize_window.h"
+#include "merge_command_line.h"
+#include "tokenize_command_line.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -1335,6 +1337,22 @@ int realmain_impl(int argc, char * const argv[])
 	return EX_USAGE;
     }
     argv0 = argv[0];
+
+    // merge environment variable FEWOPTIONS into the command line?
+    static const char* FEWOPTIONS = "FEWOPTIONS";
+    if (getenv(FEWOPTIONS)) {
+	std::string fo = getenv(FEWOPTIONS);
+	int argc_fo = -1;
+	char ** argv_fo = nullptr;
+	if (! tokenize_command_line(fo, argc_fo, argv_fo)) {
+	    std::cerr << "could not tokenize FEWOPTIONS environment variable" << std::endl;
+	    return EX_USAGE;
+	}
+	if (! merge_command_line_lists(argc, const_cast<const char**&>(argv), argc_fo, const_cast<const char**>(argv_fo))) {
+	    std::cerr << "could not merge FEWOPTIONS into command line" << std::endl;
+	    return EX_USAGE;
+	}
+    }
 
     enum {
 	opt_tabwidth = 500,

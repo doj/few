@@ -3,7 +3,7 @@
 * :indentSize=4:tabSize=8:
 */
 #include "tokenize_command_line.h"
-#include <stdlib.h>
+#include <cstdlib>
 #include <wordexp.h>
 #include <iostream>
 #include <cassert>
@@ -24,14 +24,18 @@ tokenize_command_line(const std::string& str, int& argc, char** &argv)
     const int r = wordexp(str.c_str(), &p, WRDE_SHOWERR | WRDE_UNDEF);
     if (r == 0) {
 	argv = (char**) malloc(sizeof(char*) * (p.we_wordc + 1));
-	// how stupid that we have to duplicate this entire list.
-	// we should really just assign p->we_wordv to argv and skip calling wordfree() below.
-	for(argc = 0; p.we_wordv[argc]; ++argc) {
-	    argv[argc] = strdup(p.we_wordv[argc]);
+	if (! argv) {
+	    std::cerr << "could not allocate argv" << std::endl;
+	} else {
+	    // how stupid that we have to duplicate this entire list.
+	    // we should really just assign p->we_wordv to argv and skip calling wordfree() below.
+	    for(argc = 0; p.we_wordv[argc]; ++argc) {
+		argv[argc] = strdup(p.we_wordv[argc]);
+	    }
+	    assert(argc == static_cast<int>(p.we_wordc));
+	    argv[argc] = nullptr;
+	    ret = true;
 	}
-	assert(argc == static_cast<int>(p.we_wordc));
-	argv[argc] = nullptr;
-	ret = true;
     } else {
 	switch(r) {
 	case WRDE_BADCHAR: std::cerr << "Illegal occurrence of newline or one of |, &, ;, <, >, (, ), {, }." << std::endl; break;

@@ -3,6 +3,7 @@ TODO
 
 - test on OsX
 - Windows
+ + parse default command line arguments from FEWOPTIONS environment variable
  + somehow create an installer or at least a batch file to copy the .exe and .dll somewhere
  + check http://www.projectpluto.com/win32a.htm
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash
@@ -16,7 +17,6 @@ TODO
 - split realmain.cc into components
 - maybe search in background? However while searching in background the user can modify the display_info object which will invalidate the iterators that the background search would use.
 - detect emails
-- parse default command line arguments from FEWOPTIONS environment variable
 - STDIN
  + parse the regular expressions upon reading from STDIN
  + when reading STDIN, don't use temp file but store in memory?

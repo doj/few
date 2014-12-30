@@ -6,14 +6,21 @@
 #include "gtest/gtest.h"
 #include <sysexits.h>
 #include <getopt.h>
+#include <cstdlib>
 
 int realmain(int argc, char * const argv[]);
+
+static const char* FEWOPTIONS = "FEWOPTIONS";
 
 class realmainTest : public ::testing::Test {
 protected:
     virtual void SetUp()
     {
 	optind = 1;
+    }
+    virtual void TearDown()
+    {
+	unsetenv(FEWOPTIONS);
     }
 };
 
@@ -89,4 +96,29 @@ TEST_F(realmainTest, recognizes_too_many_regex)
 	NULL
     };
     ASSERT_EQ(EX_USAGE, realmain(1 + 11*2,const_cast<char * const *>(argv)));
+}
+
+TEST_F(realmainTest, recognizes_failure_to_parse_FEWOPTIONS_with_missing_quote)
+{
+    const char* const argv[] = {
+	"few",
+	"non existing file",
+	NULL
+    };
+    setenv(FEWOPTIONS, "missing single 'quote", 1);
+    ASSERT_EQ(EX_USAGE, realmain(2,const_cast<char * const *>(argv)));
+
+    setenv(FEWOPTIONS, "missing double \" quote", 1);
+    ASSERT_EQ(EX_USAGE, realmain(2,const_cast<char * const *>(argv)));
+}
+
+TEST_F(realmainTest, recognizes_failure_to_parse_FEWOPTIONS_with_unset_variable)
+{
+    const char* const argv[] = {
+	"few",
+	"non existing file",
+	NULL
+    };
+    setenv(FEWOPTIONS, "$NOT_EXISTING_VARIBLE", 1);
+    ASSERT_EQ(EX_USAGE, realmain(2,const_cast<char * const *>(argv)));
 }

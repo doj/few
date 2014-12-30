@@ -203,6 +203,9 @@ ENVIRONMENT VARIABLES
 * **BROWSER**:
   name of web browser to launch. If not set defaults to firefox.
 
+* **FEWOPTIONS**:
+  default command line arguments.
+
 AUTHOR
 ------
 few is written by Dirk Jagdmann <doj@cubic.org>. You can write him
