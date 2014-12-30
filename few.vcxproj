@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -96,6 +96,7 @@
     <ClInclude Include="history.h" />
     <ClInclude Include="intersect.h" />
     <ClInclude Include="line.h" />
+    <ClInclude Include="maximize_window.h" />
     <ClInclude Include="memorymap.h" />
     <ClInclude Include="normalize_regex.h" />
     <ClInclude Include="progress_functor.h" />
@@ -103,6 +104,7 @@
     <ClInclude Include="search.h" />
     <ClInclude Include="to_wide.h" />
     <ClInclude Include="types.h" />
+    <ClInclude Include="win\getlasterror_str.h" />
     <ClInclude Include="win\getopt.h" />
     <ClInclude Include="win\sysexits.h" />
     <ClInclude Include="win\temporary_file.h" />
@@ -124,8 +126,10 @@
     <ClCompile Include="win\click_link.cpp" />
     <ClCompile Include="win\console.cpp" />
     <ClCompile Include="win\errno_str.cpp" />
+    <ClCompile Include="win\getlasterror_str.cpp" />
     <ClCompile Include="win\getopt.c" />
     <ClCompile Include="win\getopt1.c" />
+    <ClCompile Include="win\maximize_window.cpp" />
     <ClCompile Include="win\temporary_file.cpp" />
     <ClCompile Include="win\to_wide.cpp" />
   </ItemGroup>

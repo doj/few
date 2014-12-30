@@ -43,6 +43,7 @@
 #include "errno_str.h"
 #include "click_link.h"
 #include "command.h"
+#include "maximize_window.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -98,7 +99,7 @@ namespace {
 
     /// regular expression to match links
     std::wregex link_rgx(L"(ht|f)tps?://[a-zA-Z0-9/~&=%_.-]+", std::regex::ECMAScript | std::regex::optimize | std::regex::icase);
-    typedef std::pair<unsigned,unsigned> coordinate_t;
+    typedef std::pair<unsigned, unsigned> coordinate_t;
     std::map<coordinate_t, std::wstring> link;
 
     /// the file that is displayed
@@ -142,7 +143,7 @@ namespace {
 
     void regex_vec_resize(regex_vec_t& vec, const unsigned num)
     {
-	while(vec.size() < num) {
+	while (vec.size() < num) {
 	    vec.push_back(std::make_shared<regex_container_t>());
 	}
     }
@@ -191,7 +192,7 @@ namespace {
     /// fill the row y between x and screen_width with space characters.
     void fill(unsigned y, unsigned x)
     {
-	while(x < screen_width) {
+	while (x < screen_width) {
 	    mvaddch(y, x++, ' ');
 	}
     }
@@ -213,7 +214,7 @@ namespace {
 	}
 
 	// print spaces to separate the numbers
-	for(; x < line_num_width - line_num_w; ++x) {
+	for (; x < line_num_width - line_num_w; ++x) {
 	    mvaddch(y, x, ' ');
 	}
 
@@ -226,7 +227,7 @@ namespace {
     void mvaddwch(unsigned y, unsigned x, wchar_t c)
     {
 	wchar_t wc[2] = { c, 0 };
-        mvaddwstr(y, x, wc);
+	mvaddwstr(y, x, wc);
     }
 
     void refresh_info()
@@ -249,9 +250,9 @@ namespace {
 	middle_line_number = 0;
 	unsigned y = 0;
 	if (display_info->start()) {
-	    while(y < w_lines_height) {
+	    while (y < w_lines_height) {
 		const line_number_t current_line_num = display_info->current();
-		if (y < w_lines_height/2) {
+		if (y < w_lines_height / 2) {
 		    middle_line_number = current_line_num;
 		}
 
@@ -267,11 +268,11 @@ namespace {
 		}
 
 		// apply Display Filters?
-		if (! df_vec.empty() && !line.empty()) {
+		if (!df_vec.empty() && !line.empty()) {
 		    static std::string l;
 		    l = line.to_string();
 
-		    for(auto df : df_vec) {
+		    for (auto df : df_vec) {
 			if (df->df_rgx_) {
 			    l = std::regex_replace(l, *(df->df_rgx_), df->df_replace_);
 			}
@@ -293,7 +294,8 @@ namespace {
 		    // do we have another line to display?
 		    if (display_info->next()) {
 			continue; // there is a next line to display
-		    } else {
+		    }
+		    else {
 			break; // last line displayed
 		    }
 		}
@@ -306,12 +308,12 @@ namespace {
 		// apply search?
 		if (search_err.empty()) {
 		    // apply search regex to line
-		    for(auto it = std::wsregex_iterator(wline.begin(), wline.end(), search_rgx); it != std::wsregex_iterator(); ++it ) {
+		    for (auto it = std::wsregex_iterator(wline.begin(), wline.end(), search_rgx); it != std::wsregex_iterator(); ++it) {
 			std::wstring::iterator b = wline.begin() + it->position();
 			std::wstring::iterator e = b + it->length();
 			assert(b <= e);
 			// set character attribute for all matched characters
-			for(std::wstring::iterator i = b; i != e; ++i) {
+			for (std::wstring::iterator i = b; i != e; ++i) {
 			    character_attr[i] |= (use_color ? (green_on_black | A_BOLD) : A_REVERSE);
 			}
 		    }
@@ -319,13 +321,13 @@ namespace {
 
 		// look for links
 		std::map<std::wstring::iterator, std::wstring> iterator2link;
-		for(auto it = std::wsregex_iterator(wline.begin(), wline.end(), link_rgx); it != std::wsregex_iterator(); ++it) {
+		for (auto it = std::wsregex_iterator(wline.begin(), wline.end(), link_rgx); it != std::wsregex_iterator(); ++it) {
 		    std::wstring::iterator b = wline.begin() + it->position();
 		    std::wstring::iterator e = b + it->length();
 		    assert(b <= e);
-		    std::wstring l(b,e);
+		    std::wstring l(b, e);
 		    // set character attribute for all matched characters
-		    for(std::wstring::iterator i = b; i != e; ++i) {
+		    for (std::wstring::iterator i = b; i != e; ++i) {
 			character_attr[i] |= A_UNDERLINE;
 			iterator2link[i] = l;
 		    }
@@ -333,7 +335,7 @@ namespace {
 
 		// print the current line
 		auto it = wline.begin();
-		while(it != wline.end() && y < w_lines_height) {
+		while (it != wline.end() && y < w_lines_height) {
 		    unsigned x = 0;
 		    // block to print left info column
 		    {
@@ -341,21 +343,22 @@ namespace {
 			if (it == wline.begin()) {
 			    // print line number
 			    x += print_line_prefix(y, line.num_, wline.size(), line_num_width);
-			} else {
+			}
+			else {
 			    // print empty space
 			    curses_attr a(A_REVERSE | white_on_black);
-			    for(; x < line_num_width; ++x) {
+			    for (; x < line_num_width; ++x) {
 				mvaddch(y, x, ' ');
 			    }
 			}
 		    }
 		    // print line in chunks of screen width
 		    curses_attr a(gray_on_black);
-		    for(; it != wline.end() && x < screen_width; ++it) {
+		    for (; it != wline.end() && x < screen_width; ++it) {
 			// check for link
 			auto i = iterator2link.find(it);
 			if (i != iterator2link.end()) {
-			    link.insert(std::make_pair(std::make_pair(x,y), i->second));
+			    link.insert(std::make_pair(std::make_pair(x, y), i->second));
 			}
 
 			auto c = *it;
@@ -364,13 +367,15 @@ namespace {
 			    do {
 				mvaddch(y, x++, ' ');
 			    } while (x % tab_width);
-			} else {
+			}
+			else {
 			    // replace non printable characters with a space
 			    if (iswprint(c)) {
 				const unsigned attr = character_attr[it];
 				curses_attr a(attr);
 				mvaddwch(y, x, c);
-			    } else {
+			    }
+			    else {
 				mvaddwch(y, x, L'\uFFFD');
 			    }
 			    ++x;
@@ -389,14 +394,15 @@ namespace {
 		    // do we have another line to display?
 		    if (display_info->next()) {
 			continue; // there is a next line to display
-		    } else {
+		    }
+		    else {
 			break; // last line displayed
 		    }
 		}
 	    }
 	}
 
-	while(y < w_lines_height) {
+	while (y < w_lines_height) {
 	    fill(y++, 0);
 	}
     }
@@ -431,15 +437,16 @@ namespace {
     void refresh_regex_window(unsigned y, const std::string& title_param, const regex_vec_t& vec)
     {
 	unsigned cnt = 0;
-	for(auto c : vec) {
+	for (auto c : vec) {
 	    ++cnt;
 	    std::string s = c->rgx_;
 	    std::string title = title_param;
 	    unsigned attr = A_REVERSE;
 
 	    if (c->err_.empty()) {
-		attr |= (cnt&1) ? gray_on_black : lightgray_on_black;
-	    } else {
+		attr |= (cnt & 1) ? gray_on_black : lightgray_on_black;
+	    }
+	    else {
 		attr |= red_on_black;
 		s += " : ";
 		s += c->err_;
@@ -454,7 +461,7 @@ namespace {
 		X += 8;
 	    }
 
-	    if (! s.empty()) {
+	    if (!s.empty()) {
 		X += print_string(y, X, s);
 
 		if (c->ri_) {
@@ -494,16 +501,18 @@ namespace {
 	    refresh_regex_window(filter_y, "regex", filter_vec);
 	    refresh_regex_window(df_y, "dispf", df_vec);
 
-	    if (! search_str.empty()) {
+	    if (!search_str.empty()) {
 		curses_attr a(A_BOLD);
 		mvprintw(search_y, 0, "Search: %s %s", search_str.c_str(), search_err.c_str());
 		fill(search_y, 8 + search_str.size());
 	    }
-	} else if (screen_height < min_screen_height) {
+	}
+	else if (screen_height < min_screen_height) {
 	    erase();
 	    print_centered("Minimum screen height is " + std::to_string(min_screen_height) + " lines.");
 	    print_centered("Current screen height is " + std::to_string(screen_height) + " lines.", 1);
-	} else if (screen_width < min_screen_width) {
+	}
+	else if (screen_width < min_screen_width) {
 	    erase();
 	    print_centered("Min Width: " + std::to_string(min_screen_width));
 	    print_centered("Cur Width: " + std::to_string(screen_width), 1);
@@ -525,7 +534,7 @@ namespace {
 	w_lines_height = screen_height;
 	w_lines_height -= filter_vec.size();
 	w_lines_height -= df_vec.size();
-	if (! search_str.empty()) {
+	if (!search_str.empty()) {
 	    --w_lines_height;
 	}
 	assert(w_lines_height > 0);
@@ -535,7 +544,8 @@ namespace {
 
 	if (filter_vec.size() == 0) {
 	    filter_y = 0;
-	} else {
+	}
+	else {
 	    assert(filter_vec.size() <= 9);
 	    filter_y = y;
 	    y += filter_vec.size();
@@ -543,7 +553,8 @@ namespace {
 
 	if (df_vec.size() == 0) {
 	    df_y = 0;
-	} else {
+	}
+	else {
 	    assert(df_vec.size() <= 9);
 	    df_y = y;
 	    y += df_vec.size();
@@ -551,13 +562,12 @@ namespace {
 
 	search_y = screen_height - 1;
     }
-
+}
     void create_windows()
     {
 	calculate_window_sizes();
 	refresh_windows();
     }
-}
 
     bool initialize_curses()
     {
@@ -771,6 +781,11 @@ namespace {
 	    info = "could not show help: unknown exception";
 	}
 #endif
+    }
+
+    void key_M()
+    {
+	maximize_window(info);
     }
 
     void key_mouse()
@@ -1618,6 +1633,10 @@ int realmain_impl(int argc, char * const argv[])
 
 	case '%':
 	    go_to_perc();
+	    break;
+
+	case 'M':
+	    key_M();
 	    break;
 
 	case '1':

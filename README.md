@@ -85,6 +85,8 @@ The actions resulting from a key press are modelled after the less(1) program.
   go to next search match if a search regex is set.
 * **N**:
   go to previous search match.
+* **M**:
+  maximize the window. Currently supported on Windows.
 
 Regular Expressions
 -------------------
