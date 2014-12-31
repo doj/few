@@ -47,6 +47,8 @@
     <ClCompile Include="intersect_gtest.cc" />
     <ClCompile Include="line_gtest.cc" />
     <ClCompile Include="memorymap.cc" />
+    <ClCompile Include="merge_command_line.cc" />
+    <ClCompile Include="merge_command_line_gtest.cc" />
     <ClCompile Include="normalize_regex.cc" />
     <ClCompile Include="normalize_regex_gtest.cc" />
     <ClCompile Include="progress_functor.cc" />
@@ -55,15 +57,18 @@
     <ClCompile Include="regex_index.cc" />
     <ClCompile Include="regex_index_gtest.cc" />
     <ClCompile Include="search.cc" />
+    <ClCompile Include="tokenize_command_line_gtest.cc" />
     <ClCompile Include="to_wide_gtest.cc" />
     <ClCompile Include="win\click_link.cpp" />
     <ClCompile Include="win\console.cpp" />
     <ClCompile Include="win\errno_str.cpp" />
+    <ClCompile Include="win\getenv_str.cpp" />
     <ClCompile Include="win\getlasterror_str.cpp" />
     <ClCompile Include="win\getopt.c" />
     <ClCompile Include="win\getopt1.c" />
     <ClCompile Include="win\maximize_window.cpp" />
     <ClCompile Include="win\temporary_file.cpp" />
+    <ClCompile Include="win\tokenize_command_line.cpp" />
     <ClCompile Include="win\to_wide.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

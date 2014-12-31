@@ -55,3 +55,13 @@ merge_command_line_lists(int &argc_left, const char** &argv_left, const int argc
     argv_left = argv;
     return true;
 }
+
+void
+tokenize_command_line_free(char* *argv)
+{
+    if (!argv) return;
+    for (char* *a = argv; *a; ++a) {
+	free(*a);
+    }
+    free(argv);
+}

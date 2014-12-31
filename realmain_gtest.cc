@@ -8,6 +8,13 @@
 #include <getopt.h>
 #include <cstdlib>
 
+#if defined(_WIN32)
+void setenv(const char *key, const char* val, int)
+{
+    _putenv_s(key, val);
+}
+#endif
+
 int realmain(int argc, char * const argv[]);
 
 static const char* FEWOPTIONS = "FEWOPTIONS";
@@ -20,7 +27,11 @@ protected:
     }
     virtual void TearDown()
     {
+#if defined(_WIN32)
+	_putenv_s(FEWOPTIONS, "");
+#else
 	unsetenv(FEWOPTIONS);
+#endif
     }
 };
 
@@ -119,6 +130,10 @@ TEST_F(realmainTest, recognizes_failure_to_parse_FEWOPTIONS_with_unset_variable)
 	"non existing file",
 	NULL
     };
-    setenv(FEWOPTIONS, "$NOT_EXISTING_VARIBLE", 1);
-    ASSERT_EQ(EX_USAGE, realmain(2,const_cast<char * const *>(argv)));
+#if defined(_WIN32)
+    setenv(FEWOPTIONS, "first %NOT_EXISTING_VARIBLE% second", 1);
+#else
+    setenv(FEWOPTIONS, "first $NOT_EXISTING_VARIBLE second", 1);
+#endif
+    ASSERT_EQ(EX_USAGE, realmain(2, const_cast<char * const *>(argv)));
 }

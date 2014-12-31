@@ -46,6 +46,7 @@
 #include "maximize_window.h"
 #include "merge_command_line.h"
 #include "tokenize_command_line.h"
+#include "getenv_str.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -1339,9 +1340,8 @@ int realmain_impl(int argc, char * const argv[])
     argv0 = argv[0];
 
     // merge environment variable FEWOPTIONS into the command line?
-    static const char* FEWOPTIONS = "FEWOPTIONS";
-    if (getenv(FEWOPTIONS)) {
-	std::string fo = getenv(FEWOPTIONS);
+    std::string fo;
+    if (getenv_str("FEWOPTIONS", fo) && !fo.empty()) {
 	int argc_fo = -1;
 	char ** argv_fo = nullptr;
 	if (! tokenize_command_line(fo, argc_fo, argv_fo)) {

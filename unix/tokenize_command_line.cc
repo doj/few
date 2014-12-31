@@ -50,14 +50,3 @@ tokenize_command_line(const std::string& str, int& argc, char** &argv)
     wordfree(&p);
     return ret;
 }
-
-
-void
-tokenize_command_line_free(char* *argv)
-{
-    if (! argv) return;
-    for(char* *a = argv; *a; ++a) {
-	free(*a);
-    }
-    free(argv);
-}

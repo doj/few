@@ -3,7 +3,6 @@ TODO
 
 - test on OsX
 - Windows
- + parse default command line arguments from FEWOPTIONS environment variable
  + somehow create an installer or at least a batch file to copy the .exe and .dll somewhere
  + check http://www.projectpluto.com/win32a.htm
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash

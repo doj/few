@@ -92,16 +92,19 @@
     <ClInclude Include="event.h" />
     <ClInclude Include="file_index.h" />
     <ClInclude Include="foreach.h" />
+    <ClInclude Include="getenv_str.h" />
     <ClInclude Include="getRSS.h" />
     <ClInclude Include="history.h" />
     <ClInclude Include="intersect.h" />
     <ClInclude Include="line.h" />
     <ClInclude Include="maximize_window.h" />
     <ClInclude Include="memorymap.h" />
+    <ClInclude Include="merge_command_line.h" />
     <ClInclude Include="normalize_regex.h" />
     <ClInclude Include="progress_functor.h" />
     <ClInclude Include="regex_index.h" />
     <ClInclude Include="search.h" />
+    <ClInclude Include="tokenize_command_line.h" />
     <ClInclude Include="to_wide.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="win\getlasterror_str.h" />
@@ -118,6 +121,7 @@
     <ClCompile Include="history.cc" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="memorymap.cc" />
+    <ClCompile Include="merge_command_line.cc" />
     <ClCompile Include="normalize_regex.cc" />
     <ClCompile Include="progress_functor.cc" />
     <ClCompile Include="realmain.cc" />
@@ -126,11 +130,13 @@
     <ClCompile Include="win\click_link.cpp" />
     <ClCompile Include="win\console.cpp" />
     <ClCompile Include="win\errno_str.cpp" />
+    <ClCompile Include="win\getenv_str.cpp" />
     <ClCompile Include="win\getlasterror_str.cpp" />
     <ClCompile Include="win\getopt.c" />
     <ClCompile Include="win\getopt1.c" />
     <ClCompile Include="win\maximize_window.cpp" />
     <ClCompile Include="win\temporary_file.cpp" />
+    <ClCompile Include="win\tokenize_command_line.cpp" />
     <ClCompile Include="win\to_wide.cpp" />
   </ItemGroup>
   <ItemGroup>
