@@ -115,3 +115,26 @@ TEST(tokenize_command_line, variable_substitution2)
     ASSERT_TRUE(argv[1] == nullptr);
     tokenize_command_line_free(argv);
 }
+
+TEST(tokenize_command_line, recursive_variable_substitution)
+{
+    setenv("d1", "d1", 1);
+#if defined(_WIN32)
+    setenv("d2", "%d1%", 1);
+    const char *command_line = "%d2%";
+#else
+    setenv("d2", "$d1", 1);
+    const char *command_line = "$d2";
+#endif
+    int argc;
+    char **argv;
+    ASSERT_TRUE(tokenize_command_line(command_line, argc, argv));
+    ASSERT_EQ(1, argc);
+#if defined(_WIN32)
+    ASSERT_STREQ("%d1%", argv[0]);
+#else
+    ASSERT_STREQ("$d1", argv[0]);
+#endif
+    ASSERT_TRUE(argv[1] == nullptr);
+    tokenize_command_line_free(argv);
+}
