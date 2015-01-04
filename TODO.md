@@ -1,6 +1,7 @@
 TODO
 ----
 
+- allow display filter to specify color/attribute
 - test on OsX
 - Windows
  + somehow create an installer or at least a batch file to copy the .exe and .dll somewhere
