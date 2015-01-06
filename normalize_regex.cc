@@ -102,13 +102,10 @@ is_df_with_curses_attr(const std::string& str, uint64_t& attr, int& fg, int& bg)
 	{"cyan", COLOR_CYAN },
 	{"white", COLOR_WHITE }
     };
-#define COLORS "(black|red|green|yellow|blue|magenta|cyan|white)"
-#define COL_ON_COL "(?:" COLORS " on " COLORS ")"
-#define ATTRS "(normal|standout|underline|reverse|blink|dim|bold|italic)"
-    static std::regex df_attr_form("\\|.*\\|(" ATTRS "(," ATTRS ")*(?:," COL_ON_COL ")?)", std::regex::optimize);
-#undef COLORS
-#undef ATTRS
-#undef COL_ON_COL
+#define COLORS "(?:black|red|green|yellow|blue|magenta|cyan|white)"
+#define COL_ON_COL "(" COLORS " on " COLORS ")"
+#define ATTRS "(?:normal|standout|underline|reverse|blink|dim|bold|italic)"
+    static std::regex df_attr_form("\\|.*\\|(" ATTRS "(?:," ATTRS ")*)(?:," COL_ON_COL ")?", std::regex::optimize);
 
     std::smatch m;
     if (! std::regex_match(str, m, df_attr_form)) {
@@ -118,25 +115,46 @@ is_df_with_curses_attr(const std::string& str, uint64_t& attr, int& fg, int& bg)
     attr = 0;
     fg = bg = -1;
 
+#if 0
     for(unsigned i = 1; i < m.size(); ++i) {
 	std::clog << "match " << i << ":" << m[i] << std::endl;
-	auto it = str2attr.find(m[i]);
-	if (it != str2attr.end()) {
-	    std::clog << "or " << it->first << " " << it->second << std::endl;
-	    attr |= it->second;
-	    continue;
-	}
-	it = str2color.find(m[i]);
-	if (it != str2color.end()) {
-	    if (fg == -1) {
-		fg = it->second;
-	    } else {
-		bg = it->second;
+    }
+#endif
+
+    // match attributes
+    if (m.size() > 1) {
+	static std::regex rgx(",?(" ATTRS ")", std::regex::optimize);
+	const std::string s = m[1];
+	for(std::sregex_iterator it(s.begin(), s.end(), rgx), it_end; it != it_end; ++it) {
+	    auto i = str2attr.find((*it)[1]);
+	    if (i != str2attr.end()) {
+		//std::clog << "or " << i->first << " " << i->second << std::endl;
+		attr |= i->second;
 	    }
+	}
+    }
+
+    // match colors
+    if (m.size() > 2) {
+	static std::regex rgx("(" COLORS ") on (" COLORS ")", std::regex::optimize);
+	std::smatch c;
+	const std::string s = m[2];
+	if (std::regex_match(s, c, rgx)) {
+	    auto it = str2color.find(c[1]);
+	    assert(it != str2color.end());
+	    fg = it->second;
+
+	    it = str2color.find(c[2]);
+	    assert(it != str2color.end());
+	    bg = it->second;
 	}
     }
 
     // either set both fg and bg or set none.
     assert((fg==-1 && bg==-1) || (fg>=0 && bg>=0));
     return true;
+
+#undef COLORS
+#undef ATTRS
+#undef COL_ON_COL
 }

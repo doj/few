@@ -2,6 +2,11 @@ TODO
 ----
 
 - allow display filter to specify color/attribute
+ + apply DF and set required attributes
+ + set required color
+  * add general color management
+ + support hidden DF, which can be set from command line
+
 - test on OsX
 - Windows
  + somehow create an installer or at least a batch file to copy the .exe and .dll somewhere
