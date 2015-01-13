@@ -25,7 +25,7 @@ std::string normalize_regex(std::string regex)
 
     // check for display filter with curses attributes
     uint64_t attr; int fg, bg;
-    if (is_df_with_curses_attr(regex, attr, fg, bg)) {
+    if (is_attr_df(regex, attr, fg, bg)) {
 	return regex;
     }
 
@@ -80,7 +80,7 @@ std::string get_regex_str(std::string str)
 
 #include <iostream>
 bool
-is_df_with_curses_attr(const std::string& str, uint64_t& attr, int& fg, int& bg)
+is_attr_df(const std::string& str, uint64_t& attr, int& fg, int& bg)
 {
     static std::map<std::string, uint64_t> str2attr = {
 	{"normal", A_NORMAL },

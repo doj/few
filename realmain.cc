@@ -135,19 +135,19 @@ namespace {
 
 	///@{
 
-	/// regex object used for display filter
-	std::shared_ptr<std::regex> df_rgx_;
-	/// display filter replacement
-	std::string df_replace_;
+	/// regex object used for replace display filter
+	std::shared_ptr<std::regex> replace_df_rgx_;
+	/// replace display filter replacement text
+	std::string replace_df_text_;
 
 	///@}
 
 	///@{
 
-	/// display filter with curses attributes regular expression
-	std::shared_ptr<std::wregex> df_attr_rgx_;
-	/// curses attributes for df_attr_rgx_
-	unsigned df_attr_;
+	/// regex object used for the attribute display filter
+	std::shared_ptr<std::wregex> attribute_df_rgx_;
+	/// attribute display filter curses attributes
+	unsigned attribute_df_attr_;
 
 	///@}
     };
@@ -280,14 +280,14 @@ namespace {
 		    line_num_width = 8;
 		}
 
-		// apply Display Filters?
+		// apply Replace Display Filters
 		if (!df_vec.empty() && !line.empty()) {
 		    static std::string l;
 		    l = line.to_string();
 
 		    for (auto df : df_vec) {
-			if (df->df_rgx_) {
-			    l = std::regex_replace(l, *(df->df_rgx_), df->df_replace_);
+			if (df->replace_df_rgx_) {
+			    l = std::regex_replace(l, *(df->replace_df_rgx_), df->replace_df_text_);
 			}
 		    }
 
@@ -318,16 +318,16 @@ namespace {
 		// map of pointers into the line and a corresponding curses attribute for the character
 		std::map<std::wstring::iterator, unsigned> character_attr;
 
-		// apply Display Filters with Curses attributes
+		// apply Attribute Display Filters
 		for(auto df : df_vec) {
-		    if (df->df_attr_rgx_) {
-			for(auto it = std::wsregex_iterator(wline.begin(), wline.end(), *(df->df_attr_rgx_)), it_end = std::wsregex_iterator(); it != it_end; ++it) {
+		    if (df->attribute_df_rgx_) {
+			for(auto it = std::wsregex_iterator(wline.begin(), wline.end(), *(df->attribute_df_rgx_)), it_end = std::wsregex_iterator(); it != it_end; ++it) {
 			    std::wstring::iterator b = wline.begin() + it->position();
 			    std::wstring::iterator e = b + it->length();
 			    assert(b <= e);
 			    // set character attribute for all matched characters
 			    for (std::wstring::iterator i = b; i != e; ++i) {
-				character_attr[i] |= df->df_attr_;
+				character_attr[i] |= df->attribute_df_attr_;
 			    }
 			}
 		    }
@@ -1128,14 +1128,16 @@ namespace {
 		t.detach();
 		info = "matching...";
 		return startedBackgroundMatch;
-	    } else if (is_df_with_curses_attr(rgx, df_attr, df_fg, df_bg)) {
-		// Display Filter with Curses attributes
-		c->df_attr_rgx_ = std::make_shared<std::wregex>(to_wide(get_regex_str(rgx)));
-		c->df_attr_ = df_attr;
+	    } else if (is_attr_df(rgx, df_attr, df_fg, df_bg)) {
+		// Attribute Display Filter
+		c->attribute_df_rgx_ = std::make_shared<std::wregex>(to_wide(get_regex_str(rgx)));
+		c->attribute_df_attr_ = df_attr;
 		// \todo create color_pair from df_fg and df_bg
 
+		info = "created new attribute display filter";
+		return createdDisplayFilter;
 	    } else {
-		// Display Filter
+		// Replace Display Filter
 		const std::string flags = get_regex_flags(rgx);
 		rgx = get_regex_str(rgx);
 
@@ -1150,15 +1152,15 @@ namespace {
 		    c->err_ = "could not separate regex and replace parts";
 		} else {
 		    // create replace string
-		    c->df_replace_ = rgx;
-		    c->df_replace_.erase(0, pos + 1);
+		    c->replace_df_text_ = rgx;
+		    c->replace_df_text_.erase(0, pos + 1);
 
 		    // construct regex
 		    rgx.erase(pos);
-		    c->df_rgx_ = std::make_shared<std::regex>(rgx, fl);
+		    c->replace_df_rgx_ = std::make_shared<std::regex>(rgx, fl);
 		}
 
-		info = "created new display filter";
+		info = "created new replace display filter";
 		return createdDisplayFilter;
 	    }
 	} catch (std::regex_error& e) {

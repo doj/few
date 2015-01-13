@@ -79,44 +79,44 @@ TEST(normalize_regex, detects_df_attr_syntax)
     ASSERT_EQ(r, normalize_regex(r));
 }
 
-TEST(is_df_with_curses_attr, returns_attributes)
+TEST(is_attr_df, returns_attributes)
 {
     std::string r = "|something|bold";
     uint64_t attr; int fg, bg;
-    ASSERT_TRUE(is_df_with_curses_attr(r, attr, fg, bg));
+    ASSERT_TRUE(is_attr_df(r, attr, fg, bg));
     ASSERT_EQ(A_BOLD, attr);
     ASSERT_EQ(-1, fg);
     ASSERT_EQ(-1, bg);
 
     r = "|few is|normal";
-    ASSERT_TRUE(is_df_with_curses_attr(r, attr, fg, bg));
+    ASSERT_TRUE(is_attr_df(r, attr, fg, bg));
     ASSERT_EQ(A_NORMAL, attr);
     ASSERT_EQ(-1, fg);
     ASSERT_EQ(-1, bg);
 
     r = "|something|dim,standout,green on yellow";
-    ASSERT_TRUE(is_df_with_curses_attr(r, attr, fg, bg));
+    ASSERT_TRUE(is_attr_df(r, attr, fg, bg));
     ASSERT_EQ(A_DIM|A_STANDOUT, attr);
     ASSERT_EQ(COLOR_GREEN, fg);
     ASSERT_EQ(COLOR_YELLOW, bg);
 
     r = "|something|italic,underline,bold,reverse";
-    ASSERT_TRUE(is_df_with_curses_attr(r, attr, fg, bg));
+    ASSERT_TRUE(is_attr_df(r, attr, fg, bg));
     ASSERT_EQ(A_BOLD|A_ITALIC|A_UNDERLINE|A_REVERSE, attr);
     ASSERT_EQ(-1, fg);
     ASSERT_EQ(-1, bg);
 
     r = "|something|normal,reverse,blink,bold,green on green";
-    ASSERT_TRUE(is_df_with_curses_attr(r, attr, fg, bg));
+    ASSERT_TRUE(is_attr_df(r, attr, fg, bg));
     ASSERT_EQ(A_NORMAL|A_REVERSE|A_BLINK|A_BOLD, attr);
     ASSERT_EQ(COLOR_GREEN, fg);
     ASSERT_EQ(COLOR_GREEN, bg);
 
     // don't allow missing attribute
     r = "|something|green on green";
-    ASSERT_FALSE(is_df_with_curses_attr(r, attr, fg, bg));
+    ASSERT_FALSE(is_attr_df(r, attr, fg, bg));
 
     // don't allow two color definitions
     r = "|something|bold,green on green,red on blue";
-    ASSERT_FALSE(is_df_with_curses_attr(r, attr, fg, bg));
+    ASSERT_FALSE(is_attr_df(r, attr, fg, bg));
 }

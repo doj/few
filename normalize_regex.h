@@ -15,8 +15,7 @@ std::string get_regex_flags(std::string str);
 std::string get_regex_str(std::string str);
 
 /**
- * check if a regular expression is of the _display filter with curses
- * attribute_ form.
+ * check if a regular expression is an _attribute display filter_.
  *
  * @param[in] regex regular expression string.
  * @param[out] curses attributes if the function returns true.
@@ -24,4 +23,4 @@ std::string get_regex_str(std::string str);
  * @param[out] bg curses background color; -1 if no color was specified.
  * @return true if regex is a _display filter with curses attribute_.
  */
-bool is_df_with_curses_attr(const std::string& str, uint64_t& attr, int& fg, int& bg);
+bool is_attr_df(const std::string& str, uint64_t& attr, int& fg, int& bg);
