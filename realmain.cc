@@ -129,6 +129,7 @@ namespace {
 	std::string rgx_;
 	/// an error string if rgx_ is invalid
 	std::string err_;
+
 	/// object used for lines filter
 	std::shared_ptr<regex_index> ri_;
 
@@ -138,6 +139,15 @@ namespace {
 	std::shared_ptr<std::regex> df_rgx_;
 	/// display filter replacement
 	std::string df_replace_;
+
+	///@}
+
+	///@{
+
+	/// display filter with curses attributes regular expression
+	std::shared_ptr<std::wregex> df_attr_rgx_;
+	/// curses attributes for df_attr_rgx_
+	unsigned df_attr_;
 
 	///@}
     };
@@ -307,6 +317,21 @@ namespace {
 
 		// map of pointers into the line and a corresponding curses attribute for the character
 		std::map<std::wstring::iterator, unsigned> character_attr;
+
+		// apply Display Filters with Curses attributes
+		for(auto df : df_vec) {
+		    if (df->df_attr_rgx_) {
+			for(auto it = std::wsregex_iterator(wline.begin(), wline.end(), *(df->df_attr_rgx_)), it_end = std::wsregex_iterator(); it != it_end; ++it) {
+			    std::wstring::iterator b = wline.begin() + it->position();
+			    std::wstring::iterator e = b + it->length();
+			    assert(b <= e);
+			    // set character attribute for all matched characters
+			    for (std::wstring::iterator i = b; i != e; ++i) {
+				character_attr[i] |= df->df_attr_;
+			    }
+			}
+		    }
+		}
 
 		// apply search?
 		if (search_err.empty()) {
@@ -1071,7 +1096,7 @@ namespace {
 	// normalize regular expression
 	rgx = normalize_regex(rgx);
 	assert(rgx.size() >= 3);
-	assert(rgx[0] == '/');
+	assert(rgx[0] == '/' || rgx[0] == '|');
 
 	regex_vec_resize(vec, regex_num + 1);
 
@@ -1093,6 +1118,9 @@ namespace {
 	c->rgx_ = rgx;
 
 	try {
+	    uint64_t df_attr;
+	    int df_fg, df_bg;
+
 	    if (isFilterRgx) {
 		// Lines Filter
 		auto ri = std::make_shared<regex_index>(rgx);
@@ -1100,6 +1128,12 @@ namespace {
 		t.detach();
 		info = "matching...";
 		return startedBackgroundMatch;
+	    } else if (is_df_with_curses_attr(rgx, df_attr, df_fg, df_bg)) {
+		// Display Filter with Curses attributes
+		c->df_attr_rgx_ = std::make_shared<std::wregex>(to_wide(get_regex_str(rgx)));
+		c->df_attr_ = df_attr;
+		// \todo create color_pair from df_fg and df_bg
+
 	    } else {
 		// Display Filter
 		const std::string flags = get_regex_flags(rgx);
