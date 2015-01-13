@@ -47,6 +47,7 @@
 #include "merge_command_line.h"
 #include "tokenize_command_line.h"
 #include "getenv_str.h"
+#include "color.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -61,8 +62,6 @@ namespace {
     /// the info string which is shown in the lower right corner
     std::string info;
 
-    /// if true, use color
-    bool use_color = false;
     ///@{
     ///@name color attributes
     unsigned gray_on_black = 0;
@@ -251,7 +250,7 @@ namespace {
 	if (info.size() > screen_width) {
 	    info.resize(screen_width);
 	}
-	curses_attr a(use_color ? red_on_black : A_BOLD);
+	curses_attr a(use_color() ? red_on_black : A_BOLD);
 	mvprintw(w_lines_height - 1, screen_width - info.size(), "%s", info.c_str());
     }
 
@@ -342,7 +341,7 @@ namespace {
 			assert(b <= e);
 			// set character attribute for all matched characters
 			for (std::wstring::iterator i = b; i != e; ++i) {
-			    character_attr[i] |= (use_color ? (green_on_black | A_BOLD) : A_REVERSE);
+			    character_attr[i] |= (use_color() ? (green_on_black | A_BOLD) : A_REVERSE);
 			}
 		    }
 		}
@@ -493,7 +492,7 @@ namespace {
 		X += print_string(y, X, s);
 
 		if (c->ri_) {
-		    curses_attr a(use_color ? 0 : A_BOLD);
+		    curses_attr a(use_color() ? 0 : A_BOLD);
 		    s = " (";
 		    const uint64_t num = c->ri_->size();
 		    s += std::to_string(num);
@@ -609,10 +608,10 @@ namespace {
 	mousemask(BUTTON1_CLICKED, nullptr);
 	curs_set(0); // disable cursor
 
-	if (use_color) {
-	    use_color = has_colors() ? true : false;
+	if (use_color()) {
+	    use_color(has_colors() ? true : false);
 	}
-	if (use_color) {
+	if (use_color()) {
 	    start_color();
 	    if (COLOR_PAIRS < 3) {
 		endwin();
@@ -1426,7 +1425,7 @@ int realmain_impl(int argc, char * const argv[])
 	    break;
 
 	case opt_color:
-	    use_color = true;
+	    use_color(true);
 	    break;
 
 	case opt_regex:
@@ -1764,7 +1763,7 @@ int realmain_impl(int argc, char * const argv[])
     for(unsigned u = 0; u < verbose; ++u) {
 	std::cout << " -v";
     }
-    if (use_color) {
+    if (use_color()) {
 	std::cout << " --color";
     }
     std::cout << " '" << command_line_filename << "'" << std::endl;
