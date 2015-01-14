@@ -102,6 +102,7 @@ The standard form of these regular expression has the following format:
 
 /regex/flags
 
+This is a _filter regex_.
 The regular expression is surrounded by two forward slash characters.
 The flags are optional.
 
@@ -110,7 +111,7 @@ on the regular expression syntax. It is similar to perl regular
 expressions.
 
 ### Regular Expression Flags
-The regular expression can be modified with optional flag characters,
+The filter regular expression can be modified with optional flag characters,
 the following characters are currently supported:
 
 * **i**:
@@ -118,33 +119,33 @@ the following characters are currently supported:
 * **!**:
   negative match
 
-By default the regular expression is a positive match. Only lines in
+By default the filter regular expression is a positive match. Only lines in
 the file that (partially) match the regular expression will be
 displayed. If you use the '!' flag the regular expression becomes a
 negative match. Only lines that do *not* match the regular expression
 are displayed.
 
 ### Regular Expression Short Form
-If you do not need to supply flags for the regular expression and the
-regular expression does not start with a forward slash, you can omit
+If you do not need to supply flags for the filter regular expression and the
+filter regular expression does not start with a forward slash, you can omit
 the surrounding slashes.
 
-If you want a negative match and your regular expression does not
+If you want a negative match and your filter regular expression does not
 start with a '!' character and you don't need additional flags, you
-can start your regular expression with a '!' character.
+can start your filter regular expression with a '!' character.
 
 The few program will convert the short forms to the regular form.
 
-### Display Filter Regular Expressions
+### Replace Display Filter Regular Expressions
 
-Display Filter change the way the lines are displayed. They take the
+Replace Display Filter change the way the lines are displayed. They take the
 form of a perl regular expression substitute:
 
 /regex/replace/flags
 
 Because the parsing of this format is currently naive, the strings
-_regex_ and _replace_ may not contain any forward slash characters.
-The display filter allows the optional 'i' flag to indicate case
+_regex_ and _replace_ can not contain any forward slash characters.
+The replace display filter allows the optional 'i' flag to indicate case
 insensitive matching.  The replace string can contain back references
 to the regular expression. The following back references or available:
 
@@ -162,17 +163,64 @@ to the regular expression. The following back references or available:
 See <http://www.cplusplus.com/reference/regex/regex_replace/> for
 details on how the C++ regex library is matching and replaceing.
 
+### Attribute Display Filter Regular Expression
+
+You can use a regular expression to change the character attributes
+and the colors used to display the line. This is called an _Attribute
+Display Filter_. This uses the following form:
+
+|regex|<list of attributes>,<optional color specification>
+
+The following attributes are supported by few. Note that your curses
+implementation or terminal may not support all of these attributes.
+
+* normal
+* standout
+* underline
+* reverse
+* blink
+* dim
+* bold
+* italic
+
+The optional _color specification_ has the following form:
+
+<color> on <color>
+
+The first color specifies the foreground color. The second color
+specifies the background color. The following colors are supported:
+
+* black
+* red
+* green
+* yellow
+* blue
+* magenta
+* cyan
+* white
+
+To use colors, you have to start the few program with the --color
+command line argument.
+
+Example attribute display filter:
+
+|\d|italic,bold,yellow on blue
+
+Will print all digits in italic and bold with yellow foreground and
+blue background color.
+
 ### Regular Expressions and wide characters
 
 The few program is able to display wide characters and files encoded
 in UTF-8. However because it is designed to work with large files, it
-will not attempt to match the regular expressions on the wide
-character representations of the file processed. The (display) filter
-regular expression is matched on the raw byte sequence of the
-file. This is usually not a problem if you match ASCII characters.
+will not attempt to match the filter regular expressions on the wide
+character representations of the file processed.  The replace display
+filter regular expression is matched on the raw byte sequence of the
+file as well. This is usually not a problem if you match ASCII
+characters.
 
-The search regular expression however is matched against the wide
-character representation of the displayed lines.
+The attribute display filter regular expression however is matched
+against the wide character representation of the displayed lines.
 
 Links and URLs
 --------------
