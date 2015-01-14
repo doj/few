@@ -4,6 +4,7 @@
  */
 #include "gtest/gtest.h"
 #include "color.h"
+#include "curses_attr.h"
 
 TEST(Color, use_color_works)
 {
@@ -24,6 +25,7 @@ TEST(Color, color_returns_0_if_color_is_disabled)
 
 TEST(Color, color_returns_useful_color_pairs)
 {
+    COLOR_PAIRS = 100; // set some fake curses color number
     use_color(true);
     const uint64_t cp1 = color(2,2);
     ASSERT_GT(cp1, 0u);

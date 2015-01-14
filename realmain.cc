@@ -52,6 +52,10 @@
 /// verbosity level
 unsigned verbose = 0;
 
+#define lightgray_on_black color(COLOR_WHITE, COLOR_BLACK)
+#define white_on_black (lightgray_on_black | A_BOLD | A_STANDOUT)
+#define gray_on_black (lightgray_on_black | A_DIM)
+
 namespace {
     /// file name of line edit history
     const char* line_edit_history_rc = ".few.history";
@@ -61,16 +65,6 @@ namespace {
 
     /// the info string which is shown in the lower right corner
     std::string info;
-
-    ///@{
-    ///@name color attributes
-    unsigned gray_on_black = 0;
-    unsigned white_on_black = 0;
-    unsigned red_on_black = 0;
-    unsigned lightred_on_black = 0;
-    unsigned lightgray_on_black = 0;
-    unsigned green_on_black = 0;
-    ///@}
 
     /// minimum screen height
     const unsigned min_screen_height = 1 // lines
@@ -213,7 +207,7 @@ namespace {
     {
 	unsigned x = 0;
 
-	curses_attr a(A_REVERSE | white_on_black);
+	curses_attr a(A_REVERSE | color(COLOR_WHITE, COLOR_BLACK));
 
 	const unsigned line_len_w = digits(line_len) + 1;
 	const unsigned line_num_w = digits(line_num) + 1;
@@ -250,7 +244,7 @@ namespace {
 	if (info.size() > screen_width) {
 	    info.resize(screen_width);
 	}
-	curses_attr a(use_color() ? red_on_black : A_BOLD);
+	curses_attr a(use_color() ? color(COLOR_RED, COLOR_BLACK) : A_BOLD);
 	mvprintw(w_lines_height - 1, screen_width - info.size(), "%s", info.c_str());
     }
 
@@ -341,7 +335,7 @@ namespace {
 			assert(b <= e);
 			// set character attribute for all matched characters
 			for (std::wstring::iterator i = b; i != e; ++i) {
-			    character_attr[i] |= (use_color() ? (green_on_black | A_BOLD) : A_REVERSE);
+			    character_attr[i] |= (use_color() ? (color(COLOR_GREEN, COLOR_BLACK) | A_BOLD) : A_REVERSE);
 			}
 		    }
 		}
@@ -373,7 +367,7 @@ namespace {
 			}
 			else {
 			    // print empty space
-			    curses_attr a(A_REVERSE | white_on_black);
+			    curses_attr a(A_REVERSE | color(COLOR_WHITE, COLOR_BLACK));
 			    for (; x < line_num_width; ++x) {
 				mvaddch(y, x, ' ');
 			    }
@@ -474,7 +468,7 @@ namespace {
 		attr |= (cnt & 1) ? gray_on_black : lightgray_on_black;
 	    }
 	    else {
-		attr |= red_on_black;
+		attr |= color(COLOR_RED, COLOR_BLACK);
 		s += " : ";
 		s += c->err_;
 		title = "error";
@@ -613,23 +607,6 @@ namespace {
 	}
 	if (use_color()) {
 	    start_color();
-	    if (COLOR_PAIRS < 3) {
-		endwin();
-		std::cerr << "Your terminal does not support enough color pairs: " << COLOR_PAIRS << std::endl;
-		return false;
-	    }
-
-	    init_pair(1, COLOR_WHITE, COLOR_BLACK);
-	    lightgray_on_black = COLOR_PAIR(1);
-	    white_on_black = COLOR_PAIR(1) | A_BOLD | A_STANDOUT;
-	    gray_on_black = COLOR_PAIR(1) | A_DIM;
-
-	    init_pair(2, COLOR_RED, COLOR_BLACK);
-	    red_on_black = COLOR_PAIR(2);
-	    lightred_on_black = COLOR_PAIR(2) | A_BOLD | A_STANDOUT;
-
-	    init_pair(3, COLOR_GREEN, COLOR_BLACK);
-	    green_on_black = COLOR_PAIR(3);
 	}
 
 	create_windows();

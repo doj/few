@@ -30,6 +30,10 @@ uint64_t color(int fg, int bg)
 	return it->second;
     }
 
+    if (static_cast<int>(color_pair_num) >= COLOR_PAIRS) {
+	return 0;
+    }
+
     ++color_pair_num;
     init_pair(color_pair_num, fg, bg);
     uint64_t cp = COLOR_PAIR(color_pair_num);
