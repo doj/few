@@ -320,7 +320,8 @@ namespace {
 			    assert(b <= e);
 			    // set character attribute for all matched characters
 			    for (std::wstring::iterator i = b; i != e; ++i) {
-				character_attr[i] |= df->attribute_df_attr_;
+				character_attr[i] &= ~A_COLOR; // clear any previous color
+				character_attr[i] |= df->attribute_df_attr_; // set new attribute and color
 			    }
 			}
 		    }
@@ -447,10 +448,10 @@ namespace {
 	if (s.empty()) {
 	    return 0;
 	}
-	if (s.size() > screen_width - x) {
+	if (s.size() >= screen_width - x) {
 	    s.resize(screen_width - x);
 	}
-	assert(x + s.size() < screen_width);
+	assert(x + s.size() <= screen_width);
 	mvprintw(y, x, "%s", s.c_str());
 	return s.size();
     }
@@ -1107,9 +1108,7 @@ namespace {
 	    } else if (is_attr_df(rgx, df_attr, df_fg, df_bg)) {
 		// Attribute Display Filter
 		c->attribute_df_rgx_ = std::make_shared<std::wregex>(to_wide(get_regex_str(rgx)));
-		c->attribute_df_attr_ = df_attr;
-		// \todo create color_pair from df_fg and df_bg
-
+		c->attribute_df_attr_ = df_attr | color(df_fg, df_bg);
 		info = "created new attribute display filter";
 		return createdDisplayFilter;
 	    } else {

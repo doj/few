@@ -2,7 +2,6 @@ TODO
 ----
 
 - allow display filter to specify color/attribute
- + set required color
  + search is the same as df_attr, remove search feature
   * use / key to edit the next available DF and prepopulate with an empty df_attr
  + support hidden DF, which can be set from command line
