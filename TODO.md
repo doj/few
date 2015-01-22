@@ -1,11 +1,6 @@
 TODO
 ----
 
-- allow display filter to specify color/attribute
- + search is the same as df_attr, remove search feature
-  * use / key to edit the next available DF and prepopulate with an empty df_attr
- + support hidden DF, which can be set from command line
-
 - only use one regex edit window, the different syntaxes allow us to determine the type of regex
  * line filter
  * replace display filter

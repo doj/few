@@ -21,6 +21,7 @@ test
 # editor files
 *~
 .emacs*
+TAGS
 
 # Visual Studio files
 *.suo

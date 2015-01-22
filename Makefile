@@ -39,7 +39,7 @@ PREFIX ?= /usr/local
 ##############################################################################
 # build and debug the few program
 
-all:	run_test few
+all:	run_test few TAGS
 
 few:	$(OBJS) main.o
 	$(CXX) $(LDFLAGS) -o $@ $^ $(LIBS)
@@ -109,8 +109,11 @@ dist:	few.1 few.html
 	rm /tmp/few-$(TODAY)
 	mv /tmp/few-$(TODAY).tar.gz "$(PWD)/"
 
+TAGS:
+	etags $(SRCS)
+
 clean:
-	rm -f test few few.md few.tar.gz
+	rm -f test few few.md few.tar.gz TAGS
 	-find . -name '*~' -or -name '*.o' -or -name '*.d' | xargs rm
 
 distclean:	clean
