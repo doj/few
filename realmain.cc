@@ -66,9 +66,12 @@ namespace {
     /// the info string which is shown in the lower right corner
     std::string info;
 
+    /// maximum number of regular expressions. 10 for keys 1..0, 12 for F1..F12.
+    const unsigned max_regex_num = 10 + 12;
+
     /// minimum screen height
     const unsigned min_screen_height = 1 // lines
-	+ 10+12 // filters
+	+ max_regex_num
 	+ 1 // search
 	;
 
@@ -1049,7 +1052,7 @@ namespace {
 
     add_regex_status add_regex(const unsigned regex_num, std::string rgx, ProgressFunctor *func)
     {
-	assert(regex_num < 9);
+	assert(regex_num < max_regex_num);
 	assert(! rgx.empty());
 
 	// normalize regular expression
@@ -1134,7 +1137,7 @@ namespace {
 
     void edit_regex(unsigned& y, const unsigned regex_num)
     {
-	assert(regex_num < 10000);
+	assert(regex_num < max_regex_num);
 	regex_vec_resize(regex_num + 1);
 
 	create_windows();
@@ -1388,8 +1391,8 @@ int realmain_impl(int argc, char * const argv[])
 	    break;
 
 	case opt_regex:
-	    if (command_line_filter_regex.size() >= 9) {
-		std::cerr << "can only add up to 9 regular expressions with the --regex argument" << std::endl;
+	    if (command_line_filter_regex.size() >= max_regex_num) {
+		std::cerr << "can only add up to " << max_regex_num << " regular expressions with the --regex argument" << std::endl;
 		return EX_USAGE;
 	    }
 	    {
@@ -1645,8 +1648,9 @@ int realmain_impl(int argc, char * const argv[])
 	case '9':
 	    edit_regex(filter_y, key - '1');
 	    break;
-#if 0
 	case '0':
+	    edit_regex(filter_y, 9);
+	    break;
 	case KEY_F(1):
 	case KEY_F(2):
 	case KEY_F(3):
@@ -1656,9 +1660,9 @@ int realmain_impl(int argc, char * const argv[])
 	case KEY_F(7):
 	case KEY_F(8):
 	case KEY_F(9):
-	    edit_regex(df_y, key - KEY_F(1));
+	    edit_regex(filter_y, key - KEY_F(1) + 10);
 	    break;
-#endif
+
 	case KEY_MOUSE:
 	    key_mouse();
 	    break;

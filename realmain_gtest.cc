@@ -104,9 +104,23 @@ TEST_F(realmainTest, recognizes_too_many_regex)
 	"--regex", "a",
 	"--regex", "a",
 	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
+	"--regex", "a",
 	NULL
     };
-    ASSERT_EQ(EX_USAGE, realmain(1 + 11*2,const_cast<char * const *>(argv)));
+    ASSERT_EQ(EX_USAGE, realmain(1 + 25*2,const_cast<char * const *>(argv)));
 }
 
 TEST_F(realmainTest, recognizes_failure_to_parse_FEWOPTIONS_with_missing_quote)

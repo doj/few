@@ -62,8 +62,10 @@ The actions resulting from a key press are modelled after the less(1) program.
   go to to first line.
 * **G**, **>**, **end**:
   go to last line.
-* **1** .. **9**:
-  edit display or filter regular expression.
+* **1** .. **9**, **0**:
+  edit regular expressions 1 to 10.
+* **F1** .. **F12**:
+  edit regular expressions 11 to 22.
 * **d**:
   scroll down half a screen
 * **u**:

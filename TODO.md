@@ -1,13 +1,6 @@
 TODO
 ----
 
-- only use one regex edit window, the different syntaxes allow us to determine the type of regex
- * line filter
- * replace display filter
- * attribute display filter
- + allow 0 for 10th edit
- + allow F1 to F20 for more edits
-
 - test on OsX
 - Windows
  + somehow create an installer or at least a batch file to copy the .exe and .dll somewhere
