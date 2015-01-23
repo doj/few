@@ -68,8 +68,7 @@ namespace {
 
     /// minimum screen height
     const unsigned min_screen_height = 1 // lines
-	+ 9 // filters
-	+ 9 // display filters
+	+ 10+12 // filters
 	+ 1 // search
 	;
 
@@ -113,9 +112,6 @@ namespace {
     /// the y position of the lines filter regex window
     unsigned filter_y;
 
-    /// the y position of the display filter regex window
-    unsigned df_y;
-
     struct regex_container_t
     {
 	/// the regular expression string
@@ -147,13 +143,6 @@ namespace {
 
     typedef std::vector<std::shared_ptr<regex_container_t>> regex_vec_t;
 
-    void regex_vec_resize(regex_vec_t& vec, const unsigned num)
-    {
-	while (vec.size() < num) {
-	    vec.push_back(std::make_shared<regex_container_t>());
-	}
-    }
-
     /**
      * type of a regex_container_t cache.
      * key is the regular expression string and has to be equal to value->rgx_.
@@ -161,14 +150,18 @@ namespace {
      */
     typedef std::map<std::string, std::shared_ptr<regex_container_t>> regex_cache_t;
 
-    /// the regular expressions for the lines filter
-    regex_vec_t filter_vec;
+    /// the regular expressions for the display and filter regex
+    regex_vec_t regex_vec;
+
+    void regex_vec_resize(const unsigned num)
+    {
+	while (regex_vec.size() < num) {
+	    regex_vec.push_back(std::make_shared<regex_container_t>());
+	}
+    }
 
     /// the filter regex cache
     regex_cache_t filter_cache;
-
-    /// the regular expressions for the display filter
-    regex_vec_t df_vec;
 
     /// @return number of digits in i.
     int digits(uint64_t i)
@@ -274,11 +267,11 @@ namespace {
 		}
 
 		// apply Replace Display Filters
-		if (!df_vec.empty() && !line.empty()) {
+		if (! line.empty()) {
 		    static std::string l;
 		    l = line.to_string();
 
-		    for (auto df : df_vec) {
+		    for (auto df : regex_vec) {
 			if (df->replace_df_rgx_) {
 			    l = std::regex_replace(l, *(df->replace_df_rgx_), df->replace_df_text_);
 			}
@@ -312,7 +305,7 @@ namespace {
 		std::map<std::wstring::iterator, unsigned> character_attr;
 
 		// apply Attribute Display Filters
-		for(auto df : df_vec) {
+		for(auto df : regex_vec) {
 		    if (df->attribute_df_rgx_) {
 			for(auto it = std::wsregex_iterator(wline.begin(), wline.end(), *(df->attribute_df_rgx_)), it_end = std::wsregex_iterator(); it != it_end; ++it) {
 			    std::wstring::iterator b = wline.begin() + it->position();
@@ -520,8 +513,7 @@ namespace {
     {
 	if (screen_height >= min_screen_height && screen_width >= min_screen_width) {
 	    refresh_lines_window();
-	    refresh_regex_window(filter_y, "regex", filter_vec);
-	    refresh_regex_window(df_y, "dispf", df_vec);
+	    refresh_regex_window(filter_y, "regex", regex_vec);
 
 	    if (!search_str.empty()) {
 		curses_attr a(A_BOLD);
@@ -554,8 +546,7 @@ namespace {
 	}
 
 	w_lines_height = screen_height;
-	w_lines_height -= filter_vec.size();
-	w_lines_height -= df_vec.size();
+	w_lines_height -= regex_vec.size();
 	if (!search_str.empty()) {
 	    --w_lines_height;
 	}
@@ -564,22 +555,13 @@ namespace {
 	// lines window
 	unsigned y = w_lines_height;
 
-	if (filter_vec.size() == 0) {
+	if (regex_vec.size() == 0) {
 	    filter_y = 0;
 	}
 	else {
-	    assert(filter_vec.size() <= 9);
+	    assert(regex_vec.size() <= 10+12);
 	    filter_y = y;
-	    y += filter_vec.size();
-	}
-
-	if (df_vec.size() == 0) {
-	    df_y = 0;
-	}
-	else {
-	    assert(df_vec.size() <= 9);
-	    df_y = y;
-	    y += df_vec.size();
+	    y += regex_vec.size();
 	}
 
 	search_y = screen_height - 1;
@@ -821,7 +803,7 @@ namespace {
 	// set up a vector regex_index lineNum_vector iterator pairs
 	std::shared_ptr<regex_index> ri;
 	lineNum_vector_intersect_vector_t v;
-	for(auto c : filter_vec) {
+	for(auto c : regex_vec) {
 	    if (c->ri_) {
 		ri = c->ri_;
 		const auto& s = ri->lineNum_vector();
@@ -1065,7 +1047,7 @@ namespace {
 	regexError,
     };
 
-    add_regex_status add_regex(const unsigned regex_num, std::string rgx, regex_vec_t& vec, const bool isFilterRgx, ProgressFunctor *func)
+    add_regex_status add_regex(const unsigned regex_num, std::string rgx, ProgressFunctor *func)
     {
 	assert(regex_num < 9);
 	assert(! rgx.empty());
@@ -1075,15 +1057,16 @@ namespace {
 	assert(rgx.size() >= 3);
 	assert(rgx[0] == '/' || rgx[0] == '|');
 
-	regex_vec_resize(vec, regex_num + 1);
+	regex_vec_resize(regex_num + 1);
 
 	// do we have the regex container already in the cache?
+	const bool isFilterRgx = is_filter_regex(rgx);
 	if (isFilterRgx) {
 	    auto it = filter_cache.find(rgx);
 	    if (it != filter_cache.end()) {
 		// check that cache key really matches the value rgx_
 		assert(it->first == it->second->rgx_);
-		vec[regex_num] = it->second;
+		regex_vec[regex_num] = it->second;
 		info = "found regex in cache";
 		return foundInCache;
 	    }
@@ -1091,7 +1074,7 @@ namespace {
 
 	// create new regex container object
 	auto c = std::make_shared<regex_container_t>();
-	vec[regex_num] = c;
+	regex_vec[regex_num] = c;
 	c->rgx_ = rgx;
 
 	try {
@@ -1149,15 +1132,15 @@ namespace {
 	return regexError;
     }
 
-    void edit_regex(unsigned& y, const unsigned regex_num, regex_vec_t& vec, const bool isFilterRgx)
+    void edit_regex(unsigned& y, const unsigned regex_num)
     {
-	assert(regex_num < 9);
-	regex_vec_resize(vec, regex_num + 1);
+	assert(regex_num < 10000);
+	regex_vec_resize(regex_num + 1);
 
 	create_windows();
 
 	// get new regex string
-	auto c = vec[regex_num];
+	auto c = regex_vec[regex_num];
 	std::string rgx;
 	{
 	    curses_attr a(A_REVERSE);
@@ -1167,21 +1150,24 @@ namespace {
 
 	bool should_intersect = true;
 	if (rgx.empty()) {
-	    vec[regex_num] = std::make_shared<regex_container_t>(); // overwrite with new/empty container object
+	    regex_vec[regex_num] = std::make_shared<regex_container_t>(); // overwrite with new/empty container object
 	    // pop regular expression container from vector if they're empty
-	    while(vec.size() > 0 && vec[vec.size()-1]->rgx_.empty()) {
-		vec.resize(vec.size() - 1);
+	    while(regex_vec.size() > 0 && regex_vec[regex_vec.size()-1]->rgx_.empty()) {
+		regex_vec.resize(regex_vec.size() - 1);
 	    }
 	} else if (rgx == c->rgx_) {
 	    // nothing changed, do nothing
 	    should_intersect = false;
 	} else {
 	    CursesProgressFunctor func(screen_height / 2, screen_width / 2 - 10, A_REVERSE|A_BOLD, " matching line ");
-	    const add_regex_status s = add_regex(regex_num, rgx, vec, isFilterRgx, &func);
+	    const add_regex_status s = add_regex(regex_num, rgx, &func);
 	    should_intersect = (s == foundInCache);
+	    if (! is_filter_regex(rgx)) {
+		should_intersect = false;
+	    }
 	}
 
-	if (isFilterRgx && should_intersect) {
+	if (should_intersect) {
 	    intersect_regex_curses();
 	}
 	create_windows();
@@ -1283,11 +1269,10 @@ namespace {
 	while(eventPending()) {
 	    event e = eventGet();
 	    if (e.ri_) {
-		assert(e.ri_idx_ < 9);
-		assert(e.ri_idx_ < filter_vec.size());
+		assert(e.ri_idx_ < regex_vec.size());
 
 		// get the regex_container_t
-		auto c = filter_vec[e.ri_idx_];
+		auto c = regex_vec[e.ri_idx_];
 		c->ri_ = e.ri_;
 		filter_cache[c->rgx_] = c;
 
@@ -1368,7 +1353,6 @@ int realmain_impl(int argc, char * const argv[])
     enum {
 	opt_tabwidth = 500,
 	opt_regex,
-	opt_df,
 	opt_search,
 	opt_goto,
 	opt_help,
@@ -1377,7 +1361,6 @@ int realmain_impl(int argc, char * const argv[])
     const struct option longopts[] = {
 	{ "tabwidth", required_argument, nullptr, opt_tabwidth },
 	{ "regex", required_argument, nullptr, opt_regex },
-	{ "df", required_argument, nullptr, opt_df },
 	{ "search", required_argument, nullptr, opt_search },
 	{ "goto", required_argument, nullptr, opt_goto },
 	{ "help", no_argument, nullptr, opt_help },
@@ -1386,7 +1369,7 @@ int realmain_impl(int argc, char * const argv[])
     };
 
     line_number_t topLine = 0;
-    std::vector<std::string> command_line_filter_regex, command_line_df_regex;
+    std::vector<std::string> command_line_filter_regex;
     int key;
     while((key = getopt_long(argc, argv, "vh?", longopts, nullptr)) > 0) {
 	switch(key) {
@@ -1413,19 +1396,6 @@ int realmain_impl(int argc, char * const argv[])
 		std::string s = optarg;
 		if (! s.empty()) {
 		    command_line_filter_regex.push_back(s);
-		}
-	    }
-	    break;
-
-	case opt_df:
-	    if (command_line_df_regex.size() >= 9) {
-		std::cerr << "can only add up to 9 display filters with the --df argument" << std::endl;
-		return EX_USAGE;
-	    }
-	    {
-		std::string s = optarg;
-		if (! s.empty()) {
-		    command_line_df_regex.push_back(s);
 		}
 	    }
 	    break;
@@ -1524,15 +1494,11 @@ int realmain_impl(int argc, char * const argv[])
 	f_idx->parse_all(v, &func);
     }
     for(unsigned u = 0; u != command_line_filter_regex.size(); ++u) {
-	const add_regex_status s = add_regex(u, command_line_filter_regex[u], filter_vec, true, nullptr);
+	const add_regex_status s = add_regex(u, command_line_filter_regex[u], nullptr);
 	if (s != foundInCache) {
 	    std::cerr << "did not find cached regex '" << command_line_filter_regex[u] << "'" << std::endl;
 	    return EX_SOFTWARE;
 	}
-    }
-    for(unsigned u = 0; u != command_line_df_regex.size(); ++u) {
-	const add_regex_status s = add_regex(u, command_line_df_regex[u], df_vec, false, nullptr);
-	assert(s == createdDisplayFilter);
     }
     {
 	std::shared_ptr<OStreamProgressFunctor> func;
@@ -1677,9 +1643,10 @@ int realmain_impl(int argc, char * const argv[])
 	case '7':
 	case '8':
 	case '9':
-	    edit_regex(filter_y, key - '1', filter_vec, true);
+	    edit_regex(filter_y, key - '1');
 	    break;
-
+#if 0
+	case '0':
 	case KEY_F(1):
 	case KEY_F(2):
 	case KEY_F(3):
@@ -1689,9 +1656,9 @@ int realmain_impl(int argc, char * const argv[])
 	case KEY_F(7):
 	case KEY_F(8):
 	case KEY_F(9):
-	    edit_regex(df_y, key - KEY_F(1), df_vec, false);
+	    edit_regex(df_y, key - KEY_F(1));
 	    break;
-
+#endif
 	case KEY_MOUSE:
 	    key_mouse();
 	    break;
@@ -1712,18 +1679,11 @@ int realmain_impl(int argc, char * const argv[])
 
     std::cout << "few";
 
-    for(auto c : filter_vec) {
+    for(auto c : regex_vec) {
 	if (c->rgx_.empty()) {
 	    continue;
 	}
 	std::cout << " --regex '" << c->rgx_ << "'";
-    }
-
-    for(auto c : df_vec) {
-	if (c->rgx_.empty()) {
-	    continue;
-	}
-	std::cout << " --df '" << c->rgx_ << "'";
     }
 
     if (! search_str.empty()) {

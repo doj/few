@@ -158,3 +158,16 @@ is_attr_df(const std::string& str, uint64_t& attr, int& fg, int& bg)
 #undef ATTRS
 #undef COL_ON_COL
 }
+
+bool is_filter_regex(std::string str)
+{
+    str = normalize_regex(str);
+    if (str.empty()) {
+	return false;
+    }
+    static std::regex r("^/[^/]+/[i!]*");
+    if (std::regex_match(str, r)) {
+	return true;
+    }
+    return false;
+}

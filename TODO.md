@@ -5,12 +5,15 @@ TODO
  * line filter
  * replace display filter
  * attribute display filter
+ + allow 0 for 10th edit
+ + allow F1 to F20 for more edits
 
 - test on OsX
 - Windows
  + somehow create an installer or at least a batch file to copy the .exe and .dll somewhere
  + check http://www.projectpluto.com/win32a.htm
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash
+ + is_filter_regex() also refuses any forward slash character. Maybe we have to implement a correct backslash escape handling.
 - read tab width from vim/emacs comments
 - cache file index
 - cache regex filter index

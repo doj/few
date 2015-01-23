@@ -9,9 +9,8 @@
  */
 void help()
 {
-    std::cout << "usage: few [--regex '/REGEX/flags']* [--df '/REGEX/REPLACE/flags']* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [--goto 'NUM'] [-v] [--color] [-h|-?|--help] ['FILE']" << std::endl
-	      << "--regex      preset regular expressions to filter the file" << std::endl
-	      << "--df         preset a display filter regular expression and replace text" << std::endl
+    std::cout << "usage: few [--regex 'regular expression']* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [--goto 'NUM'] [-v] [--color] [-h|-?|--help] ['FILE']" << std::endl
+	      << "--regex      preset display or filter regular expressions" << std::endl
 	      << "--search     preset search regular expression" << std::endl
 	      << "--tabwidth   set the width of a tab character in spaces" << std::endl
 	      << "--goto       go to a line number" << std::endl

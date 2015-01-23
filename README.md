@@ -7,7 +7,7 @@ few - a file viewer with regular expression filters.
 
 SYNOPSIS
 --------
-**few** [--regex '/REGEX/flags']\* [--df '/REGEX/REPLACE/flags']\* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [--goto 'NUM'] [-v] [--color] [-h|-?|--help] ['FILE']
+**few** [--regex 'regular expression']\* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [--goto 'NUM'] [-v] [--color] [-h|-?|--help] ['FILE']
 
 DESCRIPTION
 -----------
@@ -19,9 +19,6 @@ OPTIONS
 * **--regex** '/REGEX/flags':
   preset regular expressions to filter the file.
 
-* **--df** '/REGEX/REPLACE/flags':
-  preset a display filter regular expression and replace text.
-
 * **--search** '/REGEX/flags':
   preset search regular expression.
 
@@ -29,7 +26,8 @@ OPTIONS
   set the width of a tab character in spaces.
 
 * **--goto** 'NUM':
-  go to line number NUM. If NUM is not included in the currently filtered lines, go to the previous filtered line.
+  go to line number NUM. If NUM is not included in the currently
+  filtered lines, go to the previous filtered line.
 
 * **-v**:
   increase verbosity for certain operations.
@@ -41,7 +39,8 @@ OPTIONS
   show help text.
 
 * **'FILE'**:
-  the file name to use. If it is "-" the standard input is used. If no file name was specified standard input is used.
+  the file name to use. If it is "-" the standard input is used. If no
+  file name was specified standard input is used.
 
 Keys
 ----
@@ -64,9 +63,7 @@ The actions resulting from a key press are modelled after the less(1) program.
 * **G**, **>**, **end**:
   go to last line.
 * **1** .. **9**:
-  edit filter regular expression.
-* **F1** .. **F9**:
-  edit display filter regular expression.
+  edit display or filter regular expression.
 * **d**:
   scroll down half a screen
 * **u**:
@@ -88,21 +85,20 @@ The actions resulting from a key press are modelled after the less(1) program.
 * **M**:
   maximize the window. Currently supported on Windows.
 
-Regular Expressions
+Filter Regular Expressions
 -------------------
-For filters (key **0** .. **9**), display filters (key **F1**
-.. **F9**) and search (key **/**) ECMAScript (javascript) style
+For display or filter regular expressions (key **0** .. **9**)
+and search (key **/**) ECMAScript (javascript) style
 regular expressions, as provided by the C++11 regular expression
 standard library are used. You will typically enter the regular
 expression after the few program has started and will see the file
 display change if the regular expression matches. You can also preset
 these regular expressions with the command line arguments.
 
-The standard form of these regular expression has the following format:
+The standard form of a _filter regular expression_ has the following format:
 
 /regex/flags
 
-This is a _filter regex_.
 The regular expression is surrounded by two forward slash characters.
 The flags are optional.
 
@@ -125,8 +121,8 @@ displayed. If you use the '!' flag the regular expression becomes a
 negative match. Only lines that do *not* match the regular expression
 are displayed.
 
-### Regular Expression Short Form
-If you do not need to supply flags for the filter regular expression and the
+### Filter Regular Expression Short Form
+If you do not need to use flags for the filter regular expression and the
 filter regular expression does not start with a forward slash, you can omit
 the surrounding slashes.
 
@@ -138,7 +134,7 @@ The few program will convert the short forms to the regular form.
 
 ### Replace Display Filter Regular Expressions
 
-Replace Display Filter change the way the lines are displayed. They take the
+A _Replace Display Filter_ changes the way the lines are displayed. They take the
 form of a perl regular expression substitute:
 
 /regex/replace/flags

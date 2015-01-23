@@ -24,3 +24,10 @@ std::string get_regex_str(std::string str);
  * @return true if regex is a _display filter with curses attribute_.
  */
 bool is_attr_df(const std::string& str, uint64_t& attr, int& fg, int& bg);
+
+/**
+ * check if a regular expression is a filter regex.
+ * @param str string to check for filter regular expression type.
+ * @return true if str is a filter regex.
+ */
+bool is_filter_regex(std::string str);

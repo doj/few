@@ -120,3 +120,20 @@ TEST(is_attr_df, returns_attributes)
     r = "|something|bold,green on green,red on blue";
     ASSERT_FALSE(is_attr_df(r, attr, fg, bg));
 }
+
+TEST(is_filter_regex, detects_valid_filter_regex)
+{
+    ASSERT_TRUE(is_filter_regex("/abc/"));
+    ASSERT_TRUE(is_filter_regex("/abc/i"));
+    ASSERT_TRUE(is_filter_regex("/abc/!"));
+    ASSERT_TRUE(is_filter_regex("ab"));
+    ASSERT_TRUE(is_filter_regex("!ab"));
+}
+
+TEST(is_filter_regex, detects_invalid_filter_regex)
+{
+    ASSERT_FALSE(is_filter_regex("/abc/def/"));
+    ASSERT_FALSE(is_filter_regex("|this|bold,red on blue"));
+    ASSERT_FALSE(is_filter_regex(""));
+    ASSERT_FALSE(is_filter_regex("//"));
+}
