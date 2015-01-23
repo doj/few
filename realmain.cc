@@ -452,24 +452,34 @@ namespace {
 	return s.size();
     }
 
-    void refresh_regex_window(unsigned y, const std::string& title_param, const regex_vec_t& vec)
+    void refresh_regex_window(unsigned y)
     {
 	unsigned cnt = 0;
-	for (auto c : vec) {
+	for(auto c : regex_vec) {
 	    ++cnt;
 	    std::string s = c->rgx_;
-	    std::string title = title_param;
+	    std::string title = "regex";
 	    unsigned attr = A_REVERSE;
 
 	    if (c->err_.empty()) {
 		attr |= (cnt & 1) ? gray_on_black : lightgray_on_black;
-	    }
-	    else {
+
+		if (c->ri_) {
+		    title = (cnt < 10) ? "filtr" : "filt";
+		} else if (c->replace_df_rgx_) {
+		    title = (cnt < 10) ? "disft" : "disf";
+		} else if (c->attribute_df_rgx_) {
+		    title = (cnt < 10) ? "dfatr" : "dfat";
+		} else {
+		    title = (cnt < 10) ? "     " : "    ";
+		}
+	    } else {
 		attr |= color(COLOR_RED, COLOR_BLACK);
 		s += " : ";
 		s += c->err_;
-		title = "error";
+		title = (cnt < 10) ? "error" : "err ";
 	    }
+
 	    curses_attr a(attr);
 
 	    unsigned X = 0;
@@ -516,7 +526,7 @@ namespace {
     {
 	if (screen_height >= min_screen_height && screen_width >= min_screen_width) {
 	    refresh_lines_window();
-	    refresh_regex_window(filter_y, "regex", regex_vec);
+	    refresh_regex_window(filter_y);
 
 	    if (!search_str.empty()) {
 		curses_attr a(A_BOLD);
