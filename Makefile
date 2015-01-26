@@ -6,8 +6,6 @@
 WARNING_FLAGS += -Wall
 INCLUDE_FLAGS += -I. -Iunix
 
-CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_FLAGS) -std=c++11 -MMD
-
 ifeq ($(DEBUG),1)
 CXXFLAGS += -g
 else
@@ -19,6 +17,14 @@ CXX = c++ # FreeBSD's clang++ typically
 else
 WARNING_FLAGS += -Werror
 endif
+
+ifneq ($(SYSROOT),)
+CXX = $(SYSROOT)/c++
+INCLUDE_FLAGS += -idirafter /usr/include
+LDFLAGS += -Wl,-rpath,$(SYSROOT)
+endif
+
+CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_FLAGS) -std=c++11 -MMD
 
 ##############################################################################
 # source code
