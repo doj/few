@@ -19,6 +19,10 @@
 #include <ncursesw/curses.h>
 #endif
 
+#ifndef A_ITALIC
+#define A_ITALIC 0
+#endif
+
 /**
  * helper class to manage curses attributes.
  * The constructor sets an attribute, the destructor unsets it.
