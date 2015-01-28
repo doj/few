@@ -19,9 +19,9 @@ WARNING_FLAGS += -Werror
 endif
 
 ifneq ($(SYSROOT),)
-CXX = $(SYSROOT)/c++
+CXX = $(SYSROOT)/bin/c++
 INCLUDE_FLAGS += -idirafter /usr/include
-LDFLAGS += -Wl,-rpath,$(SYSROOT)
+LDFLAGS += -Wl,-rpath,$(SYSROOT)/lib64
 endif
 
 CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_FLAGS) -std=c++11 -MMD
