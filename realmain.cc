@@ -48,6 +48,7 @@
 #include "tokenize_command_line.h"
 #include "getenv_str.h"
 #include "color.h"
+#include "timeGetTime.h"
 
 /// verbosity level
 unsigned verbose = 0;
@@ -655,14 +656,20 @@ namespace {
 	} else if (display_info->isFirstLineDisplayed()) {
 	    info = "moved to top";
 	} else {
-	    // scroll up until the old top line is the current bottom line
 	    const line_number_t oldTopLineNum = display_info->current();
-	    while (!display_info->isFirstLineDisplayed()) {
+
+	    // scroll up one page, even if it is too far.
+	    for(unsigned i = 0; i < w_lines_height - 1; ++i) {
 		display_info->up();
+	    }
+
+	    // render lines
+	    refresh_lines_window();
+
+	    // now scroll down, until old top line is at the bottom
+	    while(display_info->bottomLineNum() < oldTopLineNum) {
+		display_info->down();
 		refresh_lines_window();
-		if (display_info->bottomLineNum() <= oldTopLineNum) {
-		    break;
-		}
 	    }
 	}
 
