@@ -48,7 +48,14 @@ bool click_email(const std::string& email, const std::string& subject, std::stri
 	}
     }
     assert(! mailer.empty());
-    if (! run_command_background(mailer + " -compose \"to='" + email + "',subject='" + subject + "'\"", error_msg)) {
+    std::string cmd = mailer + " '" + email + "'";
+    if (mailer == "thunderbird") {
+	// http://kb.mozillazine.org/Command_line_arguments_%28Thunderbird%29
+	cmd = mailer + " -compose \"to='" + email + "',subject='" + subject + "'\"";
+    } else if (mailer == "evolution") {
+	cmd = mailer + " 'mailto:" + email + "?subject=" + subject + "'";
+    }
+    if (! run_command_background(cmd, error_msg)) {
 	return false;
     }
     return true;
