@@ -50,6 +50,8 @@
 #include "color.h"
 #include "timeGetTime.h"
 
+#undef max
+
 /// verbosity level
 unsigned verbose = 0;
 
@@ -148,7 +150,7 @@ namespace {
 	/// regex object used for the attribute display filter
 	std::shared_ptr<std::wregex> attribute_df_rgx_;
 	/// attribute display filter curses attributes
-	unsigned attribute_df_attr_;
+	uint64_t attribute_df_attr_;
 
 	///@}
     };

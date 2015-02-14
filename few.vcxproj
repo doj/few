@@ -85,6 +85,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="click_link.h" />
+    <ClInclude Include="color.h" />
     <ClInclude Include="curses_attr.h" />
     <ClInclude Include="display_info.h" />
     <ClInclude Include="errno_str.h" />
@@ -113,6 +114,7 @@
     <ClInclude Include="win\temporary_file.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="color.cc" />
     <ClCompile Include="display_info.cc" />
     <ClCompile Include="event.cc" />
     <ClCompile Include="file_index.cc" />

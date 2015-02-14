@@ -142,11 +142,11 @@ is_attr_df(const std::string& str, uint64_t& attr, int& fg, int& bg)
 	if (std::regex_match(s, c, rgx)) {
 	    auto it = str2color.find(c[1]);
 	    assert(it != str2color.end());
-	    fg = it->second;
+	    fg = static_cast<int>(it->second);
 
 	    it = str2color.find(c[2]);
 	    assert(it != str2color.end());
-	    bg = it->second;
+	    bg = static_cast<int>(it->second);
 	}
     }
 

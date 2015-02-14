@@ -4,8 +4,12 @@
  */
 
 #pragma once
+#include <stdint.h>
 
 #if defined(_WIN32)
+#include <windows.h>
+#undef MOUSE_MOVED // this is also defined by PDCurses
+
 #define PDC_WIDE 1
 #define NCURSES_MOUSE_VERSION 1
 #include "win/curses.h"
@@ -32,10 +36,10 @@ class curses_attr
     attr_t attrs_;
     short pair_;
 public:
-    explicit curses_attr(unsigned a)
+    explicit curses_attr(uint64_t a)
     {
 	attr_get(&attrs_, &pair_, nullptr);
-	attron(a);
+	attron(static_cast<chtype>(a));
     }
     ~curses_attr()
     {
