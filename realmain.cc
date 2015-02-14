@@ -64,6 +64,9 @@ namespace {
     /// the filename of the currently executed process (argv[0]).
     std::string argv0;
 
+    /// the filename as used on the command line that is displayes.
+    std::string command_line_filename = "-";
+
     /// the info string which is shown in the lower right corner
     std::string info;
 
@@ -100,6 +103,11 @@ namespace {
     std::wregex link_rgx(L"(ht|f)tps?://[a-zA-Z0-9/~&=%_.-]+", std::regex::ECMAScript | std::regex::optimize | std::regex::icase);
     typedef std::pair<unsigned, unsigned> coordinate_t;
     std::map<coordinate_t, std::wstring> link;
+
+    /// regular expression to match emails
+    /// see http://www.regular-expressions.info/email.html
+    std::wregex email_rgx(L"\\b[a-z0-9._%+-]+\\@[a-z0-9.-]+\\.[a-z]{2,4}\\b", std::regex::ECMAScript | std::regex::optimize | std::regex::icase);
+    std::map<coordinate_t, std::wstring> email;
 
     /// the file that is displayed
     file_index::ptr_t f_idx;
@@ -249,6 +257,7 @@ namespace {
     {
 	assert(tab_width > 0);
 	link.clear();
+	email.clear();
 
 	middle_line_number = 0;
 	unsigned y = 0;
@@ -351,6 +360,19 @@ namespace {
 			iterator2link[i] = l;
 		    }
 		}
+		// look for emails
+		std::map<std::wstring::iterator, std::wstring> iterator2email;
+		for (auto it = std::wsregex_iterator(wline.begin(), wline.end(), email_rgx); it != std::wsregex_iterator(); ++it) {
+		    std::wstring::iterator b = wline.begin() + it->position();
+		    std::wstring::iterator e = b + it->length();
+		    assert(b <= e);
+		    std::wstring l(b, e);
+		    // set character attribute for all matched characters
+		    for (std::wstring::iterator i = b; i != e; ++i) {
+			character_attr[i] |= A_UNDERLINE;
+			iterator2email[i] = l;
+		    }
+		}
 
 		// print the current line
 		auto it = wline.begin();
@@ -377,7 +399,12 @@ namespace {
 			// check for link
 			auto i = iterator2link.find(it);
 			if (i != iterator2link.end()) {
-			    link.insert(std::make_pair(std::make_pair(x, y), i->second));
+			    link.emplace(std::make_pair(x, y), i->second);
+			}
+			// check for email
+			i = iterator2email.find(it);
+			if (i != iterator2email.end()) {
+			    email.emplace(std::make_pair(x, y), i->second);
 			}
 
 			auto c = *it;
@@ -802,11 +829,22 @@ namespace {
 	    return;
 	}
 	if (e.bstate & BUTTON1_CLICKED) {
+	    // check for link
 	    auto it = link.find(std::make_pair(static_cast<unsigned>(e.x), static_cast<unsigned>(e.y)));
 	    if (it != link.end()) {
 		const std::string l = to_utf8(it->second);
 		if (click_link(l, info)) {
 		    info = "opened " + l + " in browser";
+		}
+		refresh_lines_window();
+		refresh();
+	    }
+	    // check for emails
+	    it = email.find(std::make_pair(static_cast<unsigned>(e.x), static_cast<unsigned>(e.y)));
+	    if (it != email.end()) {
+		const std::string e = to_utf8(it->second);
+		if (click_email(e, command_line_filename, info)) {
+		    info = "created email to " + e;
 		}
 		refresh_lines_window();
 		refresh();
@@ -1446,7 +1484,6 @@ int realmain_impl(int argc, char * const argv[])
 	}
     }
 
-    std::string command_line_filename = "-";
     if (optind < argc) {
 	command_line_filename = argv[optind];
     }

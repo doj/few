@@ -247,7 +247,12 @@ ENVIRONMENT VARIABLES
 ---------------------
 
 * **BROWSER**:
-  name of web browser to launch. If not set defaults to firefox.
+  On Unix: name of web browser to launch; If not set defaults to firefox.
+  On Windows this variable is not used and few uses the system default web browser.
+
+* **MAILER**:
+  On Unix: name of the mail application; If not set defaults to thunderbird.
+  On Windows this variable is not used and few uses the system default mail application.
 
 * **FEWOPTIONS**:
   default command line arguments.

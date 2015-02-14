@@ -10,6 +10,11 @@
 bool
 click_link(const std::string& link, std::string& error_msg)
 {
+    if (link.empty()) {
+	error_msg = "clock_link(): link is empty";
+	return false;
+    }
+
 	std::string browser = "firefox";
 	const char *cc = getenv("BROWSER");
 	if (cc) {
@@ -24,4 +29,27 @@ click_link(const std::string& link, std::string& error_msg)
 	    return false;
 	}
 	return true;
+}
+
+bool click_email(const std::string& email, const std::string& subject, std::string& error_msg)
+{
+    if (email.empty()) {
+	error_msg = "click_email(): email is empty";
+	return false;
+    }
+
+    std::string mailer = "thunderbird";
+    const char *cc = getenv("MAILER");
+    if (cc) {
+	mailer = cc;
+	if (mailer.empty()) {
+	    error_msg = "MAILER environment variable is empty";
+	    return false;
+	}
+    }
+    assert(! mailer.empty());
+    if (! run_command_background(mailer + " -compose \"to='" + email + "',subject='" + subject + "'\"", error_msg)) {
+	return false;
+    }
+    return true;
 }
