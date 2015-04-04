@@ -5,6 +5,7 @@ TODO
 - Windows
  + somehow create an installer or at least a batch file to copy the .exe and .dll somewhere
  + check http://www.projectpluto.com/win32a.htm
+- line_edit() can complete directory and file names with TAB key
 - use readline for input
  + http://tiswww.case.edu/php/chet/readline/readline.html#SEC41
  + https://github.com/ulfalizer/readline-and-ncurses/blob/master/rlncurses.c
