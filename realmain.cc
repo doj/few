@@ -919,7 +919,7 @@ namespace {
      * read an input string with curses.
      * The input windows is positioned at coordinates x,y and has a maximum width of max_width.
      * If you press the enter/return key the function finishes and returns the currently edited string.
-     * If you press the escape key the function finishes and returns the input string.
+     * If you press the escape key or CTRL+g the function finishes and returns the input string.
      *
      * If the function pointer autocomplete_f is set and the tab key
      * is pressed, the function will call the autocomplete function
@@ -1008,6 +1008,7 @@ namespace {
 		return s;
 
 	    case 27: // esc
+	    case 'g'-96: // CTRL+g
 		return input;
 
 	    case KEY_BACKSPACE:
