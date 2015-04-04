@@ -9,6 +9,8 @@
 #include <string>
 #include <memory>
 
+class file_index;
+
 class DisplayInfo
 {
     typedef lineNum_vector_t displayedLineNum_t;
@@ -131,4 +133,12 @@ public:
     void page_down();
 
     std::string info() const;
+
+    /**
+     * save the lines from fi to filename.
+     * @param filename a file name. The file is created if it does not exist.
+     * @return true if filename could be created and all lines could be written;
+     *         false if a file error happened or fi does not contain all lines handled by this.
+     */
+    bool save(const std::string& filename, file_index& fi);
 };

@@ -945,11 +945,15 @@ namespace {
 	CursesCursorHelper cch(2);
 
 	while(true) {
+	    // print current line, filling up with spaces to max_width
 	    for(unsigned i = 0; i < max_width; ++i) {
-		mvaddch(y, x + i, ' ');
+		char c = ' ';
+		if (i < s.size()) {
+		    c = s[i];
+		}
+		mvaddch(y, x + i, c);
 	    }
-	    mvprintw(y, x, "%s", s.c_str());
-	    move(y, x+X);
+	    move(y, x+X); // position cursor
 	    refresh();
 
 	    const int key = getch();
@@ -1315,8 +1319,9 @@ namespace {
     {
 	{
 	    curses_attr a(A_BOLD);
-	    mvprintw(search_y, 0, "Search: ");
-	    compile_search_regex( line_edit(search_y, 8, search_str, screen_width - 8) );
+	    const std::string title = "Search: ";
+	    mvprintw(search_y, 0, title.c_str());
+	    compile_search_regex( line_edit(search_y, title.size(), search_str, screen_width - title.size()) );
 	}
 	create_windows();
     }
@@ -1351,6 +1356,27 @@ namespace {
 	if (do_refresh_windows) {
 	    refresh_windows();
 	}
+    }
+
+    void key_S()
+    {
+	do {
+	    curses_attr a(A_BOLD);
+	    const std::string title = "Save to File: ";
+	    mvprintw(search_y, 0, title.c_str());
+	    const std::string filename = line_edit(search_y, title.size(), "", screen_width - title.size());
+	    if (filename.empty()) {
+		break;
+	    }
+	    if (display_info->save(filename, *f_idx)) {
+		info = "save success";
+	    } else {
+		info = "save failed: ";
+		info += strerror(errno);
+	    }
+	} while(0);
+
+	refresh_windows();
     }
 
 #if defined(__unix__)
@@ -1691,6 +1717,10 @@ int realmain_impl(int argc, char * const argv[])
 
 	case 'M':
 	    key_M();
+	    break;
+
+	case 'S':
+	    key_S();
 	    break;
 
 	case '1':

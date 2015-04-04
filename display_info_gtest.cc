@@ -5,6 +5,8 @@
 
 #include "gtest/gtest.h"
 #include "display_info.h"
+#include "file_index.h"
+#include "temporary_file.h"
 
 namespace {
     lineNum_vector_t s()
@@ -163,4 +165,46 @@ TEST(DisplayInfo, prev)
     ASSERT_TRUE(i.prev());
     ASSERT_EQ(1u, i.current());
     ASSERT_FALSE(i.prev());
+}
+
+TEST(DisplayInfo, save_with_invalid_filenames)
+{
+    DisplayInfo i;
+    file_index fi("README.md");
+    ASSERT_FALSE(i.save("", fi));
+    ASSERT_FALSE(i.save("/", fi));
+}
+
+TEST(DisplayInfo, save_with_invalid_file_index)
+{
+    // create a DisplayInfo object with line number 1 million
+    DisplayInfo i;
+    lineNum_vector_t a;
+    a.push_back(100000);
+    i.assign(std::move(a));
+
+    file_index fi("README.md");
+
+    TemporaryFile tmp;
+    ASSERT_FALSE(i.save(tmp.filename(), fi));
+}
+
+TEST(DisplayInfo, save_with_2_lines)
+{
+    // create a DisplayInfo object with the first 2 lines
+    DisplayInfo i;
+    lineNum_vector_t a;
+    a.push_back(1);
+    a.push_back(2);
+    i.assign(std::move(a));
+
+    file_index fi("README.md");
+    fi.parse_all();
+
+    TemporaryFile tmp;
+    ASSERT_TRUE(i.save(tmp.filename(), fi));
+
+    file_index fi2(tmp.filename());
+    fi2.parse_all();
+    ASSERT_EQ(2u, fi2.size());
 }

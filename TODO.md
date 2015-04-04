@@ -5,6 +5,9 @@ TODO
 - Windows
  + somehow create an installer or at least a batch file to copy the .exe and .dll somewhere
  + check http://www.projectpluto.com/win32a.htm
+- use readline for input
+ + http://tiswww.case.edu/php/chet/readline/readline.html#SEC41
+ + https://github.com/ulfalizer/readline-and-ncurses/blob/master/rlncurses.c
 - better parsing of display filter, correctly separate /regex/replace/ by the middle slash
  + is_filter_regex() also refuses any forward slash character. Maybe we have to implement a correct backslash escape handling.
 - read tab width from vim/emacs comments

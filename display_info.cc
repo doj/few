@@ -4,8 +4,10 @@
  */
 
 #include "display_info.h"
+#include "file_index.h"
 #include <algorithm>
 #include <cassert>
+#include <fstream>
 
 DisplayInfo::DisplayInfo() :
     topLineIt(displayedLineNum.end()),
@@ -180,4 +182,39 @@ DisplayInfo::topLineNum() const
 	return 0;
     }
     return *topLineIt;
+}
+
+bool
+DisplayInfo::save(const std::string& filename, file_index& fi)
+{
+    if (filename.empty()) {
+	return false;
+    }
+
+    // if this object does not manage lines, create an empty file
+    if (displayedLineNum.empty()) {
+	std::ofstream os(filename);
+	if (! os) {
+	    return false;
+	}
+	return true;
+    }
+
+    assert(displayedLineNum.size() > 0);
+
+    // check that the last (highest) line number managed by this
+    // object is included in fi.
+    if (displayedLineNum[displayedLineNum.size()-1] >= fi.size()) {
+	return false;
+    }
+
+    std::ofstream os(filename);
+    if (! os) {
+	return false;
+    }
+    for(auto n : displayedLineNum) {
+	os << fi.line(n) << std::endl;
+    }
+
+    return true;
 }

@@ -6,6 +6,7 @@
 #pragma once
 #include <string>
 #include <cassert>
+#include <iostream>
 #include "types.h"
 
 /**
@@ -71,3 +72,10 @@ public:
 	return *this;
     }
 };
+
+inline std::ostream&
+operator<< (std::ostream& os, const line_t& l)
+{
+    // \todo maybe there's a better way to print a pointer range to an output stream?
+    return os << l.to_string();
+}

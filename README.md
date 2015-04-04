@@ -86,6 +86,8 @@ The actions resulting from a key press are modelled after the less(1) program.
   go to previous search match.
 * **M**:
   maximize the window. Currently supported on Windows.
+* **S**:
+  save the currently filtered lines to a new file.
 
 Filter Regular Expressions
 -------------------
