@@ -50,6 +50,7 @@
 #include "color.h"
 #include "timeGetTime.h"
 #include "complete_filename.h"
+#include "word_set.h"
 
 #undef max
 
@@ -261,6 +262,7 @@ namespace {
 	assert(tab_width > 0);
 	link.clear();
 	email.clear();
+	clear_word_set();
 
 	middle_line_number = 0;
 	unsigned y = 0;
@@ -315,7 +317,8 @@ namespace {
 		    }
 		}
 
-		auto wline = to_wide(std::string(line.beg_, line.end_));
+		add_to_word_set(line.to_string());
+		auto wline = to_wide(line.to_string());
 
 		// map of pointers into the line and a corresponding curses attribute for the character
 		std::map<std::wstring::iterator, unsigned> character_attr;
@@ -1249,7 +1252,7 @@ namespace {
 	std::string rgx;
 	{
 	    curses_attr a(A_REVERSE);
-	    rgx = line_edit(y + regex_num, 8, c->rgx_, screen_width - 8, nullptr);
+	    rgx = line_edit(y + regex_num, 8, c->rgx_, screen_width - 8, complete_word_set);
 	    rgx = normalize_regex(rgx);
 	}
 
@@ -1362,7 +1365,7 @@ namespace {
 	    curses_attr a(A_BOLD);
 	    const std::string title = "Search: ";
 	    mvprintw(search_y, 0, title.c_str());
-	    compile_search_regex( line_edit(search_y, title.size(), search_str, screen_width - title.size(), nullptr) );
+	    compile_search_regex( line_edit(search_y, title.size(), search_str, screen_width - title.size(), complete_word_set) );
 	}
 	create_windows();
     }

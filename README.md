@@ -245,6 +245,14 @@ If you've entered a filter, display or search regular expression they
 are shown in the bottom part of the screen in an inverted block. The
 lower right side
 
+TAB KEY
+-------
+
+When you edit a regular expression for display filters or search, you
+can use the tab key to auto complete words that are currently
+displayed. Auto completion also works on file and directory names when
+you save the filtered lines to a file.
+
 ENVIRONMENT VARIABLES
 ---------------------
 
