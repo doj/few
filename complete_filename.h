@@ -10,9 +10,9 @@
  * lookup file or directory name completions for path.
  * path can be a partial pathname.
  * Unix style editor backup files (ending with a tilde character) are not completed.
- * @param[in] path (partial) file or directory name.
+ * @param[in,out] path (partial) file or directory name. The string may be changes for a longest prefix match if matches are found.
  * @param[out] err an error message if a )file system) error happened.
  * @return file or directory name completions matching path;
  *         empty array if path does not match anything on the file system.
  */
-std::set<std::string> complete_filename(const std::string& path, std::string& err);
+std::set<std::string> complete_filename(std::string& path, std::string& err);

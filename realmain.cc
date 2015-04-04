@@ -916,7 +916,7 @@ namespace {
     History::ptr_t line_edit_history;
 
     /// the function pointer type of an autocomplete function.
-    typedef std::set<std::string> (*autocomplete_f)(const std::string& path, std::string& err);
+    typedef std::set<std::string> (*autocomplete_f)(std::string& path, std::string& err);
 
     /**
      * read an input string with curses.
@@ -963,7 +963,17 @@ namespace {
 	// an info string displayed on the edit line
 	std::string line_edit_info;
 
+	// \todo remove the debug stuff
+#define LINEEDITDEBUG 0
+#if LINEEDITDEBUG
+	int doj=-1, dojkey=-1;
+#endif
 	while(true) {
+#if LINEEDITDEBUG
+	    mvprintw(0,0,"'%s' %i doj=%i key=%i X+%i ", s.c_str(), s.size(), doj, dojkey, X);
+	    mvprintw(1,0,"'%s' %i ", line_edit_info.c_str(), line_edit_info.size());
+#endif
+
 	    // print current line, filling up with spaces to max_width
 	    std::string displayed_line = s + line_edit_info;
 	    for(unsigned i = 0; i < max_width; ++i) {
@@ -983,22 +993,42 @@ namespace {
 		auto autocomplete_set = autocomplete_func(s, err);
 		const auto autocomplete_size = autocomplete_set.size();
 		if (autocomplete_size == 0 && ! err.empty()) {
-		    line_edit_info = " (";
+		    line_edit_info = "   (";
 		    line_edit_info += err;
 		    line_edit_info += ')';
+#if LINEEDITDEBUG
+		    doj=1;
+#endif
 		} else if (autocomplete_size == 1) {
-		    s = *(autocomplete_set.begin());
-		    key = KEY_END; // handle END key, to position cursor
+		    //s = *(autocomplete_set.begin());
+		    assert(s == *(autocomplete_set.begin()));
+		    assert(! s.empty());
 		    line_edit_info.clear();
-		} else {
-		    line_edit_info = " (";
+#if LINEEDITDEBUG
+		    doj=2;
+#endif
+		} else if (autocomplete_size > 1) {
+		    line_edit_info = "   (";
 		    for(const auto& fn : autocomplete_set) {
 			line_edit_info += fn;
 			line_edit_info += ' ';
 		    }
-		    line_edit_info += ')';
+		    line_edit_info += ") ";
+		    line_edit_info += err;
+#if LINEEDITDEBUG
+		    doj=3;
+#endif
+		} else {
+		    line_edit_info.clear();
+#if LINEEDITDEBUG
+		    doj=4;
+#endif
 		}
+		key = KEY_END; // handle END key, to position cursor
 	    }
+#if LINEEDITDEBUG
+	    dojkey=key;
+#endif
 
 	    switch(key) {
 	    case ERR:

@@ -4,9 +4,15 @@
  */
 #include "word_set.h"
 #include <cctype>
+#include <cassert>
 
 namespace {
     std::set<std::string> word_set;
+
+    bool is_word_character(int c)
+    {
+	return isalnum(c) || c=='_' || c=='-';
+    }
 }
 
 void
@@ -17,13 +23,13 @@ add_to_word_set(const std::string& line)
     while(it != line.end()) {
 
 	// search for start of word
-	while(it != line.end() && isspace(*it)) {
+	while(it != line.end() && !is_word_character(*it)) {
 	    ++it;
 	}
 	beg = it;
 
 	// search for end of word
-	while(it != line.end() && !isspace(*it)) {
+	while(it != line.end() && is_word_character(*it)) {
 	    ++it;
 	}
 	end = it;
@@ -41,17 +47,59 @@ clear_word_set()
 }
 
 std::set<std::string>
-complete_word_set(const std::string& word, std::string& err)
+complete_word_set(std::string& word, std::string& err)
 {
-    if (word.empty()) {
-	return word_set;
-    }
-
     std::set<std::string> s;
-    for(const auto& w : word_set) {
-	if (w.find(word) == 0) {
-	    s.insert(w);
+    if (word.empty()) {
+	s = word_set;
+    } else {
+	for(const auto& w : word_set) {
+	    if (w.find(word) == 0) {
+		s.insert(w);
+	    }
 	}
     }
+
+    complete_longest_prefix(word, s);
     return s;
+}
+
+void
+complete_longest_prefix(std::string& str, const std::set<std::string>& s)
+{
+    // if the set is empty, there's nothing to do
+    if (s.empty()) {
+	return;
+    }
+    // if the set has only one element?
+    if (s.size() == 1) {
+	auto it = s.begin();
+	// if str is empty, set str to the element
+	if (str.empty()) {
+	    str = *it;
+	    // if str is prefixing the element, set str to the element
+	} else if (it->find(str) == 0) {
+	    str = *it;
+	}
+	// else: str does not prefix the element, don't modify str.
+	return;
+    }
+
+    assert(s.size() > 1);
+    std::string prefix;
+    for(const auto& element : s) {
+	if (element.find(str) != 0) {
+	    continue;
+	}
+	if (prefix.empty()) {
+	    prefix = element;
+	    continue;
+	}
+	unsigned i;
+	for(i = 0; i < element.size() && i < prefix.size() && element[i] == prefix[i]; ++i) {}
+	prefix.erase(i);
+    }
+    if (! prefix.empty()) {
+	str = prefix;
+    }
 }

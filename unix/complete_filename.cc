@@ -6,6 +6,7 @@
 #define _BSD_SOURCE 1
 
 #include "complete_filename.h"
+#include "word_set.h"
 #include <unistd.h>
 #include <dirent.h>
 #include <cassert>
@@ -35,7 +36,7 @@ namespace {
 }
 
 std::set<std::string>
-complete_filename(const std::string& path, std::string& err)
+complete_filename(std::string& path, std::string& err)
 {
     std::set<std::string> s;
 
@@ -100,5 +101,6 @@ complete_filename(const std::string& path, std::string& err)
     }
     closedir(dir);
 
+    complete_longest_prefix(path, s);
     return s;
 }
