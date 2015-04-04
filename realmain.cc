@@ -49,6 +49,7 @@
 #include "getenv_str.h"
 #include "color.h"
 #include "timeGetTime.h"
+#include "complete_filename.h"
 
 #undef max
 
@@ -911,19 +912,31 @@ namespace {
 
     History::ptr_t line_edit_history;
 
+    /// the function pointer type of an autocomplete function.
+    typedef std::set<std::string> (*autocomplete_f)(const std::string& path, std::string& err);
+
     /**
      * read an input string with curses.
      * The input windows is positioned at coordinates x,y and has a maximum width of max_width.
      * If you press the enter/return key the function finishes and returns the currently edited string.
-     * If you press the escape key the function finished and returns the input string.
+     * If you press the escape key the function finishes and returns the input string.
+     *
+     * If the function pointer autocomplete_f is set and the tab key
+     * is pressed, the function will call the autocomplete function
+     * with the current edited string.
      *
      * @param y vertical coordinate.
      * @param x horizontal coordinate.
      * @param input initial string.
      * @param max_width maximum width of edit window. This will also limit the size of the returned string.
+     * @param autocomplete_func function pointer to an auto complete function, can be NULL.
      * @return edited string.
      */
-    std::string line_edit(const unsigned y, const unsigned x, const std::string& input, const unsigned max_width)
+    std::string line_edit(const unsigned y,
+			  const unsigned x,
+			  const std::string& input,
+			  const unsigned max_width,
+			  autocomplete_f autocomplete_func)
     {
 	static std::string killring;
 
@@ -944,19 +957,46 @@ namespace {
 	// set curses cursor to very visible
 	CursesCursorHelper cch(2);
 
+	// an info string displayed on the edit line
+	std::string line_edit_info;
+
 	while(true) {
 	    // print current line, filling up with spaces to max_width
+	    std::string displayed_line = s + line_edit_info;
 	    for(unsigned i = 0; i < max_width; ++i) {
 		char c = ' ';
-		if (i < s.size()) {
-		    c = s[i];
+		if (i < displayed_line.size()) {
+		    c = displayed_line[i];
 		}
 		mvaddch(y, x + i, c);
 	    }
 	    move(y, x+X); // position cursor
 	    refresh();
 
-	    const int key = getch();
+	    int key = getch();
+
+	    if (key == '\t' && autocomplete_func) {
+		std::string err;
+		auto autocomplete_set = autocomplete_func(s, err);
+		const auto autocomplete_size = autocomplete_set.size();
+		if (autocomplete_size == 0 && ! err.empty()) {
+		    line_edit_info = " (";
+		    line_edit_info += err;
+		    line_edit_info += ')';
+		} else if (autocomplete_size == 1) {
+		    s = *(autocomplete_set.begin());
+		    key = KEY_END; // handle END key, to position cursor
+		    line_edit_info.clear();
+		} else {
+		    line_edit_info = " (";
+		    for(const auto& fn : autocomplete_set) {
+			line_edit_info += fn;
+			line_edit_info += ' ';
+		    }
+		    line_edit_info += ')';
+		}
+	    }
+
 	    switch(key) {
 	    case ERR:
 		break;
@@ -1052,9 +1092,9 @@ namespace {
 		    ++X;
 		}
 		break;
-	    }
-
-	}
+	    } // switch(key)
+	    // don't add anything below the switch block
+	} // while(true)
 
 	return s;
     }
@@ -1208,7 +1248,7 @@ namespace {
 	std::string rgx;
 	{
 	    curses_attr a(A_REVERSE);
-	    rgx = line_edit(y + regex_num, 8, c->rgx_, screen_width - 8);
+	    rgx = line_edit(y + regex_num, 8, c->rgx_, screen_width - 8, nullptr);
 	    rgx = normalize_regex(rgx);
 	}
 
@@ -1241,7 +1281,7 @@ namespace {
     {
 	static const std::string title = "Go To Line #: ";
 	mvprintw(search_y, 0, "%s", title.c_str());
-	std::string line_num = line_edit(search_y, title.size(), "", screen_width - title.size());
+	std::string line_num = line_edit(search_y, title.size(), "", screen_width - title.size(), nullptr);
 	if (line_num.empty()) {
 	    return;
 	}
@@ -1260,7 +1300,7 @@ namespace {
     {
 	static const std::string title = "Go To Percent %: ";
 	mvprintw(search_y, 0, "%s", title.c_str());
-	std::string perc = line_edit(search_y, title.size(), "", screen_width - title.size());
+	std::string perc = line_edit(search_y, title.size(), "", screen_width - title.size(), nullptr);
 	if (perc.empty()) {
 	    return;
 	}
@@ -1321,7 +1361,7 @@ namespace {
 	    curses_attr a(A_BOLD);
 	    const std::string title = "Search: ";
 	    mvprintw(search_y, 0, title.c_str());
-	    compile_search_regex( line_edit(search_y, title.size(), search_str, screen_width - title.size()) );
+	    compile_search_regex( line_edit(search_y, title.size(), search_str, screen_width - title.size(), nullptr) );
 	}
 	create_windows();
     }
@@ -1364,7 +1404,7 @@ namespace {
 	    curses_attr a(A_BOLD);
 	    const std::string title = "Save to File: ";
 	    mvprintw(search_y, 0, title.c_str());
-	    const std::string filename = line_edit(search_y, title.size(), "", screen_width - title.size());
+	    const std::string filename = line_edit(search_y, title.size(), "", screen_width - title.size(), complete_filename);
 	    if (filename.empty()) {
 		break;
 	    }
