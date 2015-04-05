@@ -1045,6 +1045,7 @@ namespace {
 		return input;
 
 	    case KEY_BACKSPACE:
+	    case 8:
 		if (X > 0) {
 		    s.erase(--X,1);
 		}
