@@ -7,6 +7,7 @@
 #include "display_info.h"
 #include "file_index.h"
 #include "temporary_file.h"
+#include "to_wide.h"
 
 namespace {
     lineNum_vector_t s()
@@ -186,7 +187,7 @@ TEST(DisplayInfo, save_with_invalid_file_index)
     file_index fi("README.md");
 
     TemporaryFile tmp;
-    ASSERT_FALSE(i.save(tmp.filename(), fi));
+    ASSERT_FALSE(i.save(to_utf8(tmp.filename()), fi));
 }
 
 TEST(DisplayInfo, save_with_2_lines)
@@ -202,9 +203,9 @@ TEST(DisplayInfo, save_with_2_lines)
     fi.parse_all();
 
     TemporaryFile tmp;
-    ASSERT_TRUE(i.save(tmp.filename(), fi));
+    ASSERT_TRUE(i.save(to_utf8(tmp.filename()), fi));
 
-    file_index fi2(tmp.filename());
+    file_index fi2(to_utf8(tmp.filename()));
     fi2.parse_all();
     ASSERT_EQ(2u, fi2.size());
 }

@@ -1446,7 +1446,7 @@ namespace {
 		info = "save success";
 	    } else {
 		info = "save failed: ";
-		info += strerror(errno);
+		info += errno_str();
 	    }
 	} while(0);
 

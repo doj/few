@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="color.h" />
+    <ClInclude Include="complete_filename.h" />
     <ClInclude Include="curses_attr.h" />
     <ClInclude Include="display_info.h" />
     <ClInclude Include="error.h" />
@@ -31,6 +32,7 @@
     <ClInclude Include="to_wide.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="win\getopt.h" />
+    <ClInclude Include="word_set.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="color.cc" />
@@ -62,6 +64,7 @@
     <ClCompile Include="tokenize_command_line_gtest.cc" />
     <ClCompile Include="to_wide_gtest.cc" />
     <ClCompile Include="win\click_link.cpp" />
+    <ClCompile Include="win\complete_filename.cpp" />
     <ClCompile Include="win\console.cpp" />
     <ClCompile Include="win\errno_str.cpp" />
     <ClCompile Include="win\getenv_str.cpp" />
@@ -72,6 +75,8 @@
     <ClCompile Include="win\temporary_file.cpp" />
     <ClCompile Include="win\tokenize_command_line.cpp" />
     <ClCompile Include="win\to_wide.cpp" />
+    <ClCompile Include="word_set.cc" />
+    <ClCompile Include="word_set_gtest.cc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{1A77C514-CFF5-465F-A499-F561A8E146B6}</ProjectGuid>
