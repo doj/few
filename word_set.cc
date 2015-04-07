@@ -87,17 +87,25 @@ complete_longest_prefix(std::string& str, const std::set<std::string>& s)
 
     assert(s.size() > 1);
     std::string prefix;
+    // iterator the set and find the longest matching prefix
     for(const auto& element : s) {
 	if (element.find(str) != 0) {
 	    continue;
 	}
+	// set prefix to the first element (that is not empty string)
 	if (prefix.empty()) {
 	    prefix = element;
 	    continue;
 	}
+	// check how many characters match from the beginning of element
 	unsigned i;
 	for(i = 0; i < element.size() && i < prefix.size() && element[i] == prefix[i]; ++i) {}
+	// remove characters from prefix that did not match
 	prefix.erase(i);
+	if (i == 0) {
+	    // nothing matched, we won't find anything better, abort
+	    break;
+	}
     }
     if (! prefix.empty()) {
 	str = prefix;

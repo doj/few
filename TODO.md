@@ -3,7 +3,6 @@ TODO
 
 - test on OsX
 - Windows
- + write pathname autocomplete function
  + somehow create an installer or at least a batch file to copy the .exe and .dll somewhere
  + check http://www.projectpluto.com/win32a.htm
 - maybe use readline for input?
