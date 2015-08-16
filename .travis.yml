@@ -1,0 +1,11 @@
+language: cpp
+
+compiler:
+  - clang
+  - gcc
+
+before_install:
+  - sudo apt-get update -qq
+  - sudo make debian-setup
+
+script: make all
