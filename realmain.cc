@@ -1655,6 +1655,9 @@ int realmain_impl(int argc, char * const argv[])
     }
     for(unsigned u = 0; u != command_line_filter_regex.size(); ++u) {
 	const add_regex_status s = add_regex(u, command_line_filter_regex[u], nullptr);
+	if (s == createdDisplayFilter) {
+	    continue;
+	}
 	if (s != foundInCache) {
 	    std::cerr << "did not find cached regex '" << command_line_filter_regex[u] << "'" << std::endl;
 	    return EX_SOFTWARE;

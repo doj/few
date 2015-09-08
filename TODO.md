@@ -1,6 +1,9 @@
 TODO
 ----
 
+- fix line edit:
+ start "./few --regex '/few/nix/' README.md" then edit regex #1 and press backspace
+
 - test on OsX
 - Windows
  + somehow create an installer or at least a batch file to copy the .exe and .dll somewhere
