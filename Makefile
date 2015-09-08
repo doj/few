@@ -22,6 +22,7 @@ ifneq ($(SYSROOT),)
 CXX = $(SYSROOT)/bin/c++
 INCLUDE_FLAGS += -idirafter /usr/include
 LDFLAGS += -Wl,-rpath,$(SYSROOT)/lib64
+export LD_LIBRARY_PATH += $(SYSROOT)/lib
 endif
 
 CXXFLAGS += $(WARNING_FLAGS) $(INCLUDE_FLAGS) -std=c++11 -MMD
