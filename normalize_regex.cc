@@ -171,3 +171,77 @@ bool is_filter_regex(std::string str)
     }
     return false;
 }
+
+bool parse_replace_df(const std::string& expr, std::string& rgx, std::string& rpl, std::string& err_msg)
+{
+    // the expression needs to contain at least:
+    // 3 slashes
+    // one character for rgx
+    if (expr.size() < 3+1) {
+	err_msg = "regex has not enough characters";
+	return false;
+    }
+
+    // expr needs to start with a slash
+    if (expr[0] != '/') {
+	err_msg = "does not start with /";
+	return false;
+    }
+
+    // expr needs to end with a slash
+    if (expr[expr.size() - 1] != '/') {
+	err_msg = "does not end with /";
+	return false;
+    }
+
+    // the number of slashes found
+    unsigned slash_cnt = 0;
+
+    enum mode_t { RGX, RPL } mode = RGX;
+    std::string rgx_, rpl_;
+    for(unsigned i = 0; i < expr.size(); ++i) {
+	char c = expr[i];
+	// do we have a slash?
+	if (c == '/') {
+	    ++slash_cnt;
+	    // the second slash sets the RPL mode
+	    if (slash_cnt == 2) {
+		assert(mode == RGX);
+		mode = RPL;
+	    }
+	    continue;
+	}
+	// do we have a backslash?
+	if (c == '\\') {
+	    assert(i < expr.size()-1);
+	    // if next character is a forward slash or backslash, process that
+	    const char n = expr[i+1];
+	    if (n == '/' || n == '\\') {
+		c = n;
+		++i;
+	    } else {
+		// no other escapes supported
+		err_msg = "invalid escaped character: ";
+		err_msg += n;
+		return false;
+	    }
+	}
+	// add current character to correct output string
+	if (mode == RGX) {
+	    rgx_ += c;
+	} else if (mode == RPL) {
+	    rpl_ += c;
+	} else {
+	    assert(false && "unknown mode");
+	}
+    }
+
+    if (slash_cnt != 3) {
+	err_msg = "did not find 3 forward slashes";
+	return false;
+    }
+
+    rgx = rgx_;
+    rpl = rpl_;
+    return true;
+}

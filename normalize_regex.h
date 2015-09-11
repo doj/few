@@ -31,3 +31,14 @@ bool is_attr_df(const std::string& str, uint64_t& attr, int& fg, int& bg);
  * @return true if str is a filter regex.
  */
 bool is_filter_regex(std::string str);
+
+/**
+ * parse a _replace display filter_.
+ * @param[in] expr the complete regular expression, without any flags.
+ * @param[out] rgx the regular expression part (left side).
+ * @param[out] rpl the replace string (right side).
+ * @param[out] err_msg error message if return false.
+ * @return true if the expression is a valid _replace display filter_ regex and rgx and rpl are set;
+ *         false if the expression is not valid.
+ */
+bool parse_replace_df(const std::string& expr, std::string& rgx, std::string& rpl, std::string& err_msg);

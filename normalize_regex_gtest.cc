@@ -137,3 +137,104 @@ TEST(is_filter_regex, detects_invalid_filter_regex)
     ASSERT_FALSE(is_filter_regex(""));
     ASSERT_FALSE(is_filter_regex("//"));
 }
+
+TEST(parse_replace_df, parses_regular_expressions)
+{
+    std::string expr = "/a/b/";
+    std::string expected_rgx = "a";
+    std::string expected_rpl = "b";
+    std::string rgx, rpl, err_msg;
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+
+    expr = "/a*b?d+/this works/";
+    expected_rgx = "a*b?d+";
+    expected_rpl = "this works";
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+
+    expr = "/a/b\\/b/";
+    expected_rgx = "a";
+    expected_rpl = "b/b";
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+
+    expr = "/a/b\\\\b/";
+    expected_rgx = "a";
+    expected_rpl = "b\\b";
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+
+    expr = "/a\\/c/b/";
+    expected_rgx = "a/c";
+    expected_rpl = "b";
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+
+    expr = "/a\\\\c/b/";
+    expected_rgx = "a\\c";
+    expected_rpl = "b";
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+
+    expr = "/\\/a/b/";
+    expected_rgx = "/a";
+    expected_rpl = "b";
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+
+    expr = "/a\\//b/";
+    expected_rgx = "a/";
+    expected_rpl = "b";
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+
+    expr = "/\\//b/";
+    expected_rgx = "/";
+    expected_rpl = "b";
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+
+    expr = "/\\\\/b/";
+    expected_rgx = "\\";
+    expected_rpl = "b";
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+
+    expr = "/\\\\/\\//";
+    expected_rgx = "\\";
+    expected_rpl = "/";
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+
+    expr = "/\\\\\\//\\/\\\\\\//";
+    expected_rgx = "\\/";
+    expected_rpl = "/\\/";
+    ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
+    ASSERT_EQ(expected_rgx, rgx);
+    ASSERT_EQ(expected_rpl, rpl);
+}
+
+TEST(parse_replace_df, recognizes_malformed_expressions)
+{
+    std::string rgx, rpl, err_msg;
+    ASSERT_FALSE(parse_replace_df("a/b/", rgx, rpl, err_msg));
+    ASSERT_FALSE(parse_replace_df("/a/b", rgx, rpl, err_msg));
+    ASSERT_FALSE(parse_replace_df("a/b", rgx, rpl, err_msg));
+    ASSERT_FALSE(parse_replace_df("//a/b/", rgx, rpl, err_msg));
+    ASSERT_FALSE(parse_replace_df("/a//b/", rgx, rpl, err_msg));
+    ASSERT_FALSE(parse_replace_df("/a/b//", rgx, rpl, err_msg));
+    ASSERT_FALSE(parse_replace_df("/a/b/c/", rgx, rpl, err_msg));
+    ASSERT_FALSE(parse_replace_df("/a/b\\/", rgx, rpl, err_msg));
+}

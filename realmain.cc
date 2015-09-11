@@ -1235,8 +1235,17 @@ namespace {
 		return createdDisplayFilter;
 	    } else {
 		// Replace Display Filter
+
+		// remove flags from rgx
 		const std::string flags = get_regex_flags(rgx);
-		rgx = get_regex_str(rgx);
+		if (! flags.empty()) {
+		    if (flags.size() >= rgx.size()) {
+			info = "malformed regex, strange flags";
+			return regexError;
+		    }
+		    assert(rgx.size() > flags.size());
+		    rgx.erase(rgx.size() - flags.size());
+		}
 
 		// parse flags
 		bool positive_match = true;
@@ -1244,20 +1253,17 @@ namespace {
 		convert(flags, fl, positive_match);
 
 		// separate regex and replacement
-		std::string::size_type pos = rgx.find('/');
-		if (pos == std::string::npos) {
-		    c->err_ = "could not separate regex and replace parts";
+		std::string regex, rpl, err_msg;
+		if (parse_replace_df(rgx, regex, rpl, err_msg)) {
+		    c->replace_df_text_ = std::move(rpl);
+		    c->replace_df_rgx_ = std::make_shared<std::regex>(regex, fl);
+		    info = "created new replace display filter";
 		} else {
-		    // create replace string
-		    c->replace_df_text_ = rgx;
-		    c->replace_df_text_.erase(0, pos + 1);
-
-		    // construct regex
-		    rgx.erase(pos);
-		    c->replace_df_rgx_ = std::make_shared<std::regex>(rgx, fl);
+		    c->err_ = "invalid replace display filter regex: " + err_msg;
+		    info = "could not create replace display filter";
+		    return regexError;
 		}
 
-		info = "created new replace display filter";
 		return createdDisplayFilter;
 	    }
 	} catch (std::regex_error& e) {

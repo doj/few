@@ -11,8 +11,7 @@ TODO
 - maybe use readline for input?
  + http://tiswww.case.edu/php/chet/readline/readline.html#SEC41
  + https://github.com/ulfalizer/readline-and-ncurses/blob/master/rlncurses.c
-- better parsing of display filter, correctly separate /regex/replace/ by the middle slash
- + is_filter_regex() also refuses any forward slash character. Maybe we have to implement a correct backslash escape handling.
+- is_filter_regex() refuses any forward slash character. Maybe we have to implement a correct backslash escape handling.
 - read tab width from vim/emacs comments
 - cache file index
 - cache regex filter index
