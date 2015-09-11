@@ -67,6 +67,19 @@ TEST(get_regex_str, works)
     ASSERT_EQ(std::string(""), get_regex_str(""));
     ASSERT_EQ(std::string("dirk"), get_regex_str("/dirk/"));
     ASSERT_EQ(std::string("dirk"), get_regex_str("/dirk/abc"));
+    ASSERT_EQ(std::string("a/b"), get_regex_str("/a\\/b/"));
+    ASSERT_EQ(std::string("/b"), get_regex_str("/\\/b/"));
+    ASSERT_EQ(std::string("a/"), get_regex_str("/a\\//"));
+    ASSERT_EQ(std::string("/"), get_regex_str("/\\//"));
+    ASSERT_EQ(std::string("a\\b"), get_regex_str("/a\\\\b/"));
+    ASSERT_EQ(std::string("\\b"), get_regex_str("/\\\\b/"));
+    ASSERT_EQ(std::string("a\\"), get_regex_str("/a\\\\/"));
+    ASSERT_EQ(std::string("\\"), get_regex_str("/\\\\/"));
+}
+
+TEST(get_regex_str, detects_invalid_regex)
+{
+    ASSERT_EQ(std::string(""), get_regex_str("/a\\n"));
 }
 
 TEST(normalize_regex, detects_df_attr_syntax)
@@ -128,6 +141,10 @@ TEST(is_filter_regex, detects_valid_filter_regex)
     ASSERT_TRUE(is_filter_regex("/abc/!"));
     ASSERT_TRUE(is_filter_regex("ab"));
     ASSERT_TRUE(is_filter_regex("!ab"));
+    ASSERT_TRUE(is_filter_regex("/a\\/c/"));
+    ASSERT_TRUE(is_filter_regex("/a\\//"));
+    ASSERT_TRUE(is_filter_regex("/\\//"));
+    ASSERT_TRUE(is_filter_regex("/\\\\/"));
 }
 
 TEST(is_filter_regex, detects_invalid_filter_regex)

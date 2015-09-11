@@ -11,8 +11,11 @@ std::string normalize_regex(std::string regex);
 /// @return flags of normalized regular expression string.
 std::string get_regex_flags(std::string str);
 
-/// @return regular expression string (the characters between the forward slashes) of normalized regular expression string.
-std::string get_regex_str(std::string str);
+/**
+ * @return regular expression string (the characters between the forward slashes) of normalized regular expression string.
+ * @return empty string if regular expression error was found (invalid escape).
+ */
+std::string get_regex_str(const std::string& str);
 
 /**
  * check if a regular expression is an _attribute display filter_.

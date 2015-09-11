@@ -63,19 +63,37 @@ std::string get_regex_flags(std::string str)
     return flags;
 }
 
-std::string get_regex_str(std::string str)
+std::string get_regex_str(const std::string& str)
 {
     if (str.size() < 2) {
 	return str;
     }
-    if (str[0] == '/') {
-	str.erase(0,1);
+
+    std::string o;
+    for(unsigned i = ((str[0] == '/') ? 1 : 0);
+	i < str.size();
+	++i) {
+	const char c = str[i];
+	if (c == '\\') {
+	    if (i == str.size()-1) {
+		o += c;
+		break;
+	    }
+	    const char n = str[++i];
+	    if (n == '/' || n == '\\') {
+		o += n;
+		continue;
+	    } else {
+		return "";
+	    }
+	}
+	if (c == '/') {
+	    break;
+	}
+	o += c;
     }
-    std::string::size_type pos = str.rfind('/');
-    if (pos != std::string::npos) {
-	str.erase(pos);
-    }
-    return str;
+
+    return o;
 }
 
 #include <iostream>
@@ -162,14 +180,41 @@ is_attr_df(const std::string& str, uint64_t& attr, int& fg, int& bg)
 bool is_filter_regex(std::string str)
 {
     str = normalize_regex(str);
-    if (str.empty()) {
+    if (str.size() < 3) {
 	return false;
     }
-    static std::regex r("^/[^/]+/[i!]*");
+
+    unsigned slash_cnt = 0;
+    for(unsigned i = 0; i < str.size(); ++i) {
+	const char c = str[i];
+	if (c == '/') { ++slash_cnt; continue; }
+	// check for valid flags after 2nd forward slash
+	if (slash_cnt >= 2) {
+	    if (c == 'i' || c == '!') { continue; }
+	    return false;
+	}
+	// check for escapes
+	if (c == '\\') {
+	    if (i == str.size() - 1) { return false; }
+	    assert(i < str.size()-1);
+	    const char n = str[++i];
+	    if (n == '/' || n == '\\') { continue; }
+	    return false;
+	}
+    }
+
+    if (slash_cnt != 2) {
+	return false;
+    }
+    return true;
+
+#if 0
+    static std::regex r("^/.+/[i!]*");
     if (std::regex_match(str, r)) {
 	return true;
     }
     return false;
+#endif
 }
 
 bool parse_replace_df(const std::string& expr, std::string& rgx, std::string& rpl, std::string& err_msg)
@@ -215,10 +260,9 @@ bool parse_replace_df(const std::string& expr, std::string& rgx, std::string& rp
 	if (c == '\\') {
 	    assert(i < expr.size()-1);
 	    // if next character is a forward slash or backslash, process that
-	    const char n = expr[i+1];
+	    const char n = expr[++i];
 	    if (n == '/' || n == '\\') {
 		c = n;
-		++i;
 	    } else {
 		// no other escapes supported
 		err_msg = "invalid escaped character: ";
