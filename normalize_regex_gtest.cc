@@ -64,21 +64,26 @@ TEST(get_regex_flags, works)
 
 TEST(get_regex_str, works)
 {
-    ASSERT_EQ(std::string(""), get_regex_str(""));
     ASSERT_EQ(std::string("dirk"), get_regex_str("/dirk/"));
     ASSERT_EQ(std::string("dirk"), get_regex_str("/dirk/abc"));
-    ASSERT_EQ(std::string("a/b"), get_regex_str("/a\\/b/"));
-    ASSERT_EQ(std::string("/b"), get_regex_str("/\\/b/"));
-    ASSERT_EQ(std::string("a/"), get_regex_str("/a\\//"));
-    ASSERT_EQ(std::string("/"), get_regex_str("/\\//"));
-    ASSERT_EQ(std::string("a\\b"), get_regex_str("/a\\\\b/"));
-    ASSERT_EQ(std::string("\\b"), get_regex_str("/\\\\b/"));
-    ASSERT_EQ(std::string("a\\"), get_regex_str("/a\\\\/"));
-    ASSERT_EQ(std::string("\\"), get_regex_str("/\\\\/"));
+    ASSERT_EQ(std::string("a\\/b"), get_regex_str("/a\\/b/i"));
+    ASSERT_EQ(std::string("\\/b"), get_regex_str("/\\/b/xdef"));
+    ASSERT_EQ(std::string("a\\/"), get_regex_str("/a\\//"));
+    ASSERT_EQ(std::string("\\/"), get_regex_str("/\\//"));
+    ASSERT_EQ(std::string("a\\\\b"), get_regex_str("/a\\\\b/"));
+    ASSERT_EQ(std::string("\\\\b"), get_regex_str("/\\\\b/"));
+    ASSERT_EQ(std::string("a\\\\"), get_regex_str("/a\\\\/"));
+    ASSERT_EQ(std::string("\\\\"), get_regex_str("/\\\\/!s"));
+    ASSERT_EQ(std::string("dirk\\["), get_regex_str("/dirk\\[/"));
+    ASSERT_EQ(std::string("dirk[3]+"), get_regex_str("/dirk[3]+/"));
 }
 
 TEST(get_regex_str, detects_invalid_regex)
 {
+    ASSERT_EQ(std::string(""), get_regex_str(""));
+    ASSERT_EQ(std::string(""), get_regex_str("a"));
+    ASSERT_EQ(std::string(""), get_regex_str("ab"));
+    ASSERT_EQ(std::string(""), get_regex_str("//"));
     ASSERT_EQ(std::string(""), get_regex_str("/a\\n"));
 }
 
@@ -174,70 +179,70 @@ TEST(parse_replace_df, parses_regular_expressions)
 
     expr = "/a/b\\/b/";
     expected_rgx = "a";
-    expected_rpl = "b/b";
+    expected_rpl = "b\\/b";
     ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
     ASSERT_EQ(expected_rgx, rgx);
     ASSERT_EQ(expected_rpl, rpl);
 
     expr = "/a/b\\\\b/";
     expected_rgx = "a";
-    expected_rpl = "b\\b";
+    expected_rpl = "b\\\\b";
     ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
     ASSERT_EQ(expected_rgx, rgx);
     ASSERT_EQ(expected_rpl, rpl);
 
     expr = "/a\\/c/b/";
-    expected_rgx = "a/c";
+    expected_rgx = "a\\/c";
     expected_rpl = "b";
     ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
     ASSERT_EQ(expected_rgx, rgx);
     ASSERT_EQ(expected_rpl, rpl);
 
     expr = "/a\\\\c/b/";
-    expected_rgx = "a\\c";
+    expected_rgx = "a\\\\c";
     expected_rpl = "b";
     ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
     ASSERT_EQ(expected_rgx, rgx);
     ASSERT_EQ(expected_rpl, rpl);
 
     expr = "/\\/a/b/";
-    expected_rgx = "/a";
+    expected_rgx = "\\/a";
     expected_rpl = "b";
     ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
     ASSERT_EQ(expected_rgx, rgx);
     ASSERT_EQ(expected_rpl, rpl);
 
     expr = "/a\\//b/";
-    expected_rgx = "a/";
+    expected_rgx = "a\\/";
     expected_rpl = "b";
     ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
     ASSERT_EQ(expected_rgx, rgx);
     ASSERT_EQ(expected_rpl, rpl);
 
     expr = "/\\//b/";
-    expected_rgx = "/";
+    expected_rgx = "\\/";
     expected_rpl = "b";
     ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
     ASSERT_EQ(expected_rgx, rgx);
     ASSERT_EQ(expected_rpl, rpl);
 
     expr = "/\\\\/b/";
-    expected_rgx = "\\";
+    expected_rgx = "\\\\";
     expected_rpl = "b";
     ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
     ASSERT_EQ(expected_rgx, rgx);
     ASSERT_EQ(expected_rpl, rpl);
 
     expr = "/\\\\/\\//";
-    expected_rgx = "\\";
-    expected_rpl = "/";
+    expected_rgx = "\\\\";
+    expected_rpl = "\\/";
     ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
     ASSERT_EQ(expected_rgx, rgx);
     ASSERT_EQ(expected_rpl, rpl);
 
     expr = "/\\\\\\//\\/\\\\\\//";
-    expected_rgx = "\\/";
-    expected_rpl = "/\\/";
+    expected_rgx = "\\\\\\/";
+    expected_rpl = "\\/\\\\\\/";
     ASSERT_TRUE(parse_replace_df(expr, rgx, rpl, err_msg));
     ASSERT_EQ(expected_rgx, rgx);
     ASSERT_EQ(expected_rpl, rpl);

@@ -12,8 +12,8 @@ std::string normalize_regex(std::string regex);
 std::string get_regex_flags(std::string str);
 
 /**
- * @return regular expression string (the characters between the forward slashes) of normalized regular expression string.
- * @return empty string if regular expression error was found (invalid escape).
+ * @return regular expression string (the characters between the first two forward slashes) of normalized regular expression string.
+ * @return empty string if regular expression error was found.
  */
 std::string get_regex_str(const std::string& str);
 

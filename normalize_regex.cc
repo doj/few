@@ -65,35 +65,31 @@ std::string get_regex_flags(std::string str)
 
 std::string get_regex_str(const std::string& str)
 {
-    if (str.size() < 2) {
-	return str;
+    if (str.size() < 3) {
+	return "";
+    }
+
+    if (str[0] != '/') {
+	return "";
     }
 
     std::string o;
-    for(unsigned i = ((str[0] == '/') ? 1 : 0);
-	i < str.size();
-	++i) {
+    for(unsigned i = 1; i < str.size(); ++i) {
 	const char c = str[i];
 	if (c == '\\') {
-	    if (i == str.size()-1) {
-		o += c;
-		break;
+	    o += c;
+	    if (i < str.size()-1) {
+		o += str[++i];
 	    }
-	    const char n = str[++i];
-	    if (n == '/' || n == '\\') {
-		o += n;
-		continue;
-	    } else {
-		return "";
-	    }
+	    continue;
 	}
 	if (c == '/') {
-	    break;
+	    return o;
 	}
 	o += c;
     }
 
-    return o;
+    return "";
 }
 
 #include <iostream>
@@ -246,6 +242,7 @@ bool parse_replace_df(const std::string& expr, std::string& rgx, std::string& rp
     std::string rgx_, rpl_;
     for(unsigned i = 0; i < expr.size(); ++i) {
 	char c = expr[i];
+
 	// do we have a slash?
 	if (c == '/') {
 	    ++slash_cnt;
@@ -256,27 +253,29 @@ bool parse_replace_df(const std::string& expr, std::string& rgx, std::string& rp
 	    }
 	    continue;
 	}
-	// do we have a backslash?
-	if (c == '\\') {
-	    assert(i < expr.size()-1);
-	    // if next character is a forward slash or backslash, process that
-	    const char n = expr[++i];
-	    if (n == '/' || n == '\\') {
-		c = n;
-	    } else {
-		// no other escapes supported
-		err_msg = "invalid escaped character: ";
-		err_msg += n;
-		return false;
-	    }
-	}
+
 	// add current character to correct output string
 	if (mode == RGX) {
 	    rgx_ += c;
 	} else if (mode == RPL) {
 	    rpl_ += c;
 	} else {
-	    assert(false && "unknown mode");
+	    assert(false && "unknown mode A");
+	}
+
+	// do we have a backslash?
+	if (c == '\\') {
+	    // one more character available?
+	    if (i < expr.size()-1) {
+		c = expr[++i];
+		if (mode == RGX) {
+		    rgx_ += c;
+		} else if (mode == RPL) {
+		    rpl_ += c;
+		} else {
+		    assert(false && "unknown mode B");
+		}
+	    }
 	}
     }
 

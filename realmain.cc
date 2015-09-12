@@ -1193,7 +1193,10 @@ namespace {
 
 	// normalize regular expression
 	rgx = normalize_regex(rgx);
-	assert(rgx.size() >= 3);
+	if (rgx.size() < 3) {
+	    info = "regex too small";
+	    return regexError;
+	}
 	assert(rgx[0] == '/' || rgx[0] == '|');
 
 	regex_vec_resize(regex_num + 1);
