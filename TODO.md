@@ -17,8 +17,5 @@ TODO
  + manage all line numbers as 64bit unsigned
 - split realmain.cc into components
 - maybe search in background? However while searching in background the user can modify the display_info object which will invalidate the iterators that the background search would use.
-- STDIN
- + parse the regular expressions upon reading from STDIN
- + when reading STDIN, don't use temp file but store in memory?
 - support hidden filters
 - when pressing 'G' key, check if file grew and (re)load new part
