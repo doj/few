@@ -7,7 +7,7 @@ few - a file viewer with regular expression filters.
 
 SYNOPSIS
 --------
-**few** [--regex 'regular expression']\* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [--goto 'NUM'] [-v] [--color] [-h|-?|--help] ['FILE']
+**few** [--regex '/REGEX/flags']\* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [--goto 'NUM'] [-v] [--color] [-h|-?|--help] ['FILE']
 
 DESCRIPTION
 -----------
@@ -42,7 +42,7 @@ OPTIONS
   the file name to use. If it is "-" the standard input is used. If no
   file name was specified standard input is used.
 
-Keys
+KEYS
 ----
 The actions resulting from a key press are modelled after the less(1) program.
 
@@ -77,7 +77,10 @@ The actions resulting from a key press are modelled after the less(1) program.
 * **R**:
   repaint the screen
 * **h**:
-  show help text. This will show the few man page in the few editor. To return to your file, press **q**.
+  show help text.
+  This will show the few man page in the few editor.
+  To return to your file, press **q**.
+  Currently supported on Unix.
 * **/**:
   enter a search regular expression
 * **n**:
@@ -88,9 +91,14 @@ The actions resulting from a key press are modelled after the less(1) program.
   maximize the window. Currently supported on Windows.
 * **S**:
   save the currently filtered lines to a new file.
+* **!**:
+  execute a shell command.
+  Use !! to execute the last shell command.
+  A % is replaced with the file name currently displayed by few.
+  Currently supported on Unix.
 
-Filter Regular Expressions
--------------------
+FILTER REGULAR EXPRESSIONS
+--------------------------
 For display or filter regular expressions (key **0** .. **9**)
 and search (key **/**) ECMAScript (javascript) style
 regular expressions, as provided by the C++11 regular expression
@@ -222,7 +230,7 @@ characters.
 The attribute display filter regular expression however is matched
 against the wide character representation of the displayed lines.
 
-Links and URLs
+LINKS AND URLs
 --------------
 
 few will attempt to detect URLs and links. If it detects a link, URL
@@ -231,8 +239,8 @@ underlined text to have the link opened in a web browser or email
 client. On Unix you need to set the BROWSER environment variable if
 you don't like the default web browser firefox.
 
-DISPLAY
--------
+SCREEN LAYOUT
+-------------
 
 When you start few you'll see an inverted column of number on the left
 side. You'll see the line number that is displayed right aligned. If

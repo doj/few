@@ -21,5 +21,4 @@ TODO
  + parse the regular expressions upon reading from STDIN
  + when reading STDIN, don't use temp file but store in memory?
 - support hidden filters
-- execute shell command with '!' key
 - when pressing 'G' key, check if file grew and (re)load new part

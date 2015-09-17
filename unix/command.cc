@@ -13,50 +13,57 @@
 #include <sys/wait.h>
 
 bool
-run_command(const std::string& cmd, std::string& error_msg)
+run_command(const std::string& cmd, std::string& info_msg)
 {
     int s = system(cmd.c_str());
     if (s < 0) {
-	error_msg = "could not run: " + cmd;
+	info_msg = "could not run: " + cmd;
     } else {
 	if (WIFEXITED(s)) {
 	    s = WEXITSTATUS(s);
-	    if (s == 0) {
-		return true;
-	    } else {
-		error_msg = "command exit status: " + std::to_string(s);
-	    }
+	    info_msg = "command exit status: " + std::to_string(s);
+	    return s == 0;
 	} else if (WIFSIGNALED(s)) {
 #ifdef WCOREDUMP
 	    if (WCOREDUMP(s)) {
-		error_msg = "command produced a core dump";
+		info_msg = "command produced a core dump";
 	    } else
 #endif
 		{
-		    error_msg = std::string("command exited with signal: ") + strsignal(WTERMSIG(s));
+		    info_msg = std::string("command exited with signal: ") + strsignal(WTERMSIG(s));
 		}
 	} else {
-	    error_msg = "unknown error when running: " + cmd;
+	    info_msg = "unknown error when running: " + cmd;
 	}
     }
     return false;
 }
 
 bool
-run_program(const std::string& cmd, std::string& error_msg)
+run_program(const std::string& cmd, std::string& info_msg, bool wait_for_key)
 {
     close_curses();
-    const bool b = run_command(cmd, error_msg);
+    if (wait_for_key) {
+	std::string s = "execute: " + cmd + "\n\n";
+	write(1, s.data(), s.size());
+    }
+    const bool b = run_command(cmd, info_msg);
+    if (wait_for_key) {
+	std::string s = "\n[press enter to return to few]\n";
+	write(1, s.data(), s.size());
+	char buf[128];
+	read(0, buf, sizeof(buf)); // read from STDIN to wait for enter key press
+    }
     initialize_curses();
     return b;
 }
 
 int
-run_command_background(std::string cmd, std::string& msg)
+run_command_background(std::string cmd, std::string& info_msg)
 {
     const pid_t pid = fork();
     if (pid < 0) {
-	msg = "could not fork: " + errno_str();
+	info_msg = "could not fork: " + errno_str();
 	return -1;
     } else if (pid == 0) {
 	// child
@@ -68,7 +75,7 @@ run_command_background(std::string cmd, std::string& msg)
 	}
 	_exit(EXIT_FAILURE);
     } else {
-	msg = "created child PID " + std::to_string(pid);
+	info_msg = "created child PID " + std::to_string(pid);
     }
 
     return pid;

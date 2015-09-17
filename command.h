@@ -14,24 +14,26 @@
  * message.
  *
  * @param[in] cmd shell command line to run.
- * @param[out] error_msg will contain an error message if the function returns false.
+ * @param[out] info_msg will contain a message about the command execution.
  * @return true upon success.
  */
-bool run_command(const std::string& cmd, std::string& error_msg);
+bool run_command(const std::string& cmd, std::string& info_msg);
 
 /**
  * run a program in a child process.
  * The program can be interactive, as the curses library is closed before running the program.
  * @param[in] cmd shell command line to run.
- * @param[out] error_msg will contain an error message if the function returns false.
+ * @param[out] info_msg will contain a message about the command execution.
+ * @param[in] wait_for_key if true, wait until user presses the enter key before returning from the function;
+ *                         if false return from the function if cmd finished running.
  * @return true if cmd had an exit status of 0.
  */
-bool run_program(const std::string& cmd, std::string& error_msg);
+bool run_program(const std::string& cmd, std::string& info_msg, bool wait_for_key);
 
 /**
  * run a command in the background, detached from the current process.
  * @param[in] cmd shell command line to execute in background.
- * @param[out] msg will contain a message about success or failure to run cmd.
+ * @param[out] info_msg will contain a message about the command execution.
  * @return process ID of the background program; -1 upon error.
  */
-int run_command_background(std::string cmd, std::string& msg);
+int run_command_background(std::string cmd, std::string& info_msg);

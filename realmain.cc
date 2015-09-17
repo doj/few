@@ -68,8 +68,11 @@ namespace {
     /// the filename of the currently executed process (argv[0]).
     std::string argv0;
 
-    /// the filename as used on the command line that is displayes.
+    /// the filename as used on the command line that is displayed.
     std::string command_line_filename = "-";
+
+    /// the filename that is read. Typically the same as command_line_filename, but can be a temporary file name for reading from STDIN.
+    std::string real_filename;
 
     /// the info string which is shown in the lower right corner
     std::string info;
@@ -813,13 +816,15 @@ namespace {
 	    if (! run_command("MANWIDTH=" + std::to_string(screen_width - 10) + " man few > " + tmp.filename() + " 2> /dev/null", info)) {
 		return;
 	    }
-	    run_program(argv0 + " " + tmp.filename(), info);
+	    run_program(argv0 + " " + tmp.filename(), info, false);
 	} catch (std::exception& e) {
 	    info = "could not show help: ";
 	    info += e.what();
 	} catch (...) {
 	    info = "could not show help: unknown exception";
 	}
+#else
+	info = "help not supported on this platform";
 #endif
     }
 
@@ -1410,6 +1415,35 @@ namespace {
 	create_windows();
     }
 
+    void edit_shell_cmd()
+    {
+	static std::string lastcmd;
+	std::string cmd;
+	{
+	    curses_attr a(A_BOLD);
+	    const std::string title = "command: ";
+	    mvprintw(search_y, 0, title.c_str());
+	    cmd = line_edit(search_y, title.size(), "", screen_width - title.size(), nullptr);
+	}
+
+	if (cmd == "!!") {
+	    cmd = lastcmd;
+	}
+	if (cmd.empty()) { return; }
+
+	lastcmd = cmd;
+
+	// \todo replace '%' in cmd with current file name
+	static auto rgx = std::regex("\\%");
+	cmd = std::regex_replace(cmd, rgx, real_filename);
+
+#if defined(__unix__)
+	run_program(cmd, info, true);
+#else
+	info = "shell command not supported on this platform";
+#endif
+    }
+
     void process_event_queue()
     {
 	bool do_refresh_windows = false;
@@ -1601,7 +1635,7 @@ int realmain_impl(int argc, char * const argv[])
     }
 
     // if we should read from STDIN, create a temporary file
-    std::string real_filename = command_line_filename;
+    real_filename = command_line_filename;
     std::shared_ptr<TemporaryFile> stdin_tmpfile;
     if (command_line_filename == "-") {
 	stdin_tmpfile = std::make_shared<TemporaryFile>();
@@ -1729,6 +1763,10 @@ int realmain_impl(int argc, char * const argv[])
 	switch(key) {
 	case '/':
 	    edit_search();
+	    break;
+
+	case '!':
+	    edit_shell_cmd();
 	    break;
 
 	case 'p':
