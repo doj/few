@@ -193,9 +193,8 @@ bool is_filter_regex(std::string str)
 	if (c == '\\') {
 	    if (i == str.size() - 1) { return false; }
 	    assert(i < str.size()-1);
-	    const char n = str[++i];
-	    if (n == '/' || n == '\\') { continue; }
-	    return false;
+	    ++i;
+	    continue;
 	}
     }
 
@@ -203,14 +202,6 @@ bool is_filter_regex(std::string str)
 	return false;
     }
     return true;
-
-#if 0
-    static std::regex r("^/.+/[i!]*");
-    if (std::regex_match(str, r)) {
-	return true;
-    }
-    return false;
-#endif
 }
 
 bool parse_replace_df(const std::string& expr, std::string& rgx, std::string& rpl, std::string& err_msg)

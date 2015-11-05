@@ -150,6 +150,7 @@ TEST(is_filter_regex, detects_valid_filter_regex)
     ASSERT_TRUE(is_filter_regex("/a\\//"));
     ASSERT_TRUE(is_filter_regex("/\\//"));
     ASSERT_TRUE(is_filter_regex("/\\\\/"));
+    ASSERT_TRUE(is_filter_regex("/Found \\d+ LUNs on target/"));
 }
 
 TEST(is_filter_regex, detects_invalid_filter_regex)
