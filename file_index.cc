@@ -161,10 +161,12 @@ file_index::parse_all_in_background(std::shared_ptr<regex_index> ri) const
     if (! has_parsed_all_) {
 	return;
     }
-    for(unsigned i = 1; i < line_.size(); ++i) {
+    const unsigned line_size = line_.size();
+    for(unsigned i = 1; i < line_size; ++i) {
 	ri->match(line_[i]);
 	if ((i % 10000) == 0) {
-	    eventAdd(event("matching line " + std::to_string(i)));
+	    const unsigned perc = static_cast<double>(i) / static_cast<double>(line_size) * 100.0;
+	    eventAdd(event(" matching line " + std::to_string(i) + " " + std::to_string(perc) + "% "));
 	}
     }
 }
