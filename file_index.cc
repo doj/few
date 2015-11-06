@@ -166,7 +166,7 @@ file_index::parse_all_in_background(std::shared_ptr<regex_index> ri) const
 	ri->match(line_[i]);
 	if ((i % 10000) == 0) {
 	    const unsigned perc = static_cast<double>(i) / static_cast<double>(line_size) * 100.0;
-	    eventAdd(event(" matching line " + std::to_string(i) + " " + std::to_string(perc) + "% "));
+	    eventAdd(event(" matching line " + std::to_string(i) + " " + std::to_string(perc) + "%"));
 	}
     }
 }
