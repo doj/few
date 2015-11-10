@@ -3,6 +3,7 @@ TODO
 
 - test on OsX
 - Windows
+ + check http://www.chiark.greenend.org.uk/~sgtatham/doit/ to launch browser on Windows
  + somehow create an installer or at least a batch file to copy the .exe and .dll somewhere
  + check http://www.projectpluto.com/win32a.htm
 - maybe use readline for input?
