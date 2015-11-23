@@ -137,3 +137,6 @@ redhat-setup:
 
 debian-setup:
 	apt-get install -y ncurses-doc ruby-ronn libncursesw5-dev
+
+emerge:
+	emerge --ask app-text/ronn sys-libs/ncurses
