@@ -6,6 +6,7 @@
 #include "command.h"
 #include "few_curses.h"
 #include "errno_str.h"
+#include <cassert>
 #include <cstdlib>
 #include <cstring>
 #include <unistd.h>
@@ -42,17 +43,21 @@ run_command(const std::string& cmd, std::string& info_msg)
 bool
 run_program(const std::string& cmd, std::string& info_msg, bool wait_for_key)
 {
+    size_t size = 0;
     close_curses();
     if (wait_for_key) {
 	std::string s = "execute: " + cmd + "\n\n";
-	write(1, s.data(), s.size());
+	size = write(1, s.data(), s.size());
+	assert(size == s.size());
     }
     const bool b = run_command(cmd, info_msg);
     if (wait_for_key) {
 	std::string s = "\n[press enter to return to few]\n";
-	write(1, s.data(), s.size());
+	size = write(1, s.data(), s.size());
+	assert(size == s.size());
 	char buf[128];
-	read(0, buf, sizeof(buf)); // read from STDIN to wait for enter key press
+	size = read(0, buf, sizeof(buf)); // read from STDIN to wait for enter key press
+	assert(size >= 0);
     }
     initialize_curses();
     return b;
