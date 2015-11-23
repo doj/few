@@ -37,7 +37,7 @@ TEST(complete_filename, matches_complete_relative_files)
 TEST(complete_filename, matches_complete_absolute_files)
 {
     std::string err, path;
-    path = "/etc/motd";
+    path = "/etc/fstab";
     auto s = complete_filename(path, err);
     ASSERT_EQ(1u, s.size());
     ASSERT_EQ(0u, err.size());
