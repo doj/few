@@ -1179,7 +1179,7 @@ namespace {
      */
     void parse_regex(std::shared_ptr<file_index> fi, std::shared_ptr<regex_index> ri, const unsigned idx)
     {
-	if (fi->parse_all_in_background(ri)) {
+	if (fi->parse_all_in_background(ri, idx)) {
 	    eventAdd(event(ri, idx));
 	}
     }
@@ -1291,6 +1291,10 @@ namespace {
 	assert(regex_num < max_regex_num);
 	regex_vec_resize(regex_num + 1);
 
+	// abort any currently running job for this regex number
+	file_index::abort_background_parse(regex_num);
+
+	// setup UI
 	create_windows();
 
 	// get new regex string

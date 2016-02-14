@@ -8,6 +8,7 @@
 #include "regex_index.h"
 #include <vector>
 #include <cassert>
+#include <atomic>
 
 class file_index
 {
@@ -35,13 +36,17 @@ class file_index
 
     void push_line(const c_t* beg, const c_t* end, const c_t* next, const line_number_t num);
 
-    /// if true, abort any threads running parse_all_in_background()
-    static bool abortBackgroundParse_s;
+    /// control if background jobs should be aborted.
+    /// see abort_background_parse() for a description what different values accomplish.
+    static std::atomic_int abortBackgroundParse_s;
 
 public:
 
-    /// abort any background parsing threads
-    static void abort_background_parse() { abortBackgroundParse_s = true; }
+    /**
+     * abort background parsing threads.
+     * @param idx if == -2 abort all background jobs, if >= 0 abort job for the given regular expression index, if == -1 do nothing.
+     */
+    static void abort_background_parse(const int idx = -2) { abortBackgroundParse_s = idx; }
 
     typedef std::shared_ptr<file_index> ptr_t;
 
@@ -80,10 +85,12 @@ public:
     /**
      * allow a background thread to parse the entire file and match with a regex_index object.
      * This function is only valid if parse_all() has been called before and the entire file is indexed.
+     * @param[in,out] ri regex_index object.
+     * @param[in] idx regular expression index of the job.
      * @return true if parsing finished.
      * @return false if parse was aborted.
      */
-    bool parse_all_in_background(std::shared_ptr<regex_index> ri) const;
+    bool parse_all_in_background(std::shared_ptr<regex_index> ri, const unsigned idx) const;
 
     /// @return the line number vector of all lines in the file.
     lineNum_vector_t lineNum_vector();

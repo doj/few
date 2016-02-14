@@ -8,7 +8,7 @@
 #include <cassert>
 #include <sysexits.h>
 
-bool file_index::abortBackgroundParse_s;
+std::atomic_int file_index::abortBackgroundParse_s(-1);
 
 file_index::file_index(const std::string& filename) :
     file_(filename),
@@ -158,22 +158,31 @@ file_index::perc(const line_number_t num)
 }
 
 bool
-file_index::parse_all_in_background(std::shared_ptr<regex_index> ri) const
+file_index::parse_all_in_background(std::shared_ptr<regex_index> ri, const unsigned idx) const
 {
     if (! has_parsed_all_) {
 	return false;
     }
-    abortBackgroundParse_s = false;
+
+    // reset the variable, so background jobs are not aborted.
+    abortBackgroundParse_s = -1;
+
+    // iterator over all lines
     const unsigned line_size = line_.size();
     for(unsigned i = 1; i < line_size; ++i) {
 	ri->match(line_[i]);
+	// every 10000 lines do bookkeeping
 	if ((i % 10000) == 0) {
-	    if (abortBackgroundParse_s) {
+	    // check if we should abort
+	    const int aBP_s = abortBackgroundParse_s;
+	    if (aBP_s == -2 || aBP_s == static_cast<int>(idx)) {
 		return false;
 	    }
+	    // report progress to main window
 	    const unsigned perc = static_cast<double>(i) / static_cast<double>(line_size) * 100.0;
-	    eventAdd(event(" matching line " + std::to_string(i) + " " + std::to_string(perc) + "%"));
+	    eventAdd(event("#" + std::to_string(idx+1u) + " matching line " + std::to_string(i) + " " + std::to_string(perc) + "%"));
 	}
     }
+
     return true;
 }
