@@ -401,6 +401,11 @@ namespace {
 				mvaddch(y, x, ' ');
 			    }
 			}
+			// on the upper line, print percentage of position into file
+			if (y == 0) {
+			    curses_attr a(A_REVERSE | A_BOLD | color(COLOR_WHITE, COLOR_BLACK));
+			    mvprintw(y, 0, "%u%%", static_cast<unsigned>(current_line_num * 100llu / display_info->lastLineNum()));
+			}
 		    }
 		    // print line in chunks of screen width
 		    curses_attr a(gray_on_black);

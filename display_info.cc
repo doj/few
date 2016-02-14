@@ -172,7 +172,7 @@ DisplayInfo::go_to_perc(unsigned p)
     if (p > 100) {
 	p = 100;
     }
-    go_to_approx(static_cast<uint64_t>(lastLineNum()) * static_cast<uint64_t>(p) / static_cast<uint64_t>(100u));
+    go_to_approx(static_cast<uint64_t>(lastLineNum()) * static_cast<uint64_t>(p) / static_cast<uint64_t>(100u) + 1u);
 }
 
 line_number_t

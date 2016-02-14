@@ -1,7 +1,6 @@
 TODO
 ----
 
-- print position in file as percentage in upper right corner
 - test on OsX
 - Windows
  + check http://www.chiark.greenend.org.uk/~sgtatham/doit/ to launch browser on Windows
