@@ -1179,8 +1179,9 @@ namespace {
      */
     void parse_regex(std::shared_ptr<file_index> fi, std::shared_ptr<regex_index> ri, const unsigned idx)
     {
-	fi->parse_all_in_background(ri);
-	eventAdd(event(ri, idx));
+	if (fi->parse_all_in_background(ri)) {
+	    eventAdd(event(ri, idx));
+	}
     }
 
     /// return values of the add_regex() function
@@ -1495,6 +1496,12 @@ namespace {
 	} while(0);
 
 	refresh_windows();
+    }
+
+    void key_A()
+    {
+	file_index::abort_background_parse();
+	info = "aborted background jobs";
     }
 
 #if defined(__unix__)
@@ -1846,6 +1853,10 @@ int realmain_impl(int argc, char * const argv[])
 
 	case 'S':
 	    key_S();
+	    break;
+
+	case 'A':
+	    key_A();
 	    break;
 
 	case '1':

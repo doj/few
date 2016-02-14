@@ -66,6 +66,8 @@ The actions resulting from a key press are modelled after the less(1) program.
   edit regular expressions 1 to 10.
 * **F1** .. **F12**:
   edit regular expressions 11 to 22.
+* **A**:
+  abort any running regular expression evaluations.
 * **d**:
   scroll down half a screen
 * **u**:

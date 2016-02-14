@@ -8,6 +8,8 @@
 #include <cassert>
 #include <sysexits.h>
 
+bool file_index::abortBackgroundParse_s;
+
 file_index::file_index(const std::string& filename) :
     file_(filename),
     has_parsed_all_(false)
@@ -155,18 +157,23 @@ file_index::perc(const line_number_t num)
     return static_cast<uint64_t>(num) * 100llu / s;
 }
 
-void
+bool
 file_index::parse_all_in_background(std::shared_ptr<regex_index> ri) const
 {
     if (! has_parsed_all_) {
-	return;
+	return false;
     }
+    abortBackgroundParse_s = false;
     const unsigned line_size = line_.size();
     for(unsigned i = 1; i < line_size; ++i) {
 	ri->match(line_[i]);
 	if ((i % 10000) == 0) {
+	    if (abortBackgroundParse_s) {
+		return false;
+	    }
 	    const unsigned perc = static_cast<double>(i) / static_cast<double>(line_size) * 100.0;
 	    eventAdd(event(" matching line " + std::to_string(i) + " " + std::to_string(perc) + "%"));
 	}
     }
+    return true;
 }
