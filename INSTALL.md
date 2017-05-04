@@ -26,6 +26,11 @@ the few program.
 You can use `make redhat-setup` to install the pre requisites to build
 the few program.
 
+### Build on a Gentoo Linux
+
+You can use `make emerge` to install the pre requisites to build
+the few program.
+
 Build on Windows
 ----------------
 

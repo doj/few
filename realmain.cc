@@ -23,6 +23,7 @@
 #include <sys/wait.h>
 #include <sys/ioctl.h>
 #include <unistd.h>
+#include <cstring>
 #endif
 
 #include "file_index.h"
