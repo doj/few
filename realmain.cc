@@ -890,11 +890,9 @@ namespace {
 
 	// if there are no regex_index objects found, show the complete file
 	if (v.empty()) {
-	    // file_index::lineNum_vector() return a temporary object which we can move
-	    s = std::move(f_idx->lineNum_vector());
+	    s = f_idx->lineNum_vector();
 	} else if (v.size() == 1) {
 	    // if there is only a single regex_index object, use that one
-	    // regex_index::lineNum_vector() returns a const reference which we must copy
 	    s = ri->lineNum_vector();
 	} else {
 	    multiple_set_intersect(v.begin(), v.end(), std::back_insert_iterator<lineNum_vector_t>(s));
@@ -1174,6 +1172,21 @@ namespace {
 	    s += "the requested match is too complex"; break;
 	case std::regex_constants::error_stack:
 	    s += "insufficient memory to evaluate a match"; break;
+
+#if 0
+        case std::regex_constants::_S_error_last: break;
+#endif
+#if defined(_LIBCPP_REGEX)
+            case std::regex_constants::__re_err_grammar:
+                s += "grammar error";
+                break;
+            case std::regex_constants::__re_err_empty:
+                s += "regex is empty";
+                break;
+            case std::regex_constants::__re_err_unknown:
+                s += "unknown error";
+                break;
+#endif
 	}
 	return s;
     }

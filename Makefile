@@ -13,13 +13,19 @@ CXXFLAGS += -O3
 endif
 
 ifeq ($(shell uname),FreeBSD)
-CXX = c++ # FreeBSD's clang++ typically
+CXX := c++ # FreeBSD's clang++ typically
 else
 WARNING_FLAGS += -Werror
 endif
 
+ifeq ($(USE_CLANG),1)
+CXX := clang++
+CXXFLAGS += -stdlib=libc++
+LDFLAGS += -stdlib=libc++
+endif
+
 ifneq ($(SYSROOT),)
-CXX = $(SYSROOT)/bin/c++
+CXX := $(SYSROOT)/bin/$(CXX)
 INCLUDE_FLAGS += -idirafter /usr/include
 LDFLAGS += -Wl,-rpath,$(SYSROOT)/lib64
 export LD_LIBRARY_PATH += $(SYSROOT)/lib
