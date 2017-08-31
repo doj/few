@@ -1055,6 +1055,9 @@ namespace {
 
 	    case KEY_BACKSPACE:
 	    case 8:
+#if defined(__APPLE__)
+	    case 127: // delete
+#endif
 		if (X > 0) {
 		    s.erase(--X,1);
 		}
