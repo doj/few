@@ -18,6 +18,13 @@ else
 WARNING_FLAGS += -Werror
 endif
 
+# for OsX we assume ncurses was installed with homebrew:
+# $ make osx-setup
+ifeq ($(shell uname),Darwin)
+LDFLAGS += -L/usr/local/opt/ncurses/lib
+CXXFLAGS += -I/usr/local/opt/ncurses/include
+endif
+
 ifeq ($(USE_CLANG),1)
 CXX := clang++
 CXXFLAGS += -stdlib=libc++
@@ -146,3 +153,6 @@ debian-setup:
 
 emerge:
 	emerge --ask app-text/ronn sys-libs/ncurses
+
+osx-setup:
+	brew install ncurses

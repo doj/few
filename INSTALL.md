@@ -31,6 +31,12 @@ the few program.
 You can use `make emerge` to install the pre requisites to build
 the few program.
 
+### Build on OsX
+
+You have to install the C++ compilers from Apple's Xcode to build the
+few program.  You can use `make osx-setup` to install the pre
+requisites.
+
 Build on Windows
 ----------------
 

@@ -8,7 +8,7 @@
 #include <atomic>
 #include <vector>
 
-#if defined(__unix__)
+#if defined(__unix__) || defined(__APPLE__)
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -39,7 +39,8 @@ namespace {
     std::atomic_ullong cnt_;
 }
 
-TemporaryFile::TemporaryFile()
+TemporaryFile::TemporaryFile() :
+    f_(nullptr)
 {
     std::vector<std::string> dirs = { "/tmp", "/var/tmp" };
     check_env("TMP", dirs);

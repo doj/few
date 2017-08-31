@@ -13,6 +13,12 @@
 #include <cassert>
 #include <cstring>
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#if defined(__APPLE__)
+#include <sys/syslimits.h>
+#endif
 
 namespace {
     /**
@@ -96,6 +102,16 @@ complete_filename(std::string& path, std::string& err)
 	    // if the match is a directory, append a /
 	    if (d->d_type == DT_DIR) {
 		name += '/';
+	    }
+	    // if the match is a symlink, check if the link target
+	    if (d->d_type == DT_LNK) {
+		struct stat buf;
+		if (stat(name.c_str(), &buf) == 0) {
+		    // if the link target is a directory, append a /
+		    if (S_ISDIR(buf.st_mode)) {
+			name += '/';
+		    }
+		}
 	    }
 	    s.insert(name);
 	}

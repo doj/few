@@ -36,7 +36,7 @@ inline uint32_t timeGetTime()
 {
   return glutGet(static_cast<GLenum>(GLUT_ELAPSED_TIME));
 }
-#elif defined(__FreeBSD__) || defined(__linux__)
+#elif defined(__FreeBSD__) || defined(__linux__) || defined(__APPLE__)
 #include <sys/time.h>
 inline uint32_t timeGetTime()
 {

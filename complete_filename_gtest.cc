@@ -48,7 +48,7 @@ TEST(complete_filename, matches_absolute_pathnames)
     std::string err, path;
     path = "/etc/cron";
     auto s = complete_filename(path, err);
-    ASSERT_GT(s.size(), 2u);
+    ASSERT_GE(s.size(), 1u);
     ASSERT_EQ(0u, err.size());
 
     path = "/tmp";
