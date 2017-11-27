@@ -85,6 +85,9 @@ few.1:	few.md
 few.html:	few.md
 	$(RONN) --html $<
 
+%.E:	%.cc
+	$(CXX) $(CXXFLAGS) -E -o $@ $<
+
 ##############################################################################
 # test the program
 
@@ -134,7 +137,7 @@ TAGS:
 
 clean:
 	rm -f test few few.md few.tar.gz TAGS
-	-find . -name '*~' -or -name '*.o' -or -name '*.d' | xargs rm
+	-find . -name '*~' -or -name '*.o' -or -name '*.d'  -or -name '*.E' | xargs rm
 
 distclean:	clean
 	rm -f few.1 few.html few-$(TODAY).tar.gz
