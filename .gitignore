@@ -33,3 +33,6 @@ Debug
 Debug_gtests
 Release
 Release_gtests
+
+# misc files
+akamake

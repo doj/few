@@ -1176,7 +1176,7 @@ namespace {
 	case std::regex_constants::error_stack:
 	    s += "insufficient memory to evaluate a match"; break;
 
-#if 0
+#if defined(_GLIBCXX_TR1_REGEX) || defined(_GLIBCXX_REGEX)
         case std::regex_constants::_S_error_last: break;
 #endif
 #if defined(_LIBCPP_REGEX)
@@ -1929,6 +1929,7 @@ int realmain_impl(int argc, char * const argv[])
 	std::clog << "peak memory use: " << getPeakRSS()/1024/1024 << " MB." << std::endl;
     }
 
+    // print command line for few
     std::cout << "few";
 
     for(auto c : regex_vec) {
@@ -1955,6 +1956,41 @@ int realmain_impl(int argc, char * const argv[])
 	std::cout << " --color";
     }
     std::cout << " '" << command_line_filename << "'" << std::endl;
+
+    // print comment line for ack
+    bool first_ack = true;
+    for(auto c : regex_vec) {
+        // only use filter regular expressions for ack
+        if (! c->ri_) {
+            continue;
+        }
+
+        // clean up the regular expression string
+        bool i_flag = false;
+        std::string r = c->rgx_;
+        // remove prefix '/'
+        if (r.empty()) continue;
+        if (r[0] == '/') r.erase(0,1);
+        // check for i flag
+        if (r.empty()) continue;
+        if (r.back() == 'i') { i_flag = true; r.pop_back(); }
+        // remove suffix '/'
+        if (r.empty()) continue;
+        if (r.back() == '/') { r.pop_back(); }
+        if (r.empty()) continue;
+
+        if (! first_ack) {
+            std::cout << " | ";
+        }
+        std::cout << "ack ";
+        if (i_flag) { std::cout << "-i "; }
+        std::cout << "'" << r << "'";
+        if (first_ack) {
+            std::cout << " '" << command_line_filename << "'";
+            first_ack = false;
+        }
+    }
+    std::cout << std::endl;
 
     return EXIT_SUCCESS;
 }

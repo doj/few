@@ -16,6 +16,15 @@ the software. With `make install` you can install the program and its
 man page into `/usr/local/`. If you prefer a different location look
 at the `PREFIX` variable in the Makefile.
 
+### Build using clang++
+
+By default the few program is compiled using your system C++ compiler
+`c++`. If you have installed the clang compilers and they are
+available with `clang++` then set the environment variable 'USE_CLANG`
+to 1 when calling make. Example:
+
+   $ USE_CLANG=1 make -j4
+
 ### Build on a Debian (derived) Linux
 
 You can use `make debian-setup` to install the pre requisites to build
