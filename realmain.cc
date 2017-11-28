@@ -1966,24 +1966,25 @@ int realmain_impl(int argc, char * const argv[])
         }
 
         // clean up the regular expression string
-        bool i_flag = false;
         std::string r = c->rgx_;
         // remove prefix '/'
         if (r.empty()) continue;
         if (r[0] == '/') r.erase(0,1);
-        // check for i flag
         if (r.empty()) continue;
-        if (r.back() == 'i') { i_flag = true; r.pop_back(); }
-        // remove suffix '/'
-        if (r.empty()) continue;
-        if (r.back() == '/') { r.pop_back(); }
+        auto pos = r.rfind('/');
+        if (pos == std::string::npos) continue;
+        std::regex_constants::syntax_option_type fl;
+        bool positiveMatch = true;
+        convert(r.substr(pos+1), fl, positiveMatch);
+        r.erase(pos);
         if (r.empty()) continue;
 
         if (! first_ack) {
             std::cout << " | ";
         }
         std::cout << "ack ";
-        if (i_flag) { std::cout << "-i "; }
+        if (! positiveMatch) { std::cout << "-v "; }
+        if (fl & std::regex::icase) { std::cout << "-i "; }
         std::cout << "'" << r << "'";
         if (first_ack) {
             std::cout << " '" << command_line_filename << "'";
