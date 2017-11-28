@@ -9,14 +9,14 @@
  */
 void help()
 {
-    std::cout << "usage: few [--regex 'regular expression']* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [--goto 'NUM'] [-v] [--color] [-h|-?|--help] ['FILE']" << std::endl
-	      << "--regex      preset display or filter regular expressions" << std::endl
-	      << "--search     preset search regular expression" << std::endl
-	      << "--tabwidth   set the width of a tab character in spaces" << std::endl
-	      << "--goto       go to a line number" << std::endl
-	      << "-v           increase verbosity" << std::endl
-	      << "--color      enable color" << std::endl
-	      << "--help       show this text" << std::endl
-	      << "Study the man page few(1) for more details." << std::endl
+    std::cout << "usage: few [--regex '/REGEX/flags']* [--search '/REGEX/flags'] [--tabwidth 'NUM'] [--goto 'NUM'] [-v] [--color] [-h|-?|--help] ['FILE']\n"
+	      << "--regex     preset Display Regular Expression or Filter Regular Expression or Attribute Display Filter Regular Expression\n"
+	      << "--search    preset search regular expression\n"
+	      << "--tabwidth  set the width of a tab character in spaces\n"
+	      << "--goto      go to a line number\n"
+	      << " -v         increase verbosity\n"
+	      << "--color     enable color\n"
+	      << "--help      show this text\n"
+	      << "Study the man page few(1) for more details.\n"
 	;
 }
