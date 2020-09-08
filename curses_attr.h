@@ -27,6 +27,8 @@
 #define A_ITALIC 0
 #endif
 
+typedef uint64_t curses_attr_t;
+
 /**
  * helper class to manage curses attributes.
  * The constructor sets an attribute, the destructor unsets it.
@@ -36,7 +38,7 @@ class curses_attr
     attr_t attrs_;
     short pair_;
 public:
-    explicit curses_attr(uint64_t a)
+    explicit curses_attr(curses_attr_t a)
     {
 	attr_get(&attrs_, &pair_, nullptr);
 	attron(static_cast<chtype>(a));
