@@ -69,6 +69,16 @@ std::string get_regex_str(const std::string& str)
 	return "";
     }
 
+    // check for attribute display filter format
+    if (str[0] == '|') {
+	auto pos = str.rfind('|');
+	if (pos == 0) {
+	    return "";
+	}
+	return str.substr(1, pos-1);
+    }
+
+    // check for normal regular expression format
     if (str[0] != '/') {
 	return "";
     }
@@ -94,7 +104,7 @@ std::string get_regex_str(const std::string& str)
 
 #include <iostream>
 bool
-is_attr_df(const std::string& str, uint64_t& attr, int& fg, int& bg)
+is_attr_df(const std::string& str, curses_attr_t& attr, int& fg, int& bg)
 {
     static std::map<std::string, uint64_t> str2attr = {
 	{"normal", A_NORMAL },

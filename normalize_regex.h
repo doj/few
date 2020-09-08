@@ -5,6 +5,7 @@
 #pragma once
 #include <string>
 #include <stdint.h>
+#include "curses_attr.h"
 
 std::string normalize_regex(std::string regex);
 
@@ -26,7 +27,7 @@ std::string get_regex_str(const std::string& str);
  * @param[out] bg curses background color; -1 if no color was specified.
  * @return true if regex is a _display filter with curses attribute_.
  */
-bool is_attr_df(const std::string& str, uint64_t& attr, int& fg, int& bg);
+bool is_attr_df(const std::string& str, curses_attr_t& attr, int& fg, int& bg);
 
 /**
  * check if a regular expression is a filter regex.

@@ -87,6 +87,15 @@ TEST(get_regex_str, detects_invalid_regex)
     ASSERT_EQ(std::string(""), get_regex_str("/a\\n"));
 }
 
+TEST(get_regex_str, handles_attribute_display_filter)
+{
+    ASSERT_EQ(std::string(""), get_regex_str(""));
+    ASSERT_EQ(std::string(""), get_regex_str("||"));
+    ASSERT_EQ(std::string("a"), get_regex_str("|a|"));
+    ASSERT_EQ(std::string(""), get_regex_str("|abc/bold"));
+    ASSERT_EQ(std::string("a"), get_regex_str("|a|bold"));
+}
+
 TEST(normalize_regex, detects_df_attr_syntax)
 {
     std::string r = "|something|bold";
