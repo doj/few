@@ -268,11 +268,13 @@ ENVIRONMENT VARIABLES
 
 * **BROWSER**:
   On Unix: name of web browser to launch; If not set defaults to firefox.
-  On Windows this variable is not used and few uses the system default web browser.
+  On OsX: name of web browser to use; If not set defaults to the default browser used with the 'open' command.
+  On Windows: this variable is not used and few uses the system default web browser.
 
 * **MAILER**:
   On Unix: name of the mail application; If not set defaults to thunderbird.
-  On Windows this variable is not used and few uses the system default mail application.
+  On OsX: name of mail application to use; If not set defaults to the default application used with the 'open' command and a mailto: URL.
+  On Windows: this variable is not used and few uses the system default mail application.
 
 * **FEWOPTIONS**:
   default command line arguments.

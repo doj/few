@@ -11,24 +11,32 @@ bool
 click_link(const std::string& link, std::string& error_msg)
 {
     if (link.empty()) {
-	error_msg = "clock_link(): link is empty";
+	error_msg = "click_link(): link is empty";
+	return false;
+    }
+    if (link.find('\'') != std::string::npos) {
+	error_msg = "link contains '";
 	return false;
     }
 
-	std::string browser = "firefox";
-	const char *cc = getenv("BROWSER");
-	if (cc) {
-	    browser = cc;
-	    if (browser.empty()) {
-		error_msg = "BROWSER environment variable is empty";
-		return false;
-	    }
-	}
-	assert(! browser.empty());
-	if (! run_command_background(browser + " '" + link + "'", error_msg)) {
+#ifdef __APPLE__
+    std::string browser = "open";
+#else
+    std::string browser = "firefox";
+#endif
+    const char *cc = getenv("BROWSER");
+    if (cc) {
+	browser = cc;
+	if (browser.empty()) {
+	    error_msg = "BROWSER environment variable is empty";
 	    return false;
 	}
-	return true;
+    }
+    assert(! browser.empty());
+    if (! run_command_background(browser + " '" + link + "'", error_msg)) {
+	return false;
+    }
+    return true;
 }
 
 bool click_email(const std::string& email, const std::string& subject, std::string& error_msg)
@@ -37,7 +45,21 @@ bool click_email(const std::string& email, const std::string& subject, std::stri
 	error_msg = "click_email(): email is empty";
 	return false;
     }
+    if (email.find('\'') != std::string::npos) {
+	error_msg = "email contains '";
+	return false;
+    }
+    if (subject.find('\'') != std::string::npos) {
+	error_msg = "subject contains '";
+	return false;
+    }
 
+    std::string cmd;
+#ifdef __APPLE__
+    cmd = "open 'mailto:";
+    cmd += email;
+    cmd += '\'';
+#else
     std::string mailer = "thunderbird";
     const char *cc = getenv("MAILER");
     if (cc) {
@@ -48,13 +70,15 @@ bool click_email(const std::string& email, const std::string& subject, std::stri
 	}
     }
     assert(! mailer.empty());
-    std::string cmd = mailer + " '" + email + "'";
+    cmd = mailer + " '" + email + "'";
     if (mailer == "thunderbird") {
 	// http://kb.mozillazine.org/Command_line_arguments_%28Thunderbird%29
 	cmd = mailer + " -compose \"to='" + email + "',subject='" + subject + "'\"";
     } else if (mailer == "evolution") {
 	cmd = mailer + " 'mailto:" + email + "?subject=" + subject + "'";
     }
+#endif
+
     if (! run_command_background(cmd, error_msg)) {
 	return false;
     }
