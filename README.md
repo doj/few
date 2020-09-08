@@ -179,7 +179,7 @@ You can use a regular expression to change the character attributes
 and the colors used to display the line. This is called an _Attribute
 Display Filter_. This uses the following form:
 
-|regex|<list of attributes>,<optional color specification>
+|regex|{list of attributes},{optional color specification}
 
 The following attributes are supported by few. Note that your curses
 implementation or terminal may not support all of these attributes.
@@ -195,7 +195,7 @@ implementation or terminal may not support all of these attributes.
 
 The optional _color specification_ has the following form:
 
-<color> on <color>
+{color} on {color}
 
 The first color specifies the foreground color. The second color
 specifies the background color. The following colors are supported:
