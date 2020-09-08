@@ -156,7 +156,7 @@ namespace {
 	/// regex object used for the attribute display filter
 	std::shared_ptr<std::wregex> attribute_df_rgx_;
 	/// attribute display filter curses attributes
-	uint64_t attribute_df_attr_;
+	curses_attr_t attribute_df_attr_;
 
 	///@}
     };
@@ -325,7 +325,7 @@ namespace {
 		auto wline = to_wide(line.to_string());
 
 		// map of pointers into the line and a corresponding curses attribute for the character
-		std::map<std::wstring::iterator, unsigned> character_attr;
+		std::map<std::wstring::iterator, curses_attr_t> character_attr;
 
 		// apply Attribute Display Filters
 		for(auto df : regex_vec) {
@@ -352,6 +352,7 @@ namespace {
 			assert(b <= e);
 			// set character attribute for all matched characters
 			for (std::wstring::iterator i = b; i != e; ++i) {
+			    character_attr[i] &= ~A_COLOR; // clear any previous color
 			    character_attr[i] |= (use_color() ? (color(COLOR_GREEN, COLOR_BLACK) | A_BOLD) : A_REVERSE);
 			}
 		    }
@@ -432,8 +433,7 @@ namespace {
 			else {
 			    // replace non printable characters with a space
 			    if (iswprint(c)) {
-				const unsigned attr = character_attr[it];
-				curses_attr a(attr);
+				curses_attr a(character_attr[it]);
 				mvaddwch(y, x, c);
 			    }
 			    else {
@@ -502,7 +502,7 @@ namespace {
 	    ++cnt;
 	    std::string s = c->rgx_;
 	    std::string title = "regex";
-	    unsigned attr = A_REVERSE;
+	    curses_attr_t attr = A_REVERSE;
 
 	    if (c->err_.empty()) {
 		attr |= (cnt & 1) ? gray_on_black : lightgray_on_black;
@@ -1248,8 +1248,8 @@ namespace {
 	c->rgx_ = rgx;
 
 	try {
-	    uint64_t df_attr;
-	    int df_fg, df_bg;
+	    curses_attr_t df_attr = 0;
+	    int df_fg = 0, df_bg = 0;
 
 	    if (isFilterRgx) {
 		// Lines Filter
