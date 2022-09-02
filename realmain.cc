@@ -1189,6 +1189,9 @@ namespace {
             case std::regex_constants::__re_err_unknown:
                 s += "unknown error";
                 break;
+            case std::regex_constants::__re_err_parse:
+                s += "parse error";
+                break;
 #endif
 	}
 	return s;
@@ -1436,7 +1439,7 @@ namespace {
 	{
 	    curses_attr a(A_BOLD);
 	    const std::string title = "Search: ";
-	    mvprintw(search_y, 0, title.c_str());
+	    mvprintw(search_y, 0, "%s", title.c_str());
 	    compile_search_regex( line_edit(search_y, title.size(), search_str, screen_width - title.size(), complete_word_set) );
 	}
 	create_windows();
@@ -1449,7 +1452,7 @@ namespace {
 	{
 	    curses_attr a(A_BOLD);
 	    const std::string title = "command: ";
-	    mvprintw(search_y, 0, title.c_str());
+	    mvprintw(search_y, 0, "%s", title.c_str());
 	    cmd = line_edit(search_y, title.size(), "", screen_width - title.size(), nullptr);
 	}
 
@@ -1508,7 +1511,7 @@ namespace {
 	do {
 	    curses_attr a(A_BOLD);
 	    const std::string title = "Save to File: ";
-	    mvprintw(search_y, 0, title.c_str());
+	    mvprintw(search_y, 0, "%s", title.c_str());
 	    const std::string filename = line_edit(search_y, title.size(), "", screen_width - title.size(), complete_filename);
 	    if (filename.empty()) {
 		break;

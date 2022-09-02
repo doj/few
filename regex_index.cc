@@ -28,12 +28,12 @@ void convert(const std::string& flags, std::regex_constants::syntax_option_type&
 regex_index::regex_index(std::string rgx) :
     positive_match_(true)
 {
-    rgx = normalize_regex(rgx);
+    rgx = normalize_regex(std::move(rgx));
     const std::string flags = get_regex_flags(rgx);
-    rgx = get_regex_str(rgx);
+    rgx = get_regex_str(std::move(rgx));
     std::regex_constants::syntax_option_type fl;
     convert(flags, fl, positive_match_);
-    rgx_.assign(rgx, fl);
+    rgx_.assign(std::move(rgx), fl);
 }
 
 void

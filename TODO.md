@@ -19,3 +19,4 @@ TODO
 - maybe search in background? However while searching in background the user can modify the display_info object which will invalidate the iterators that the background search would use.
 - support hidden filters
 - when pressing 'G' key, check if file grew and (re)load new part
+- when matching (updating a filter), use n threads
