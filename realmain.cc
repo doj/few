@@ -1176,9 +1176,9 @@ namespace {
 	case std::regex_constants::error_stack:
 	    s += "insufficient memory to evaluate a match"; break;
 
-#if defined(_GLIBCXX_TR1_REGEX) || defined(_GLIBCXX_REGEX)
-        case std::regex_constants::_S_error_last: break;
-#endif
+//#if defined(_GLIBCXX_TR1_REGEX) || defined(_GLIBCXX_REGEX)
+//        case std::regex_constants::_S_error_last: break;
+//#endif
 #if defined(_LIBCPP_REGEX)
             case std::regex_constants::__re_err_grammar:
                 s += "grammar error";
