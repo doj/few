@@ -46,7 +46,7 @@ TEST(complete_filename, matches_complete_absolute_files)
 TEST(complete_filename, matches_absolute_pathnames)
 {
     std::string err, path;
-    path = "/etc/cron";
+    path = "/etc/passwd";
     auto s = complete_filename(path, err);
     ASSERT_GE(s.size(), 1u);
     ASSERT_EQ(0u, err.size());

@@ -17,6 +17,11 @@
 #elif defined(__FreeBSD__)
 #define _XOPEN_SOURCE_EXTENDED 1
 #include <ncurses.h>
+
+#elif defined(__APPLE__)
+#define _XOPEN_SOURCE_EXTENDED 1
+#include <curses.h>
+
 #else
 #define _XOPEN_SOURCE_EXTENDED 1
 /// define to enable curses with wide characters

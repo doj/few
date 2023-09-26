@@ -18,11 +18,10 @@ else
 WARNING_FLAGS += -Werror
 endif
 
-# for OsX we assume ncurses was installed with homebrew:
-# $ make osx-setup
 ifeq ($(shell uname),Darwin)
-LDFLAGS += -L/usr/local/opt/ncurses/lib
-CXXFLAGS += -I/usr/local/opt/ncurses/include
+LIBS += -lcurses
+else
+LIBS += -lncursesw
 endif
 
 ifeq ($(USE_CLANG),1)
@@ -49,7 +48,7 @@ OBJS := $(SRCS:.cc=.o)
 ##############################################################################
 # Linker Flags
 
-LIBS = -lncursesw -lpthread
+LIBS += -lpthread
 
 ##############################################################################
 # installation
@@ -156,6 +155,3 @@ debian-setup:
 
 emerge:
 	emerge --ask app-text/ronn sys-libs/ncurses
-
-osx-setup:
-	brew install ncurses
